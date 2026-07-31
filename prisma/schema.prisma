@@ -1,0 +1,126 @@
+// Plugz — data model (auth + roles for the MVP frontend phase).
+// Datastore: self-hosted PostgreSQL (see infrastructure proposal).
+
+generator client {
+  provider      = "prisma-client-js"
+  // native for local dev; the others cover Railway (Debian) and Netlify (RHEL/Lambda).
+  binaryTargets = ["native", "debian-openssl-3.0.x", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  SHOPPER
+  CREATOR
+  ADMIN
+}
+
+enum CreatorStatus {
+  PENDING // application submitted, awaiting Lisa/Rachel review
+  APPROVED // live on the platform
+  DECLINED // rejected in review
+  SUSPENDED // temporarily disabled
+}
+
+// How the creator record was created — drives the dual-consent flow.
+enum ApplicationSource {
+  SELF_SERVE // creator applied themselves
+  ADMIN_ADDED // admin created on their behalf; creator must still confirm
+}
+
+enum WaitlistInterest {
+  CREATOR
+  SHOPPER
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String
+  name          String
+  role          Role      @default(CREATOR)
+  emailVerified DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  creatorProfile     CreatorProfile?
+  emailTokens        EmailVerificationToken[]
+  passwordResetTokens PasswordResetToken[]
+
+  @@index([role])
+}
+
+model CreatorProfile {
+  id       String @id @default(cuid())
+  userId   String @unique
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  handle   String  @unique // storefront slug, e.g. "freyasinclair" -> pluggz.com/@freyasinclair
+  category String
+  city     String?
+  bio      String?
+
+  status CreatorStatus     @default(PENDING)
+  source ApplicationSource @default(SELF_SERVE)
+
+  // Dual-consent: admin-added creators must log in and release their profile.
+  profileReleasedAt DateTime?
+
+  // Tick-box terms acceptance, automatically timestamped + versioned.
+  termsVersion    String?
+  termsAcceptedAt DateTime?
+
+  socials   SocialHandle[]
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@index([status])
+}
+
+model SocialHandle {
+  id        String @id @default(cuid())
+  profileId String
+  profile   CreatorProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  platform  String // instagram | tiktok | youtube | ...
+  handle    String
+  url       String?
+  followers Int    @default(0)
+
+  @@index([profileId])
+}
+
+model WaitlistEntry {
+  id        String           @id @default(cuid())
+  name      String
+  email     String           @unique
+  handle    String?
+  interest  WaitlistInterest @default(CREATOR)
+  createdAt DateTime         @default(now())
+}
+
+model EmailVerificationToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}

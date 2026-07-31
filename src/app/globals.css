@@ -1,26 +1,255 @@
 @import "tailwindcss";
 
+/*
+  Plugz design system
+  ------------------------------------------------------------------
+  Two themes: "night" (default, near-black — the brand's edgier LTK
+  alternative) and "day" (warm cream). Semantic tokens flip per theme;
+  brand tokens stay constant. Derived from the client-approved demo.
+*/
+
+@custom-variant dark (&:where([data-theme="night"], [data-theme="night"] *));
+
+:root,
+[data-theme="night"] {
+  color-scheme: dark;
+
+  --bg: #0a0a0b;
+  --bg-elev: #121214;
+  --surface: #17131a;
+  --surface-2: #1c1a22;
+  --surface-3: #232329;
+  --border: rgba(255, 255, 255, 0.09);
+  --border-strong: rgba(255, 255, 255, 0.16);
+
+  --text: #f6f2ec;
+  --text-strong: #ffffff;
+  --text-muted: #a8a29a;
+  --text-faint: #6b6660;
+
+  --ring: rgba(255, 45, 155, 0.55);
+  --shadow-color: 0, 0, 0;
+  --shadow-strength: 0.5;
+
+  --glass: rgba(18, 18, 20, 0.72);
+  --hero-veil: linear-gradient(120deg, rgba(10, 10, 11, 0.55), rgba(10, 10, 11, 0));
+}
+
+[data-theme="day"] {
+  color-scheme: light;
+
+  --bg: #f6f2ec;
+  --bg-elev: #fbf7f1;
+  --surface: #ffffff;
+  --surface-2: #fbf7f1;
+  --surface-3: #f0eae1;
+  --border: rgba(23, 19, 26, 0.1);
+  --border-strong: rgba(23, 19, 26, 0.16);
+
+  --text: #221a20;
+  --text-strong: #17131a;
+  --text-muted: #6b6660;
+  --text-faint: #9c9289;
+
+  --ring: rgba(255, 45, 155, 0.4);
+  --shadow-color: 92, 43, 46;
+  --shadow-strength: 0.12;
+
+  --glass: rgba(251, 247, 241, 0.75);
+  --hero-veil: linear-gradient(120deg, rgba(246, 242, 236, 0.5), rgba(246, 242, 236, 0));
+}
+
+/* Brand tokens — constant across themes */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --brand-pink: #ff2d9b;
+  --brand-purple: #a438ff;
+  --brand-orange: #ff8a2b;
+  --accent-cyan: #2bd4ff;
+  --accent-green: #22e39a;
+  --accent-gold: #ffc24b;
+
+  --grad-brand: linear-gradient(120deg, #ff2d9b 0%, #a438ff 50%, #ff8a2b 100%);
+  --grad-brand-soft: linear-gradient(120deg, #ff2d9b, #a438ff);
+  --grad-warm: linear-gradient(120deg, #ff2d9b, #ff8a2b);
+  --glow-brand: 0 12px 34px -12px rgba(196, 59, 255, 0.7);
+  --glow-brand-sm: 0 8px 22px -12px rgba(196, 59, 255, 0.6);
+
+  --font-display: var(--font-display-next), "Bodoni Moda", "Times New Roman", serif;
+  --font-sans: var(--font-sans-next), "Hanken Grotesk", system-ui, -apple-system, sans-serif;
+
+  --r-pill: 999px;
+  --r-lg: 24px;
+  --r-md: 18px;
+  --r-sm: 12px;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg: var(--bg);
+  --color-bg-elev: var(--bg-elev);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+
+  --color-text: var(--text);
+  --color-text-strong: var(--text-strong);
+  --color-text-muted: var(--text-muted);
+  --color-text-faint: var(--text-faint);
+
+  --color-brand-pink: var(--brand-pink);
+  --color-brand-purple: var(--brand-purple);
+  --color-brand-orange: var(--brand-orange);
+  --color-accent-cyan: var(--accent-cyan);
+  --color-accent-green: var(--accent-green);
+  --color-accent-gold: var(--accent-gold);
+
+  --font-display: var(--font-display);
+  --font-sans: var(--font-sans);
+
+  --radius-pill: var(--r-pill);
+  --radius-lg: var(--r-lg);
+  --radius-md: var(--r-md);
+  --radius-sm: var(--r-sm);
+
+  --shadow-glow: var(--glow-brand);
+  --shadow-glow-sm: var(--glow-brand-sm);
+
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+
+  --animate-shimmer: shimmer 2.2s linear infinite;
+  --animate-float: float 7s ease-in-out infinite;
+  --animate-marquee: marquee 38s linear infinite;
+  --animate-pulse-glow: pulse-glow 2.4s ease-in-out infinite;
+  --animate-rise: rise 0.6s var(--ease-out-quart) both;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-feature-settings: "ss01", "cv01";
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    background: var(--brand-pink);
+    color: #fff;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+    color: var(--text-strong);
+  }
+
+  ::-webkit-scrollbar {
+    width: 11px;
+    height: 11px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-strong);
+    border-radius: 99px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--text-faint);
+    background-clip: content-box;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--brand-pink);
+    outline-offset: 2px;
+    border-radius: 4px;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  .text-gradient {
+    background: var(--grad-brand);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .bg-grad-brand {
+    background-image: var(--grad-brand);
+  }
+
+  .surface-card {
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+  }
+
+  .glass {
+    background: var(--glass);
+    backdrop-filter: blur(18px) saturate(140%);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+  }
+
+  /* Gradient border via mask — reusable ring for cards/inputs */
+  .grad-ring {
+    position: relative;
+  }
+  .grad-ring::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: var(--grad-brand);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    opacity: 0.9;
+  }
+}
+
+/* ---------- keyframes ---------- */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-14px); }
+}
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(34, 227, 154, 0.5); }
+  50% { box-shadow: 0 0 14px 2px rgba(34, 227, 154, 0.55); }
+}
+@keyframes rise {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }

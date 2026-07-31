@@ -1,0 +1,9 @@
+[build]
+  command = "prisma generate && prisma db push --skip-generate && next build"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# Next.js runtime (App Router, middleware, API routes) on Netlify.
+[[plugins]]
+  package = "@netlify/plugin-nextjs"

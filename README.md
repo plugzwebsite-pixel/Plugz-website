@@ -1,36 +1,127 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Plugz
 
-## Getting Started
+The UK's curated directory of creators and the products they actually plug — discover it here, buy it at the brand. Plugz combines affiliate tracking, creator storefronts, product collections and video-style discovery into one platform.
 
-First, run the development server:
+This repository contains the web application: the shopper-facing marketplace, the creator dashboard, and the admin console, together with a full authentication flow.
+
+## Features
+
+**Shopper**
+- Landing page with search, trend-of-the-week and curated lifestyle categories
+- Category browsing, search results, and per-creator storefronts (`/@handle`)
+
+**Creator**
+- Application / sign-up with per-platform handles and timestamped terms acceptance
+- Dashboard: views, clicks, conversion, sales value, commission, ranking and payout pipeline
+- Storefront link management (paste a product URL to add it) and profile settings
+
+**Admin**
+- Creator approval queue, add-creator (dual-consent invite), brand onboarding
+- Analytics, commission settings, and the twice-monthly payout pipeline
+
+**Auth**
+- Email + password with bcrypt hashing and JWT (httpOnly cookie) sessions
+- Email verification and password reset via one-time, hashed tokens
+- Role-based route protection (shopper / creator / admin) and rate limiting
+
+Fully responsive, with light and dark themes.
+
+## Tech stack
+
+- [Next.js](https://nextjs.org) (App Router) + React + TypeScript
+- Tailwind CSS v4
+- Prisma ORM + PostgreSQL
+- Framer Motion for transitions
+- Resend for transactional email (with a local dev mailbox fallback)
+
+## Getting started
+
+### Prerequisites
+
+- Node.js 20+
+- PostgreSQL 14+
+
+### 1. Install
+
+```bash
+npm install
+```
+
+### 2. Configure environment
+
+Copy the example file and fill in the values:
+
+```bash
+cp .env.example .env
+```
+
+Generate an auth secret:
+
+```bash
+node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
+```
+
+Set `DATABASE_URL` to your PostgreSQL connection string and paste the generated
+value into `AUTH_SECRET`.
+
+### 3. Set up the database
+
+```bash
+npm run db:push     # sync the schema
+npm run db:seed     # create the admin account + demo data
+```
+
+The seed creates an admin account and a demo creator (credentials are taken from
+`.env` / printed by the seed script) plus a set of pending applications for the
+approval queue.
+
+### 4. Run
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Visit [http://localhost:3000](http://localhost:3000). In development, verification
+and password-reset emails are captured at `/dev/mailbox` instead of being sent.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Script | Description |
+| --- | --- |
+| `npm run dev` | Start the dev server |
+| `npm run build` | Production build |
+| `npm run start` | Start the production server |
+| `npm run lint` | Lint |
+| `npm run db:push` | Sync the Prisma schema to the database |
+| `npm run db:seed` | Seed demo data |
+| `npm run db:studio` | Open Prisma Studio |
 
-## Learn More
+## Deployment
 
-To learn more about Next.js, take a look at the following resources:
+The app is configured for both Railway and Netlify.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Railway
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Create a new project and add a **PostgreSQL** plugin.
+2. Deploy this repository; Railway builds it automatically (`railway.json`).
+3. Set the environment variables from `.env.example` (Railway provides
+   `DATABASE_URL` from the Postgres plugin).
 
-## Deploy on Vercel
+The schema is pushed on each deploy via the start command.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Netlify
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Connect the repository; the build settings come from `netlify.toml`.
+2. Provide a PostgreSQL database (e.g. Neon, Supabase or a Railway instance) and
+   set `DATABASE_URL`, plus the other variables from `.env.example`.
+
+## Project structure
+
+```
+src/
+  app/            # routes: (marketing), (auth), creator, admin, api
+  components/     # UI, brand, marketing, dashboard, admin, creator, theme
+  lib/            # auth, db, email, validation, utilities
+prisma/           # schema + seed
+public/images/    # creator portraits and product imagery
+```
