@@ -7,7 +7,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
 import { compact } from "@/lib/utils";
-import { postJson } from "@/lib/client/api";
+import { patchJson } from "@/lib/client/api";
 
 export type Applicant = {
   id: string;
@@ -40,7 +40,7 @@ export function ApprovalQueue({ initial }: { initial: Applicant[] }) {
 
   async function act(id: string, action: "approve" | "decline") {
     setBusy(id);
-    const res = await postJson(`/api/admin/creators/${id}`, { action });
+    const res = await patchJson(`/api/admin/creators/${id}`, { action });
     setBusy(null);
     if (!res.ok) {
       toast.error("Couldn't update", res.message);

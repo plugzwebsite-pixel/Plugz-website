@@ -8,14 +8,15 @@ export type ApiResult<T = unknown> = {
   status: number;
 };
 
-/** POST JSON to an internal API route and normalise the response shape. */
-export async function postJson<T = unknown>(
+/** Send a JSON body to an internal API route and normalise the response shape. */
+async function sendJson<T = unknown>(
   url: string,
+  method: "POST" | "PATCH" | "PUT" | "DELETE",
   body: unknown
 ): Promise<ApiResult<T>> {
   try {
     const res = await fetch(url, {
-      method: "POST",
+      method,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
@@ -34,4 +35,12 @@ export async function postJson<T = unknown>(
       status: 0,
     };
   }
+}
+
+export function postJson<T = unknown>(url: string, body: unknown) {
+  return sendJson<T>(url, "POST", body);
+}
+
+export function patchJson<T = unknown>(url: string, body: unknown) {
+  return sendJson<T>(url, "PATCH", body);
 }
