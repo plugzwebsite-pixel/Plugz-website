@@ -266,7 +266,7 @@ export function CreatorSignupForm() {
                 target="_blank"
                 className="font-medium text-brand-pink hover:underline"
               >
-                Plugz Creator Terms &amp; Membership Agreement
+                Pluggz Creator Terms &amp; Membership Agreement
               </Link>
               . I understand my acceptance is recorded and timestamped.
             </>

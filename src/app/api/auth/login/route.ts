@@ -31,7 +31,7 @@ export async function POST(req: Request) {
 
   // Suspended creators can't sign in.
   if (user.creatorProfile?.status === "SUSPENDED") {
-    return fail("This account has been suspended. Contact the Plugz team.", 403);
+    return fail("This account has been suspended. Contact the Pluggz team.", 403);
   }
 
   await createSessionCookie({

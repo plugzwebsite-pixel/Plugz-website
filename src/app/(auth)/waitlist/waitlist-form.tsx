@@ -128,7 +128,7 @@ export function WaitlistForm() {
         Join the waitlist
       </Button>
       <p className="text-center text-xs text-text-faint">
-        No spam. We&apos;ll only email you about your Plugz access.
+        No spam. We&apos;ll only email you about your Pluggz access.
       </p>
     </form>
   );

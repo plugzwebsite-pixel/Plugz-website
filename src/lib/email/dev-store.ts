@@ -11,7 +11,7 @@ export type DevMail = {
   sentAt: string;
 };
 
-const FILE = path.join(process.cwd(), ".plugz-dev-mail.json");
+const FILE = path.join(process.cwd(), ".pluggz-dev-mail.json");
 const MAX = 50;
 
 async function readAll(): Promise<DevMail[]> {

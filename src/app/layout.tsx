@@ -20,15 +20,15 @@ const sans = Hanken_Grotesk({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://plugz.com"),
+  metadataBase: new URL("https://pluggz.com"),
   title: {
-    default: "Plugz — Shop what the UK's tastemakers actually plug",
-    template: "%s · Plugz",
+    default: "Pluggz — Shop what the UK's tastemakers actually plug",
+    template: "%s · Pluggz",
   },
   description:
     "A curated directory of the creators you follow and the exact products they swear by. Discover it here, buy it at the brand.",
   keywords: [
-    "Plugz",
+    "Pluggz",
     "creator marketplace",
     "affiliate",
     "UK influencers",
@@ -36,11 +36,11 @@ export const metadata: Metadata = {
     "shop the look",
   ],
   openGraph: {
-    title: "Plugz — Shop what the UK's tastemakers actually plug",
+    title: "Pluggz — Shop what the UK's tastemakers actually plug",
     description:
       "The curated directory of UK creators and the products they actually plug.",
     type: "website",
-    siteName: "Plugz",
+    siteName: "Pluggz",
   },
   icons: { icon: "/favicon.svg" },
 };
@@ -55,7 +55,7 @@ export const viewport: Viewport = {
 };
 
 // Set the theme before first paint to avoid a flash of the wrong theme.
-const themeInit = `(function(){try{var t=localStorage.getItem('plugz-theme');if(!t){t='night';}document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','night');}})();`;
+const themeInit = `(function(){try{var t=localStorage.getItem('pluggz-theme');if(!t){t='night';}document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','night');}})();`;
 
 export default function RootLayout({
   children,

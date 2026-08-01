@@ -59,7 +59,7 @@ export function SettingsForm({
 
   return (
     <form onSubmit={save} className="space-y-6">
-      <Panel title="Public profile" description="How you appear across Plugz.">
+      <Panel title="Public profile" description="How you appear across Pluggz.">
         <div className="grid gap-5 sm:grid-cols-2">
           <Field label="Display name" htmlFor="name">
             <Input id="name" defaultValue={name} />
@@ -100,7 +100,7 @@ export function SettingsForm({
 
       <Panel
         title="Membership & terms"
-        description="Your Plugz Creator Terms & Membership Agreement."
+        description="Your Pluggz Creator Terms & Membership Agreement."
       >
         <div className="flex items-start gap-3 rounded-sm border border-accent-green/25 bg-accent-green/[0.05] p-4">
           <ShieldCheck className="mt-0.5 shrink-0 text-accent-green" size={18} />

@@ -10,7 +10,7 @@ import { WaitlistForm } from "./waitlist-form";
 export const metadata: Metadata = {
   title: "Join the waitlist",
   description:
-    "Be first on Plugz — register your interest as a creator or shopper.",
+    "Be first on Pluggz — register your interest as a creator or shopper.",
 };
 
 export default function WaitlistPage() {
@@ -28,7 +28,7 @@ export default function WaitlistPage() {
           href="/"
           className="inline-flex items-center gap-2 text-sm text-text-muted transition-colors hover:text-text-strong"
         >
-          <ArrowLeft size={16} /> Back to Plugz
+          <ArrowLeft size={16} /> Back to Pluggz
         </Link>
         <div className="flex items-center gap-3">
           <Logo size="sm" />
@@ -47,7 +47,7 @@ export default function WaitlistPage() {
           <Reveal index={1}>
             <h1 className="mt-6 font-display text-[clamp(2.5rem,6vw,3.75rem)] font-semibold leading-[1.03] text-text-strong">
               Be first on{" "}
-              <span className="text-gradient italic">Plugz.</span>
+              <span className="text-gradient italic">Pluggz.</span>
             </h1>
           </Reveal>
           <Reveal index={2}>
@@ -65,7 +65,7 @@ export default function WaitlistPage() {
       </main>
 
       <footer className="relative z-10 px-6 py-6 text-center text-sm text-text-faint">
-        © 2026 Plugz Ltd · Discover here, buy at the brand.
+        © 2026 Pluggz Ltd · Discover here, buy at the brand.
       </footer>
     </div>
   );

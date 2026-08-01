@@ -64,7 +64,7 @@ export const TRENDS = [
   "Long-haul comfort",
   "Shop the look",
   "Trend of the week",
-  "#PlugzPicks",
+  "#PluggzPicks",
   "The reset",
   "Evening wind-down",
   "5k programme",

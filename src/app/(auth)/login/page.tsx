@@ -6,14 +6,14 @@ import { LoginForm } from "./login-form";
 
 export const metadata: Metadata = {
   title: "Sign in",
-  description: "Sign in to your Plugz creator or admin account.",
+  description: "Sign in to your Pluggz creator or admin account.",
 };
 
 export default function LoginPage() {
   return (
     <AuthShell
       eyebrow="Welcome back"
-      title="Sign in to Plugz"
+      title="Sign in to Pluggz"
       subtitle="Access your creator dashboard or the admin console."
     >
       <Suspense fallback={null}>

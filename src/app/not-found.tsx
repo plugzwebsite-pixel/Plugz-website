@@ -28,7 +28,7 @@ export default function NotFound() {
           </Link>
           <Link href="/search">
             <Button size="lg" variant="secondary" className="w-full sm:w-auto">
-              <Search size={17} /> Search Plugz
+              <Search size={17} /> Search Pluggz
             </Button>
           </Link>
         </div>

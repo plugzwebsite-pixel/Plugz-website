@@ -62,7 +62,7 @@ export function SiteFooter() {
           ))}
         </div>
         <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-border pt-6 text-sm text-text-faint sm:flex-row">
-          <p>© 2026 Plugz Ltd · Discover here, buy at the brand.</p>
+          <p>© 2026 Pluggz Ltd · Discover here, buy at the brand.</p>
           <p>Made in the UK</p>
         </div>
       </Container>

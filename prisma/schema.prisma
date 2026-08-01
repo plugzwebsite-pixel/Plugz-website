@@ -1,4 +1,4 @@
-// Plugz — data model (auth + roles for the MVP frontend phase).
+// Pluggz — data model (auth + roles for the MVP frontend phase).
 // Datastore: self-hosted PostgreSQL (see infrastructure proposal).
 
 generator client {

@@ -12,7 +12,7 @@ type SendArgs = {
 };
 
 const provider = process.env.EMAIL_PROVIDER ?? "dev";
-const from = process.env.EMAIL_FROM ?? "Plugz <hello@plugz.com>";
+const from = process.env.EMAIL_FROM ?? "Pluggz <hello@pluggz.com>";
 
 async function sendEmail({ to, subject, heading, body, cta }: SendArgs) {
   const html = renderEmail({ heading, body, cta });
@@ -47,9 +47,9 @@ function appUrl(pathname: string) {
 export function sendVerificationEmail(to: string, name: string, token: string) {
   return sendEmail({
     to,
-    subject: "Verify your Plugz email",
-    heading: `Welcome to Plugz, ${name.split(" ")[0]}`,
-    body: "Confirm your email address to activate your Plugz account. This link expires in 24 hours.",
+    subject: "Verify your Pluggz email",
+    heading: `Welcome to Pluggz, ${name.split(" ")[0]}`,
+    body: "Confirm your email address to activate your Pluggz account. This link expires in 24 hours.",
     cta: { label: "Verify email", url: appUrl(`/verify-email?token=${token}`) },
   });
 }
@@ -57,7 +57,7 @@ export function sendVerificationEmail(to: string, name: string, token: string) {
 export function sendPasswordResetEmail(to: string, name: string, token: string) {
   return sendEmail({
     to,
-    subject: "Reset your Plugz password",
+    subject: "Reset your Pluggz password",
     heading: `Password reset`,
     body: `Hi ${name.split(" ")[0]}, we received a request to reset your password. This link expires in 1 hour. If it wasn't you, you can safely ignore this email.`,
     cta: { label: "Reset password", url: appUrl(`/reset-password?token=${token}`) },
@@ -67,9 +67,9 @@ export function sendPasswordResetEmail(to: string, name: string, token: string) 
 export function sendCreatorInviteEmail(to: string, name: string, token: string) {
   return sendEmail({
     to,
-    subject: "You've been invited to Plugz",
-    heading: `Rachel added you to Plugz`,
-    body: `Hi ${name.split(" ")[0]}, the Plugz team has set up a creator profile for you. Set your password and release your profile to take it live. This link expires in 24 hours.`,
+    subject: "You've been invited to Pluggz",
+    heading: `Rachel added you to Pluggz`,
+    body: `Hi ${name.split(" ")[0]}, the Pluggz team has set up a creator profile for you. Set your password and release your profile to take it live. This link expires in 24 hours.`,
     cta: {
       label: "Set password & release profile",
       url: appUrl(`/reset-password?token=${token}&invite=1`),
@@ -80,8 +80,8 @@ export function sendCreatorInviteEmail(to: string, name: string, token: string) 
 export function sendWaitlistConfirmation(to: string, name: string) {
   return sendEmail({
     to,
-    subject: "You're on the Plugz waitlist",
+    subject: "You're on the Pluggz waitlist",
     heading: `You're in, ${name.split(" ")[0]}`,
-    body: "Thanks for registering your interest in Plugz. We'll be in touch as soon as your spot opens up.",
+    body: "Thanks for registering your interest in Pluggz. We'll be in touch as soon as your spot opens up.",
   });
 }

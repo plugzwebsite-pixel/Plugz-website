@@ -11,22 +11,22 @@ type Override = {
   name: string;
   type: "Creator" | "Brand";
   creator: number;
-  plugz: number;
+  pluggz: number;
 };
 
 const initialOverrides: Override[] = [
-  { id: 1, name: "Sophie Clarke", type: "Creator", creator: 10, plugz: 5 },
-  { id: 2, name: "Aura Rituals", type: "Brand", creator: 8, plugz: 7 },
-  { id: 3, name: "Nadine Merabi", type: "Brand", creator: 9, plugz: 6 },
+  { id: 1, name: "Sophie Clarke", type: "Creator", creator: 10, pluggz: 5 },
+  { id: 2, name: "Aura Rituals", type: "Brand", creator: 8, pluggz: 7 },
+  { id: 3, name: "Nadine Merabi", type: "Brand", creator: 9, pluggz: 6 },
 ];
 
 export default function CommissionPage() {
   const [creator, setCreator] = useState(8);
-  const [plugz, setPlugz] = useState(5);
+  const [pluggz, setPluggz] = useState(5);
   const [overrides] = useState(initialOverrides);
   const toast = useToast();
 
-  const total = creator + plugz;
+  const total = creator + pluggz;
 
   function step(setter: (n: number) => void, value: number, dir: 1 | -1, min: number) {
     const next = Math.min(20, Math.max(min, value + dir));
@@ -58,11 +58,11 @@ export default function CommissionPage() {
             onInc={() => step(setCreator, creator, 1, 8)}
           />
           <RateStepper
-            label="Plugz share"
+            label="Pluggz share"
             hint="Target 5%"
-            value={plugz}
-            onDec={() => step(setPlugz, plugz, -1, 3)}
-            onInc={() => step(setPlugz, plugz, 1, 3)}
+            value={pluggz}
+            onDec={() => step(setPluggz, pluggz, -1, 3)}
+            onInc={() => step(setPluggz, pluggz, 1, 3)}
           />
         </div>
 
@@ -73,16 +73,16 @@ export default function CommissionPage() {
               className="bg-grad-brand"
               style={{ width: `${(creator / total) * 100}%` }}
             />
-            <div className="bg-accent-cyan" style={{ width: `${(plugz / total) * 100}%` }} />
+            <div className="bg-accent-cyan" style={{ width: `${(pluggz / total) * 100}%` }} />
           </div>
           <div className="mt-2 flex justify-between text-xs text-text-faint">
             <span>Creator {creator}%</span>
-            <span>Plugz {plugz}%</span>
+            <span>Pluggz {pluggz}%</span>
           </div>
         </div>
 
         <div className="mt-6 flex justify-end">
-          <Button onClick={() => toast.success("Default rate saved", `${creator}% creator · ${plugz}% Plugz`)}>
+          <Button onClick={() => toast.success("Default rate saved", `${creator}% creator · ${pluggz}% Pluggz`)}>
             <Save size={15} /> Save default
           </Button>
         </div>
@@ -115,9 +115,9 @@ export default function CommissionPage() {
                     <Badge tone={o.type === "Creator" ? "brand" : "cyan"}>{o.type}</Badge>
                   </td>
                   <td className="px-6 py-3.5 text-text-muted">
-                    {o.creator}% / {o.plugz}%
+                    {o.creator}% / {o.pluggz}%
                   </td>
-                  <td className="px-6 py-3.5 font-semibold text-text">{o.creator + o.plugz}%</td>
+                  <td className="px-6 py-3.5 font-semibold text-text">{o.creator + o.pluggz}%</td>
                   <td className="px-6 py-3.5 text-right">
                     <button
                       onClick={() => toast.info("Edit override", `Editing ${o.name}`)}

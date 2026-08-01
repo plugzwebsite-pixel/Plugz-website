@@ -11,8 +11,8 @@ async function hash(pw) {
 
 async function main() {
   // --- Admin (Lisa & Rachel share the single launch admin role) ---
-  const adminEmail = process.env.SEED_ADMIN_EMAIL ?? "admin@plugz.com";
-  const adminPassword = process.env.SEED_ADMIN_PASSWORD ?? "PlugzAdmin!2026";
+  const adminEmail = process.env.SEED_ADMIN_EMAIL ?? "admin@pluggz.com";
+  const adminPassword = process.env.SEED_ADMIN_PASSWORD ?? "PluggzAdmin!2026";
   await db.user.upsert({
     where: { email: adminEmail },
     update: {},
@@ -26,7 +26,7 @@ async function main() {
   });
 
   // --- Demo approved creator (for logging into the creator dashboard) ---
-  const creatorEmail = "freya@plugz.com";
+  const creatorEmail = "freya@pluggz.com";
   const existing = await db.user.findUnique({ where: { email: creatorEmail } });
   if (!existing) {
     await db.user.create({

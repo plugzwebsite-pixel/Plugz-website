@@ -77,7 +77,7 @@ export function BrandOnboardingForm() {
             onClick={() => setPath("direct")}
             icon={<Ticket size={18} />}
             title="No — direct deal"
-            desc="Plugz becomes their affiliate directly"
+            desc="Pluggz becomes their affiliate directly"
           />
         </div>
       </div>
@@ -107,7 +107,7 @@ export function BrandOnboardingForm() {
                       )}
                     </Select>
                   </Field>
-                  <Field label="Publisher / affiliate ID" hint="Once Plugz is accepted">
+                  <Field label="Publisher / affiliate ID" hint="Once Pluggz is accepted">
                     <Input placeholder="e.g. 1284402" />
                   </Field>
                 </div>
@@ -129,7 +129,7 @@ export function BrandOnboardingForm() {
                   </Field>
                 </div>
                 <Field label="Invoicing / payment details" className="mt-5">
-                  <Input placeholder="How the brand pays Plugz (Stripe / Wise / bank)" />
+                  <Input placeholder="How the brand pays Pluggz (Stripe / Wise / bank)" />
                 </Field>
               </Section>
             )}

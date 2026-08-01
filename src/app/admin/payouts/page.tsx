@@ -8,7 +8,7 @@ export const metadata: Metadata = { title: "Payouts" };
 const pipeline = [
   { label: "Pending", sub: "in return window", value: 4820, icon: Clock, tone: "amber" as const },
   { label: "Verified", sub: "window passed", value: 9310, icon: ShieldCheck, tone: "cyan" as const },
-  { label: "Paid to Plugz", sub: "settled by brands", value: 7640, icon: Building2, tone: "brand" as const },
+  { label: "Paid to Pluggz", sub: "settled by brands", value: 7640, icon: Building2, tone: "brand" as const },
   { label: "Paid to creators", sub: "this month", value: 6120, icon: HandCoins, tone: "green" as const },
 ];
 
@@ -60,7 +60,7 @@ export default function PayoutsPage() {
 
       {/* Flow strip */}
       <div className="hidden items-center justify-between rounded-md border border-border bg-bg-elev px-8 py-5 text-sm text-text-muted sm:flex">
-        {["Pending", "Verified", "Paid to Plugz", "Paid to Creator"].map((s, i, arr) => (
+        {["Pending", "Verified", "Paid to Pluggz", "Paid to Creator"].map((s, i, arr) => (
           <div key={s} className="flex items-center gap-4">
             <span className="flex items-center gap-2">
               <span className="grid h-6 w-6 place-items-center rounded-full bg-grad-brand text-xs font-bold text-white">

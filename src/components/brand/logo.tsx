@@ -15,7 +15,7 @@ const sizes = {
 };
 
 /**
- * The Plugz wordmark: "Plug" in the strong text colour, a gradient "z",
+ * The Pluggz wordmark: "Plugg" in the strong text colour, a gradient "z",
  * set in the Bodoni Moda display serif.
  */
 export function Logo({ href = "/", className, size = "md" }: LogoProps) {
@@ -27,14 +27,14 @@ export function Logo({ href = "/", className, size = "md" }: LogoProps) {
         className
       )}
     >
-      Plug<span className="text-gradient italic">z</span>
+      Plugg<span className="text-gradient italic">z</span>
     </span>
   );
 
   if (href === null) return mark;
 
   return (
-    <Link href={href} className="inline-flex items-center" aria-label="Plugz home">
+    <Link href={href} className="inline-flex items-center" aria-label="Pluggz home">
       {mark}
     </Link>
   );

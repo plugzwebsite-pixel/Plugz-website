@@ -6,7 +6,7 @@ import { CreatorSignupForm } from "./signup-form";
 export const metadata: Metadata = {
   title: "Apply to become a creator",
   description:
-    "Apply to join Plugz — turn the products you already recommend into commission.",
+    "Apply to join Pluggz — turn the products you already recommend into commission.",
 };
 
 export default function SignupPage() {
@@ -14,7 +14,7 @@ export default function SignupPage() {
     <AuthShell
       eyebrow="Creator application"
       title="Apply to become a creator"
-      subtitle="Tell us where you post and what you plug. Applications are reviewed by the Plugz team, usually within a couple of days."
+      subtitle="Tell us where you post and what you plug. Applications are reviewed by the Pluggz team, usually within a couple of days."
     >
       <CreatorSignupForm />
       <p className="mt-8 text-center text-sm text-text-muted">

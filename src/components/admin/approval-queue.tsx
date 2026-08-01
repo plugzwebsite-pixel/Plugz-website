@@ -50,7 +50,7 @@ export function ApprovalQueue({ initial }: { initial: Applicant[] }) {
     setItems((prev) => prev.map((i) => (i.id === id ? { ...i, status } : i)));
     toast.success(
       action === "approve" ? "Creator approved" : "Application declined",
-      action === "approve" ? "They're now live on Plugz." : undefined
+      action === "approve" ? "They're now live on Pluggz." : undefined
     );
   }
 

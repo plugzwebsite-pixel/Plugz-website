@@ -45,5 +45,5 @@ next-env.d.ts
 .claude/
 .idea/
 .vscode/
-.plugz-dev-mail.json
+.pluggz-dev-mail.json
 /scripts/*.ps1

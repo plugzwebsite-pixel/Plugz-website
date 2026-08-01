@@ -13,7 +13,7 @@ export type SessionUser = {
   handle?: string;
 };
 
-export const COOKIE_NAME = process.env.AUTH_COOKIE_NAME ?? "plugz_session";
+export const COOKIE_NAME = process.env.AUTH_COOKIE_NAME ?? "pluggz_session";
 export const MAX_AGE_DAYS = Number(process.env.SESSION_MAX_AGE_DAYS ?? "7");
 export const MAX_AGE_SECONDS = MAX_AGE_DAYS * 24 * 60 * 60;
 

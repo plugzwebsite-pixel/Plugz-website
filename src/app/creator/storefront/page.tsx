@@ -7,7 +7,7 @@ export default function CreatorStorefrontPage() {
   return (
     <div className="space-y-6">
       <p className="text-text-muted">
-        Paste a brand product URL and Plugz builds the product page, generates the
+        Paste a brand product URL and Pluggz builds the product page, generates the
         affiliate tracking, and adds it to your storefront — no manual work.
       </p>
       <StorefrontManager />

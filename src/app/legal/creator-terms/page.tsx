@@ -31,15 +31,15 @@ export default function CreatorTermsPage() {
         </h1>
         <div className="mt-8 space-y-6 text-[0.975rem] leading-relaxed text-text-muted">
           <p>
-            This is a placeholder for the Plugz Creator Terms &amp; Membership
-            Agreement. The final legal copy will be supplied by Plugz Ltd before
+            This is a placeholder for the Pluggz Creator Terms &amp; Membership
+            Agreement. The final legal copy will be supplied by Pluggz Ltd before
             launch. By ticking the acceptance box on the creator application, you
             agree to the terms in force at the time, and your acceptance is
             recorded with an automatic timestamp and the terms version shown
             above.
           </p>
           <p>
-            In summary, membership grants Plugz the authority to represent your
+            In summary, membership grants Pluggz the authority to represent your
             profile and content when approaching brands for collaborations,
             covers the commission structure (creators earn a minimum of 8% per
             sale), and sets out the twice-monthly payout schedule and returns

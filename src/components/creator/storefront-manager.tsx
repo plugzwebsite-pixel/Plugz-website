@@ -47,7 +47,7 @@ export function StorefrontManager() {
       return;
     }
     setLoading(true);
-    // Simulate Plugz fetching product metadata from the pasted URL.
+    // Simulate Pluggz fetching product metadata from the pasted URL.
     await new Promise((r) => setTimeout(r, 1100));
     const i = links.length % sampleNames.length;
     setLinks((prev) => [

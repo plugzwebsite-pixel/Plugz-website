@@ -51,7 +51,7 @@ export default async function CreatorDashboardPage() {
         <StatCard value="12,400" label="Link clicks" delta={8} sub="vs last week" icon={MousePointerClick} />
         <StatCard value="4.2%" label="Conversion rate" sub="clicks → sales" icon={Percent} />
         <StatCard value={gbp(18640)} label="Sales value" sub="this month" icon={TrendingUp} />
-        <StatCard value={gbp(1491)} label="Your commission" sub="8% you · 5% Plugz" icon={Wallet} />
+        <StatCard value={gbp(1491)} label="Your commission" sub="8% you · 5% Pluggz" icon={Wallet} />
         <div className="relative overflow-hidden rounded-md border border-border bg-surface p-5">
           <span className="absolute left-5 top-0 h-0.5 w-10 rounded-b bg-grad-brand" />
           <div className="flex items-center gap-2 text-text-muted">

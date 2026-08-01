@@ -68,7 +68,7 @@ export function AuthShell({
         </div>
 
         <p className="relative z-10 text-sm text-text-faint">
-          © 2026 Plugz Ltd · Discover here, buy at the brand.
+          © 2026 Pluggz Ltd · Discover here, buy at the brand.
         </p>
       </aside>
 
@@ -79,7 +79,7 @@ export function AuthShell({
             href="/"
             className="inline-flex items-center gap-2 text-sm text-text-muted transition-colors hover:text-text-strong"
           >
-            <ArrowLeft size={16} /> Back to Plugz
+            <ArrowLeft size={16} /> Back to Pluggz
           </Link>
           <div className="flex items-center gap-3">
             <div className="lg:hidden">

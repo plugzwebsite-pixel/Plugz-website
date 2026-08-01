@@ -21,7 +21,7 @@ export function renderEmail({
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">
     <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="max-width:480px;background:#17131a;border:1px solid rgba(255,255,255,0.08);border-radius:22px;overflow:hidden">
       <tr><td style="padding:36px 36px 8px">
-        <div style="font-family:Georgia,serif;font-size:26px;font-weight:700;color:#fff">Plug<span style="font-style:italic;background:linear-gradient(120deg,#FF2D9B,#A438FF,#FF8A2B);-webkit-background-clip:text;background-clip:text;color:transparent">z</span></div>
+        <div style="font-family:Georgia,serif;font-size:26px;font-weight:700;color:#fff">Plugg<span style="font-style:italic;background:linear-gradient(120deg,#FF2D9B,#A438FF,#FF8A2B);-webkit-background-clip:text;background-clip:text;color:transparent">z</span></div>
       </td></tr>
       <tr><td style="padding:16px 36px 0">
         <h1 style="font-family:Georgia,serif;font-size:24px;color:#fff;margin:0 0 12px">${heading}</h1>
@@ -31,7 +31,7 @@ export function renderEmail({
       </td></tr>
       <tr><td style="padding:32px 36px 36px">
         <hr style="border:none;border-top:1px solid rgba(255,255,255,0.08);margin:0 0 16px">
-        <p style="color:#6b6660;font-size:12px;margin:0">Plugz Ltd · The UK's curated creator directory</p>
+        <p style="color:#6b6660;font-size:12px;margin:0">Pluggz Ltd · The UK's curated creator directory</p>
       </td></tr>
     </table>
   </td></tr></table>

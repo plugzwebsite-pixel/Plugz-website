@@ -47,7 +47,7 @@ export function LoginForm() {
       return;
     }
 
-    toast.success("Signed in", "Welcome back to Plugz.");
+    toast.success("Signed in", "Welcome back to Pluggz.");
     const dest = next && next.startsWith("/") ? next : res.data!.redirect;
     router.push(dest);
     router.refresh();

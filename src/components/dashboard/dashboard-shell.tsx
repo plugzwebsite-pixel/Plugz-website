@@ -146,7 +146,7 @@ export function DashboardShell({
             href="/"
             className="flex flex-1 items-center gap-2 rounded-sm px-2.5 py-2 text-xs text-text-muted transition-colors hover:bg-surface-2 hover:text-text-strong"
           >
-            <ArrowLeft size={14} /> Back to Plugz
+            <ArrowLeft size={14} /> Back to Pluggz
           </Link>
           <button
             onClick={logout}
