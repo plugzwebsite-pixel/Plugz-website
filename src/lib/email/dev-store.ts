@@ -1,6 +1,7 @@
 import "server-only";
 import { promises as fs } from "fs";
 import path from "path";
+import os from "os";
 
 export type DevMail = {
   id: string;
@@ -11,7 +12,9 @@ export type DevMail = {
   sentAt: string;
 };
 
-const FILE = path.join(process.cwd(), ".pluggz-dev-mail.json");
+// Use the OS temp dir — writable everywhere, including serverless hosts whose
+// project filesystem is read-only.
+const FILE = path.join(os.tmpdir(), "pluggz-dev-mail.json");
 const MAX = 50;
 
 async function readAll(): Promise<DevMail[]> {
@@ -24,9 +27,13 @@ async function readAll(): Promise<DevMail[]> {
 }
 
 export async function saveDevMail(mail: DevMail): Promise<void> {
-  const all = await readAll();
-  all.unshift(mail);
-  await fs.writeFile(FILE, JSON.stringify(all.slice(0, MAX), null, 2), "utf8");
+  try {
+    const all = await readAll();
+    all.unshift(mail);
+    await fs.writeFile(FILE, JSON.stringify(all.slice(0, MAX), null, 2), "utf8");
+  } catch {
+    // Non-fatal: capturing dev mail is best-effort only.
+  }
 }
 
 export async function listDevMail(): Promise<DevMail[]> {

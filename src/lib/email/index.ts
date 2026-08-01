@@ -17,26 +17,33 @@ const from = process.env.EMAIL_FROM ?? "Pluggz <hello@pluggz.com>";
 async function sendEmail({ to, subject, heading, body, cta }: SendArgs) {
   const html = renderEmail({ heading, body, cta });
 
-  if (provider === "resend" && process.env.RESEND_API_KEY) {
-    // Production path — Resend per the infrastructure proposal.
-    const { Resend } = await import("resend");
-    const resend = new Resend(process.env.RESEND_API_KEY);
-    await resend.emails.send({ from, to, subject, html });
-    return;
-  }
+  // Email delivery must never break the action that triggered it (sign-up,
+  // password reset, etc.). Any failure here is logged, not thrown.
+  try {
+    if (provider === "resend" && process.env.RESEND_API_KEY) {
+      // Production path — Resend per the infrastructure proposal.
+      const { Resend } = await import("resend");
+      const resend = new Resend(process.env.RESEND_API_KEY);
+      const result = await resend.emails.send({ from, to, subject, html });
+      if (result.error) console.error("[email] Resend error:", result.error);
+      return;
+    }
 
-  // Dev path — log the link and capture it in the on-screen dev mailbox.
-  if (cta?.url) {
-    console.log(`\n📧 [dev email] ${subject} → ${to}\n   ${cta.url}\n`);
+    // Dev path — log the link and capture it in the on-screen dev mailbox.
+    if (cta?.url) {
+      console.log(`\n📧 [dev email] ${subject} → ${to}\n   ${cta.url}\n`);
+    }
+    await saveDevMail({
+      id: randomUUID(),
+      to,
+      subject,
+      preview: body,
+      link: cta?.url,
+      sentAt: new Date().toISOString(),
+    });
+  } catch (err) {
+    console.error("[email] send failed (non-fatal):", err);
   }
-  await saveDevMail({
-    id: randomUUID(),
-    to,
-    subject,
-    preview: body,
-    link: cta?.url,
-    sentAt: new Date().toISOString(),
-  });
 }
 
 function appUrl(pathname: string) {
