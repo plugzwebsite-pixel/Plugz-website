@@ -20,8 +20,36 @@ async function sendEmail({ to, subject, heading, body, cta }: SendArgs) {
   // Email delivery must never break the action that triggered it (sign-up,
   // password reset, etc.). Any failure here is logged, not thrown.
   try {
+    // Brevo — send to any recipient with just a single verified sender email
+    // (no domain verification required). Free tier: 300 emails/day.
+    if (provider === "brevo" && process.env.BREVO_API_KEY) {
+      const sender = parseFrom(from);
+      const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+        method: "POST",
+        headers: {
+          "api-key": process.env.BREVO_API_KEY,
+          "content-type": "application/json",
+          accept: "application/json",
+        },
+        body: JSON.stringify({
+          sender,
+          to: [{ email: to }],
+          subject,
+          htmlContent: html,
+        }),
+      });
+      if (!res.ok) {
+        console.error(
+          "[email] Brevo error:",
+          res.status,
+          await res.text().catch(() => "")
+        );
+      }
+      return;
+    }
+
     if (provider === "resend" && process.env.RESEND_API_KEY) {
-      // Production path — Resend per the infrastructure proposal.
+      // Alternative provider — Resend.
       const { Resend } = await import("resend");
       const resend = new Resend(process.env.RESEND_API_KEY);
       const result = await resend.emails.send({ from, to, subject, html });
@@ -44,6 +72,13 @@ async function sendEmail({ to, subject, heading, body, cta }: SendArgs) {
   } catch (err) {
     console.error("[email] send failed (non-fatal):", err);
   }
+}
+
+/** Parse an "EMAIL_FROM" value like `Pluggz <hi@x.com>` into name + email. */
+function parseFrom(value: string): { name: string; email: string } {
+  const match = value.match(/^\s*(.*?)\s*<([^>]+)>\s*$/);
+  if (match) return { name: match[1] || "Pluggz", email: match[2].trim() };
+  return { name: "Pluggz", email: value.trim() };
 }
 
 function appUrl(pathname: string) {
