@@ -42,13 +42,23 @@ export const IMPACT_STATS = [
   { value: "4.9★", label: "average creator rating" },
 ];
 
-export const CATEGORY_NAV = [
-  { name: "Women's Fashion", slug: "womens-fashion", emoji: "👗", edits: 5 },
-  { name: "Beauty & Skincare", slug: "beauty-skincare", emoji: "✨", edits: 6 },
-  { name: "Shoes & Accessories", slug: "shoes-accessories", emoji: "👜", edits: 4 },
-  { name: "Home", slug: "home", emoji: "🕯️", edits: 4 },
-  { name: "Fitness & Lifestyle", slug: "fitness-lifestyle", emoji: "🏋️", edits: 5 },
-  { name: "Travel / Holiday", slug: "travel-holiday", emoji: "🌴", edits: 5 },
+export type Category = {
+  name: string;
+  slug: string;
+  emoji: string;
+  edits: number;
+  cover: string;
+  /** Optional hover-to-play clip; drops in once real category videos exist. */
+  video?: string;
+};
+
+export const CATEGORY_NAV: Category[] = [
+  { name: "Women's Fashion", slug: "womens-fashion", emoji: "👗", edits: 5, cover: "/images/products/p4.jpg" },
+  { name: "Beauty & Skincare", slug: "beauty-skincare", emoji: "✨", edits: 6, cover: "/images/products/p3.jpg" },
+  { name: "Shoes & Accessories", slug: "shoes-accessories", emoji: "👜", edits: 4, cover: "/images/products/p7.jpg" },
+  { name: "Home", slug: "home", emoji: "🕯️", edits: 4, cover: "/images/products/p10.jpg" },
+  { name: "Fitness & Lifestyle", slug: "fitness-lifestyle", emoji: "🏋️", edits: 5, cover: "/images/products/p11.jpg" },
+  { name: "Travel / Holiday", slug: "travel-holiday", emoji: "🌴", edits: 5, cover: "/images/products/p9.jpg" },
 ];
 
 export const TRENDS = [

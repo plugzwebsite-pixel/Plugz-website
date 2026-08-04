@@ -52,7 +52,8 @@ export async function POST(req: Request) {
       creatorProfile: {
         create: {
           handle: input.handle,
-          category: input.category,
+          // Categories are product-driven now; creators aren't pinned to one.
+          category: "General",
           city: input.city || null,
           status: "PENDING",
           source: "SELF_SERVE",

@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Hero } from "@/components/marketing/hero";
-import { TrendMarquee } from "@/components/marketing/trend-marquee";
 import { SectionHeading } from "@/components/marketing/section";
-import { CreatorCard, ProductCard } from "@/components/marketing/cards";
+import { ProductCard } from "@/components/marketing/cards";
+import { CategoryVideoTile } from "@/components/marketing/category-video-tile";
 import { Container, Eyebrow } from "@/components/ui/primitives";
 import { Button } from "@/components/ui/button";
 import { Avatar } from "@/components/ui/avatar";
@@ -19,38 +19,47 @@ import {
 import { compact } from "@/lib/utils";
 
 export default function HomePage() {
-  const featured = CREATORS.slice(0, 8);
-  const trendProducts = PRODUCTS.slice(0, 4);
+  const trendProducts = PRODUCTS.slice(0, 8);
   const trendingCreators = CREATORS.filter((c) => c.trending).slice(0, 7);
 
   return (
     <>
       <Hero />
 
-      <Container>
-        <TrendMarquee />
-      </Container>
-
-      {/* Featured creators */}
-      <Container className="py-20">
+      {/* Trending now — moved high up so shoppers hit the hot picks fast */}
+      <Container className="py-14">
         <Reveal>
           <SectionHeading
-            eyebrow="Handpicked"
-            title="Featured creators"
-            action={{ label: "Browse all", href: "/creators" }}
+            eyebrow="Trending now"
+            title="What everyone's shopping this week"
+            action={{ label: "See the edit", href: "/category/travel-holiday" }}
           />
         </Reveal>
         <div className="mt-9 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {featured.map((c, i) => (
-            <Reveal key={c.handle} index={i % 4}>
-              <CreatorCard creator={c} />
+          {trendProducts.map((p, i) => (
+            <Reveal key={`${p.name}-${i}`} index={i % 4}>
+              <ProductCard product={p} />
+            </Reveal>
+          ))}
+        </div>
+      </Container>
+
+      {/* Shop by lifestyle — Instagram-style hover-to-play video tiles */}
+      <Container className="py-10">
+        <Reveal>
+          <SectionHeading eyebrow="Curated" title="Shop by lifestyle" />
+        </Reveal>
+        <div className="mt-9 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {CATEGORY_NAV.map((c, i) => (
+            <Reveal key={c.slug} index={i % 3}>
+              <CategoryVideoTile category={c} />
             </Reveal>
           ))}
         </div>
       </Container>
 
       {/* Featured partner */}
-      <Container className="py-6">
+      <Container className="py-14">
         <Reveal>
           <div className="relative grid overflow-hidden rounded-lg border border-border-strong lg:grid-cols-2">
             <div className="relative p-8 sm:p-12 lg:p-14">
@@ -95,61 +104,15 @@ export default function HomePage() {
         </Reveal>
       </Container>
 
-      {/* Trend of the week */}
-      <Container className="py-20">
+      {/* Trending creators strip */}
+      <Container className="py-14">
         <Reveal>
           <SectionHeading
-            eyebrow="Trend of the week"
-            title="The holiday edit everyone's shopping"
-            action={{ label: "See the edit", href: "/category/travel-holiday" }}
+            eyebrow="Glowing = trending this week"
+            title="Creators to follow"
           />
         </Reveal>
-        <div className="mt-9 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {trendProducts.map((p, i) => (
-            <Reveal key={p.name} index={i % 4}>
-              <ProductCard product={p} />
-            </Reveal>
-          ))}
-        </div>
-      </Container>
-
-      {/* Shop by lifestyle */}
-      <Container className="py-10">
-        <Reveal>
-          <SectionHeading eyebrow="Curated" title="Shop by lifestyle" />
-        </Reveal>
-        <div className="mt-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {CATEGORY_NAV.map((c, i) => (
-            <Reveal key={c.slug} index={i % 3}>
-              <Link
-                href={`/category/${c.slug}`}
-                className="group flex items-center gap-4 rounded-md border border-border bg-surface p-5 transition-[transform,border-color] duration-300 hover:-translate-y-0.5 hover:border-border-strong"
-              >
-                <span className="grid h-14 w-14 place-items-center rounded-md bg-surface-2 text-2xl">
-                  {c.emoji}
-                </span>
-                <div className="flex-1">
-                  <h3 className="font-display text-lg font-semibold text-text-strong">
-                    {c.name}
-                  </h3>
-                  <p className="text-sm text-text-faint">{c.edits} edits</p>
-                </div>
-                <ArrowRight
-                  size={18}
-                  className="text-text-faint transition-transform group-hover:translate-x-1 group-hover:text-brand-pink"
-                />
-              </Link>
-            </Reveal>
-          ))}
-        </div>
-      </Container>
-
-      {/* Trending creators strip */}
-      <Container className="py-16">
-        <Reveal>
-          <SectionHeading eyebrow="Glowing = trending this week" title="Creators trending now" />
-        </Reveal>
-        <div className="mt-9 flex flex-wrap gap-8">
+        <div className="mt-9 flex flex-wrap justify-center gap-8 sm:justify-start">
           {trendingCreators.map((c, i) => (
             <Reveal key={c.handle} index={i % 7}>
               <Link
@@ -185,36 +148,35 @@ export default function HomePage() {
         </Reveal>
       </Container>
 
-      {/* Commission CTA */}
+      {/* Consumer closing CTA */}
       <Container className="py-20">
         <Reveal>
           <div className="relative overflow-hidden rounded-lg bg-grad-brand p-12 text-center sm:p-16">
             <div className="relative z-10 mx-auto max-w-2xl">
-              <Sparkles className="mx-auto text-white" size={30} />
-              <h2 className="mt-5 font-display text-[clamp(2rem,5vw,3rem)] font-semibold leading-tight text-white">
-                Your taste is worth commission.
+              <h2 className="font-display text-[clamp(2rem,5vw,3rem)] font-semibold leading-tight text-white">
+                Find your next favourite.
               </h2>
               <p className="mx-auto mt-5 max-w-xl text-lg leading-relaxed text-white/90">
-                Turn the products you already recommend into income. Creators earn
-                8% on every sale — we handle the links, tracking and payouts.
+                Browse the creators redefining UK style — and shop the exact pieces
+                they plug, straight from the brand.
               </p>
               <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-                <Link href="/signup">
+                <Link href="/category/womens-fashion">
                   <Button
                     size="lg"
                     variant="secondary"
                     className="w-full border-white/30 bg-white text-[#17131a] hover:bg-white/90 sm:w-auto"
                   >
-                    Join as Creator
+                    Explore the edit
                   </Button>
                 </Link>
-                <Link href="/waitlist">
+                <Link href="/search">
                   <Button
                     size="lg"
                     variant="outline"
                     className="w-full border-white/40 text-white hover:bg-white/10 sm:w-auto"
                   >
-                    Join the shopper waitlist
+                    Search Pluggz
                   </Button>
                 </Link>
               </div>

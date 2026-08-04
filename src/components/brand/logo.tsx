@@ -15,8 +15,8 @@ const sizes = {
 };
 
 /**
- * The Pluggz wordmark: "Plugg" in the strong text colour, a gradient "z",
- * set in the Bodoni Moda display serif.
+ * The Pluggz wordmark, set in the Bodoni Moda display serif — a single,
+ * consistent colour across every letter.
  */
 export function Logo({ href = "/", className, size = "md" }: LogoProps) {
   const mark = (
@@ -27,7 +27,7 @@ export function Logo({ href = "/", className, size = "md" }: LogoProps) {
         className
       )}
     >
-      Plugg<span className="text-gradient italic">z</span>
+      Pluggz
     </span>
   );
 

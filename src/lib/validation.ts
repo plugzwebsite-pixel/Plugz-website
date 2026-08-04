@@ -47,7 +47,7 @@ export const creatorSignupSchema = z
     email,
     password,
     handle,
-    category: z.enum(CATEGORIES, { message: "Choose a category" }),
+    // No creator-level category — categorisation happens per product at upload.
     city: z.string().trim().max(80).optional().or(z.literal("")),
     socials: z.array(social).min(1),
     acceptTerms: z

@@ -15,11 +15,9 @@ import {
 import {
   creatorSignupSchema,
   type CreatorSignupInput,
-  CATEGORIES,
 } from "@/lib/validation";
 import { Field, Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
-import { Select } from "@/components/ui/controls";
 import { Checkbox } from "@/components/ui/controls";
 import { Button } from "@/components/ui/button";
 import { postJson } from "@/lib/client/api";
@@ -46,7 +44,6 @@ export function CreatorSignupForm() {
       email: "",
       password: "",
       handle: "",
-      category: undefined,
       city: "",
       acceptTerms: false,
       socials: [
@@ -168,48 +165,33 @@ export function CreatorSignupForm() {
         />
       </Field>
 
-      <div className="grid gap-5 sm:grid-cols-2">
-        <Field
-          label="Storefront handle"
-          htmlFor="handle"
-          required
-          error={errors.handle?.message}
-          hint={handle ? undefined : "This becomes your storefront URL."}
-        >
-          <Input
-            id="handle"
-            placeholder="freyasinclair"
-            leftIcon={<AtSign size={16} />}
-            invalid={!!errors.handle}
-            {...register("handle")}
-          />
-          {handle && !errors.handle && (
-            <p className="mt-1.5 text-sm text-text-faint">
-              pluggz.com/
-              <span className="text-gradient font-semibold">
-                @{handle.replace(/^@/, "").toLowerCase()}
-              </span>
-            </p>
-          )}
-        </Field>
-        <Field
-          label="Primary category"
-          htmlFor="category"
-          required
-          error={errors.category?.message}
-        >
-          <Select id="category" invalid={!!errors.category} defaultValue="" {...register("category")}>
-            <option value="" disabled>
-              Choose a category
-            </option>
-            {CATEGORIES.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </Select>
-        </Field>
-      </div>
+      <Field
+        label="Storefront handle"
+        htmlFor="handle"
+        required
+        error={errors.handle?.message}
+        hint={
+          handle
+            ? undefined
+            : "Tip: use your Instagram handle. Most shoppers find you there, so it keeps your storefront link consistent and easy to recognise."
+        }
+      >
+        <Input
+          id="handle"
+          placeholder="freyasinclair"
+          leftIcon={<AtSign size={16} />}
+          invalid={!!errors.handle}
+          {...register("handle")}
+        />
+        {handle && !errors.handle && (
+          <p className="mt-1.5 text-sm text-text-faint">
+            pluggz.com/
+            <span className="font-semibold text-text">
+              @{handle.replace(/^@/, "").toLowerCase()}
+            </span>
+          </p>
+        )}
+      </Field>
 
       <Field label="City" htmlFor="city" hint="Optional" error={errors.city?.message}>
         <Input id="city" placeholder="London" {...register("city")} />
