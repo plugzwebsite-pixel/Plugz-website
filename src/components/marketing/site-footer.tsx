@@ -2,29 +2,33 @@ import Link from "next/link";
 import { Logo } from "@/components/brand/logo";
 import { Container } from "@/components/ui/primitives";
 
+// Every link here goes somewhere real. An "About" pointing at the homepage and
+// a "Sign in" shown to someone already signed in are the small things that make
+// a site feel unfinished.
 const columns = [
   {
     title: "Shop",
     links: [
       { label: "Women's Fashion", href: "/category/womens-fashion" },
       { label: "Beauty & Skincare", href: "/category/beauty-skincare" },
+      { label: "Shoes & Accessories", href: "/category/shoes-accessories" },
       { label: "Travel / Holiday", href: "/category/travel-holiday" },
     ],
   },
   {
     title: "Creators",
     links: [
-      { label: "Apply", href: "/signup" },
-      { label: "Dashboard", href: "/creator/dashboard" },
-      { label: "Waitlist", href: "/waitlist" },
+      { label: "Apply to join", href: "/signup" },
+      { label: "Creator dashboard", href: "/creator/dashboard" },
+      { label: "Join the waitlist", href: "/waitlist" },
     ],
   },
   {
     title: "Company",
     links: [
-      { label: "About", href: "/" },
+      { label: "Partner with us", href: "/brands" },
       { label: "Creator Terms", href: "/legal/creator-terms" },
-      { label: "Sign in", href: "/login" },
+      { label: "Search Pluggz", href: "/search" },
     ],
   },
 ];

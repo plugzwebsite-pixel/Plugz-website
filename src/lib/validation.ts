@@ -2,6 +2,26 @@ import { z } from "zod";
 
 export const PLATFORMS = ["instagram", "tiktok", "youtube"] as const;
 
+/**
+ * Public profile URL for a platform handle. Stored at sign-up so the admin
+ * approval queue can link straight to the profile — follower counts are
+ * self-reported and have to be spot-checked by hand before approval.
+ */
+export function profileUrl(platform: string, handle: string): string | null {
+  const clean = handle.replace(/^@/, "").trim();
+  if (!clean) return null;
+  switch (platform) {
+    case "instagram":
+      return `https://instagram.com/${clean}`;
+    case "tiktok":
+      return `https://tiktok.com/@${clean}`;
+    case "youtube":
+      return `https://youtube.com/@${clean}`;
+    default:
+      return null;
+  }
+}
+
 export const CATEGORIES = [
   "Women's Fashion",
   "Beauty & Skincare",
@@ -67,6 +87,22 @@ export const waitlistSchema = z.object({
   interest: z.enum(["CREATOR", "SHOPPER"]).default("CREATOR"),
 });
 export type WaitlistInput = z.infer<typeof waitlistSchema>;
+
+export const brandEnquirySchema = z.object({
+  brand: z.string().trim().min(2, "Enter your brand name").max(100),
+  website: z.string().trim().max(200).optional().or(z.literal("")),
+  contactName: z.string().trim().min(2, "Enter your name").max(80),
+  contactEmail: email,
+  contactRole: z.string().trim().max(80).optional().or(z.literal("")),
+  // The Brand Onboarding Checklist's opening question — it decides whether
+  // this is a network partnership or a direct deal, so it's asked up front
+  // rather than discovered on a call.
+  hasAffiliateProgramme: z.boolean().default(false),
+  networkName: z.string().trim().max(80).optional().or(z.literal("")),
+  categories: z.string().trim().max(200).optional().or(z.literal("")),
+  message: z.string().trim().max(1000).optional().or(z.literal("")),
+});
+export type BrandEnquiryInput = z.infer<typeof brandEnquirySchema>;
 
 export const forgotPasswordSchema = z.object({ email });
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;

@@ -119,6 +119,33 @@ export function sendCreatorInviteEmail(to: string, name: string, token: string) 
   });
 }
 
+export function sendBrandInviteEmail(
+  to: string,
+  name: string,
+  brandName: string,
+  token: string
+) {
+  return sendEmail({
+    to,
+    subject: `Your ${brandName} dashboard on Pluggz`,
+    heading: `${brandName} on Pluggz`,
+    body: `Hi ${name.split(" ")[0]}, we've set up dashboard access for ${brandName}. You'll be able to see how many shoppers Pluggz creators are sending you, which sales came through, and what commission is due. Set your password to get in. This link expires in 72 hours.`,
+    cta: {
+      label: "Set your password",
+      url: appUrl(`/reset-password?token=${token}&brand=1`),
+    },
+  });
+}
+
+export function sendBrandEnquiryReceipt(to: string, name: string, brand: string) {
+  return sendEmail({
+    to,
+    subject: `Thanks for getting in touch about ${brand}`,
+    heading: `We've got your details, ${name.split(" ")[0]}`,
+    body: `Thanks for your interest in partnering with Pluggz. Someone from our team will come back to you shortly to talk through commission, tracking and how ${brand} would work on the platform.`,
+  });
+}
+
 export function sendWaitlistConfirmation(to: string, name: string) {
   return sendEmail({
     to,

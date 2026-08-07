@@ -13,9 +13,13 @@ import { CATEGORY_NAV } from "@/lib/demo-data";
 import type { SessionUser } from "@/lib/auth/jwt";
 import { cn } from "@/lib/utils";
 
-export function SiteHeader({ user }: { user: SessionUser | null }) {
+export function SiteHeader() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  // Resolved on the client so the pages underneath stay cacheable. `undefined`
+  // means "not known yet" and renders neither state, which avoids flashing a
+  // Sign in button at someone who is already signed in.
+  const [user, setUser] = useState<SessionUser | null | undefined>(undefined);
   const router = useRouter();
 
   useEffect(() => {
@@ -23,6 +27,21 @@ export function SiteHeader({ user }: { user: SessionUser | null }) {
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/auth/session")
+      .then((r) => r.json())
+      .then((d) => {
+        if (!cancelled) setUser(d?.data?.user ?? null);
+      })
+      .catch(() => {
+        if (!cancelled) setUser(null);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   function onSearch(e: React.FormEvent<HTMLFormElement>) {
@@ -69,7 +88,14 @@ export function SiteHeader({ user }: { user: SessionUser | null }) {
 
         <div className="ml-auto flex items-center gap-2 md:ml-0">
           <ThemeToggle />
-          {user ? (
+          {user === undefined ? (
+            // Hold the space while the session resolves, so the header doesn't
+            // jump once it does.
+            <span
+              aria-hidden
+              className="hidden h-9 w-40 animate-pulse rounded-pill bg-surface-2 sm:block"
+            />
+          ) : user ? (
             <UserMenu user={user} />
           ) : (
             <>
