@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { ok, fail, parseBody } from "@/lib/http";
-import { creatorSignupSchema } from "@/lib/validation";
+import { creatorSignupSchema, profileUrl } from "@/lib/validation";
 import { hashPassword } from "@/lib/auth/password";
 import { generateToken, expiryFromNow } from "@/lib/auth/tokens";
 import { sendVerificationEmail } from "@/lib/email";
@@ -9,7 +9,7 @@ import { rateLimit, clientKey } from "@/lib/rate-limit";
 const TERMS_VERSION = "2026-07-01";
 
 export async function POST(req: Request) {
-  const limit = rateLimit(clientKey(req, "signup"), 6, 60_000);
+  const limit = await rateLimit(clientKey(req, "signup"), 6, 60_000);
   if (!limit.ok) return fail("Too many attempts. Try again shortly.", 429);
 
   const parsed = await parseBody(req, creatorSignupSchema);
@@ -37,11 +37,17 @@ export async function POST(req: Request) {
   const passwordHash = await hashPassword(input.password);
   const socials = input.socials
     .filter((s) => s.handle && s.handle.trim().length > 0)
-    .map((s) => ({
-      platform: s.platform,
-      handle: s.handle!.replace(/^@/, ""),
-      followers: s.followers ?? 0,
-    }));
+    .map((s) => {
+      const handle = s.handle!.replace(/^@/, "").trim();
+      return {
+        platform: s.platform,
+        handle,
+        // Store the profile URL so the approval queue can link straight to it
+        // for the manual follower check.
+        url: profileUrl(s.platform, handle),
+        followers: s.followers ?? 0,
+      };
+    });
 
   const user = await db.user.create({
     data: {

@@ -1,0 +1,198 @@
+import { db } from "@/lib/db";
+import { ok, fail, parseBody } from "@/lib/http";
+import { checkCreatorAccess } from "@/lib/auth/access";
+import { rateLimit, clientKey } from "@/lib/rate-limit";
+import { scrapeProduct, ScrapeError } from "@/lib/scrape";
+import {
+  findOrCreateBrand,
+  findOrCreateProduct,
+  addProductToCreator,
+  canonicalUrl,
+} from "@/lib/catalogue";
+import { CATEGORIES } from "@/lib/validation";
+import { z } from "zod";
+
+const addSchema = z
+  .object({
+    // Either paste a brand link, or claim something already in the central
+    // catalogue that another creator has plugged.
+    url: z.string().trim().min(8).optional(),
+    productId: z.string().trim().min(1).optional(),
+    category: z.enum(CATEGORIES).optional(),
+    review: z.string().trim().max(1000).optional(),
+    rating: z.number().int().min(1).max(5).optional(),
+  })
+  .refine((d) => Boolean(d.url) || Boolean(d.productId), {
+    message: "Paste the product's link",
+    path: ["url"],
+  });
+
+/** The creator's own storefront listings. */
+export async function GET() {
+  const access = await checkCreatorAccess();
+  if (!access.ok) return fail("You don't have access to this.", 403);
+
+  const items = await db.creatorProduct.findMany({
+    where: { profileId: access.profileId },
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      slug: true,
+      live: true,
+      review: true,
+      rating: true,
+      createdAt: true,
+      product: {
+        select: {
+          name: true,
+          imageUrl: true,
+          pricePence: true,
+          category: true,
+          brand: { select: { name: true } },
+        },
+      },
+      trackingLink: {
+        select: {
+          code: true,
+          clickCount: true,
+          isPlaceholder: true,
+          discountCode: true,
+        },
+      },
+    },
+  });
+
+  // The central link database: products already in the Pluggz catalogue that
+  // this creator hasn't plugged yet, most-clicked first. Saves them hunting
+  // down a URL for something another creator has already added.
+  const available = await db.product.findMany({
+    where: {
+      brand: { status: "ACTIVE" },
+      creatorProducts: { none: { profileId: access.profileId } },
+    },
+    orderBy: { createdAt: "desc" },
+    take: 8,
+    select: {
+      id: true,
+      name: true,
+      imageUrl: true,
+      pricePence: true,
+      category: true,
+      brand: { select: { name: true } },
+      _count: { select: { creatorProducts: true } },
+    },
+  });
+
+  return ok({ items, available });
+}
+
+/**
+ * Paste a brand product URL; Pluggz does the rest.
+ *
+ * Fetches the product's own page for its title, image, description and price,
+ * attaches it to the shared master product record (so two creators plugging the
+ * same item don't create two products), and mints the tracking link.
+ */
+export async function POST(req: Request) {
+  const access = await checkCreatorAccess();
+  if (!access.ok) return fail("You don't have access to this.", 403);
+
+  // Scraping makes an outbound request per call, so this is limited harder
+  // than an ordinary write.
+  const limit = await rateLimit(clientKey(req, `addproduct:${access.profileId}`), 12, 60_000);
+  if (!limit.ok) return fail("Slow down a moment, then try again.", 429);
+
+  const parsed = await parseBody(req, addSchema);
+  if (!parsed.success) return parsed.response;
+  const input = parsed.data;
+
+  const profile = await db.creatorProfile.findUnique({
+    where: { id: access.profileId },
+    select: { category: true, handle: true },
+  });
+
+  let product;
+  let brand;
+
+  if (input.productId) {
+    // Claiming an existing catalogue entry — no outbound fetch needed.
+    const existingProduct = await db.product.findUnique({
+      where: { id: input.productId },
+      include: { brand: true },
+    });
+    if (!existingProduct) return fail("That product no longer exists.", 404);
+    product = existingProduct;
+    brand = existingProduct.brand;
+  } else {
+    const raw = input.url!.startsWith("http") ? input.url! : `https://${input.url}`;
+
+    let scraped;
+    try {
+      scraped = await scrapeProduct(raw);
+    } catch (err) {
+      if (err instanceof ScrapeError) return fail(err.message, 422, { url: err.message });
+      console.error("[products] scrape failed:", err);
+      return fail("We couldn't read that page. Try a different link.", 502);
+    }
+
+    if (!scraped.title) {
+      return fail("We couldn't find a product on that page.", 422, {
+        url: "No product details found at that link",
+      });
+    }
+
+    brand = await findOrCreateBrand(scraped.url, scraped.siteName);
+    product = await findOrCreateProduct({
+      brandId: brand.id,
+      name: scraped.title,
+      sourceUrl: scraped.url,
+      description: scraped.description,
+      imageUrl: scraped.imageUrl,
+      pricePence: scraped.pricePence,
+      currency: scraped.currency,
+      category: input.category ?? profile?.category ?? "Women's Fashion",
+    });
+  }
+
+  const existing = await db.creatorProduct.findUnique({
+    where: {
+      profileId_productId: { profileId: access.profileId, productId: product.id },
+    },
+    select: { id: true },
+  });
+  if (existing) {
+    return fail("That product is already on your storefront.", 409, {
+      url: "Already on your storefront",
+    });
+  }
+
+  const listing = await addProductToCreator({
+    profileId: access.profileId,
+    productId: product.id,
+    productName: product.name,
+    // Points at the brand's own page until the affiliate deal for this brand
+    // lands. The short code below never changes when that destination is
+    // swapped, so links already shared to social keep working.
+    destinationUrl: canonicalUrl(product.sourceUrl),
+    isPlaceholder: brand.status !== "ACTIVE",
+    review: input.review,
+    rating: input.rating,
+  });
+
+  return ok(
+    {
+      id: listing.id,
+      slug: listing.slug,
+      name: product.name,
+      brand: brand.name,
+      imageUrl: product.imageUrl,
+      pricePence: product.pricePence,
+      category: product.category,
+      code: listing.trackingLink?.code ?? null,
+      isPlaceholder: listing.trackingLink?.isPlaceholder ?? true,
+      shareUrl: `/go/${listing.trackingLink?.code ?? ""}`,
+      pageUrl: `/@${profile?.handle ?? ""}/${listing.slug}`,
+    },
+    201
+  );
+}

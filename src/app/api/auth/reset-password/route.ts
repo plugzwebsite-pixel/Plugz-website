@@ -6,7 +6,7 @@ import { hashPassword } from "@/lib/auth/password";
 import { rateLimit, clientKey } from "@/lib/rate-limit";
 
 export async function POST(req: Request) {
-  const limit = rateLimit(clientKey(req, "reset"), 6, 60_000);
+  const limit = await rateLimit(clientKey(req, "reset"), 6, 60_000);
   if (!limit.ok) return fail("Too many attempts. Try again shortly.", 429);
 
   const parsed = await parseBody(req, resetPasswordSchema);

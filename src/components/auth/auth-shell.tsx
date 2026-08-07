@@ -4,15 +4,10 @@ import { Logo } from "@/components/brand/logo";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Aurora } from "@/components/marketing/aurora";
 import { Reveal } from "@/components/ui/reveal";
-
-const stats = [
-  { value: "£2.4M", label: "shopped this month" },
-  { value: "62", label: "UK creators live" },
-  { value: "8%", label: "creator commission" },
-];
+import { getPlatformStats } from "@/lib/queries";
 
 /** Split-screen auth layout: a branded panel + the form. */
-export function AuthShell({
+export async function AuthShell({
   children,
   eyebrow,
   title,
@@ -23,6 +18,16 @@ export function AuthShell({
   title: string;
   subtitle?: React.ReactNode;
 }) {
+  // Counted live. This panel is what a creator reads while deciding whether to
+  // apply, so it can't carry numbers the platform hasn't actually done. The
+  // commission floor is the one fixed figure — it's contractual, not a metric.
+  const platform = await getPlatformStats();
+  const stats = [
+    { value: String(platform.creators), label: "UK creators live" },
+    { value: String(platform.listings), label: "products plugged" },
+    { value: "8%", label: "creator commission" },
+  ];
+
   return (
     <div className="grid min-h-dvh lg:grid-cols-[1.05fr_1fr]">
       {/* Brand panel */}

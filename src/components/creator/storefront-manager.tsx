@@ -1,91 +1,143 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Link2, Plus, Bell, Sparkles, Trash2, ExternalLink } from "lucide-react";
+import {
+  Link2,
+  Plus,
+  Bell,
+  Sparkles,
+  Trash2,
+  Copy,
+  Check,
+  ExternalLink,
+  MousePointerClick,
+} from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/primitives";
 import { useToast } from "@/components/ui/toast";
-import { gbp } from "@/lib/utils";
+import { compact, gbpFromPence } from "@/lib/utils";
+import { postJson } from "@/lib/client/api";
 
-type Link = {
-  id: number;
-  name: string;
-  brand: string;
-  price: number;
-  clicks: number;
+type Listing = {
+  id: string;
+  slug: string;
   live: boolean;
+  product: {
+    name: string;
+    imageUrl: string | null;
+    pricePence: number | null;
+    category: string;
+    brand: { name: string };
+  };
+  trackingLink: {
+    code: string;
+    clickCount: number;
+    isPlaceholder: boolean;
+    discountCode: string | null;
+  } | null;
 };
 
-const initial: Link[] = [
-  { id: 1, name: "Linen-blend holiday co-ord", brand: "Verano", price: 68, clicks: 2400, live: true },
-  { id: 2, name: "Wide-leg denim", brand: "Shein", price: 29, clicks: 3200, live: true },
-  { id: 3, name: "Oversized tailored blazer", brand: "North Row", price: 95, clicks: 1400, live: true },
-];
+type Available = {
+  id: string;
+  name: string;
+  imageUrl: string | null;
+  pricePence: number | null;
+  brand: { name: string };
+  _count: { creatorProducts: number };
+};
 
-// Central link database — brands whose links became newly available to plug.
-const available = [
-  { id: 101, name: "Peptide glow moisturiser", brand: "Aura Rituals", price: 42 },
-  { id: 102, name: "Everyday gold hoops", brand: "Aurate", price: 120 },
-];
-
-let seq = 1000;
-const sampleNames = ["Satin slip midi dress", "Ribbed knit lounge set", "Cabin carry-on case"];
-const sampleBrands = ["Halcyon London", "Marlowe & Co", "Vomo"];
-
-export function StorefrontManager() {
-  const [links, setLinks] = useState<Link[]>(initial);
+export function StorefrontManager({ handle }: { handle: string }) {
+  const [listings, setListings] = useState<Listing[]>([]);
+  const [available, setAvailable] = useState<Available[]>([]);
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
-  const [alerts, setAlerts] = useState(available);
+  const [claiming, setClaiming] = useState<string | null>(null);
+  const [copied, setCopied] = useState<string | null>(null);
+  const [ready, setReady] = useState(false);
   const toast = useToast();
 
+  const load = useCallback(async () => {
+    const res = await fetch("/api/creator/products").then((r) => r.json());
+    if (res?.ok) {
+      setListings(res.data.items ?? []);
+      setAvailable(res.data.available ?? []);
+    }
+    setReady(true);
+  }, []);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
   async function addByUrl() {
-    if (!/^https?:\/\/.+\..+/.test(url.trim())) {
-      toast.error("Enter a valid product URL");
+    const value = url.trim();
+    if (!value) return;
+    setLoading(true);
+    const res = await postJson("/api/creator/products", { url: value });
+    setLoading(false);
+
+    if (!res.ok) {
+      toast.error("Couldn't add that", res.message);
       return;
     }
-    setLoading(true);
-    // Simulate Pluggz fetching product metadata from the pasted URL.
-    await new Promise((r) => setTimeout(r, 1100));
-    const i = links.length % sampleNames.length;
-    setLinks((prev) => [
-      {
-        id: ++seq,
-        name: sampleNames[i],
-        brand: sampleBrands[i],
-        price: 40 + Math.floor(Math.random() * 80),
-        clicks: 0,
-        live: true,
-      },
-      ...prev,
-    ]);
     setUrl("");
-    setLoading(false);
-    toast.success("Product added", "Page built and tracking generated.");
+    await load();
+    toast.success("Product added", "Page built and your tracking link is ready.");
   }
 
-  function claim(id: number) {
-    const item = alerts.find((a) => a.id === id);
-    if (!item) return;
-    setAlerts((prev) => prev.filter((a) => a.id !== id));
-    setLinks((prev) => [{ ...item, clicks: 0, live: true }, ...prev]);
+  async function claim(productId: string) {
+    setClaiming(productId);
+    const res = await postJson("/api/creator/products", { productId });
+    setClaiming(null);
+    if (!res.ok) {
+      toast.error("Couldn't add that", res.message);
+      return;
+    }
+    await load();
     toast.success("Added to your storefront");
+  }
+
+  async function remove(id: string) {
+    const previous = listings;
+    setListings((l) => l.filter((x) => x.id !== id));
+    const res = await fetch(`/api/creator/products/${id}`, { method: "DELETE" });
+    if (!res.ok) {
+      setListings(previous);
+      toast.error("Couldn't remove that");
+      return;
+    }
+    void load();
+  }
+
+  async function copyLink(code: string) {
+    const link = `${window.location.origin}/go/${code}`;
+    await navigator.clipboard.writeText(link);
+    setCopied(code);
+    setTimeout(() => setCopied(null), 1800);
+    toast.success("Link copied", "Paste it into your bio, story or caption.");
   }
 
   return (
     <div className="space-y-6">
       {/* Paste a URL */}
       <div className="rounded-md border border-border bg-surface p-5">
-        <label className="text-sm font-medium text-text">Add a product by URL</label>
+        <label className="text-sm font-medium text-text" htmlFor="product-url">
+          Add a product by URL
+        </label>
+        <p className="mt-1 text-xs text-text-faint">
+          Paste any brand product page — we&apos;ll pull the title, image and
+          price, build the page and generate your tracking link.
+        </p>
         <div className="mt-3 flex flex-col gap-2.5 sm:flex-row">
           <Input
+            id="product-url"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="https://brand.com/products/linen-co-ord"
             leftIcon={<Link2 size={16} />}
-            onKeyDown={(e) => e.key === "Enter" && addByUrl()}
+            onKeyDown={(e) => e.key === "Enter" && !loading && addByUrl()}
           />
           <Button onClick={addByUrl} loading={loading} className="shrink-0">
             <Plus size={16} /> Add product
@@ -93,9 +145,9 @@ export function StorefrontManager() {
         </div>
       </div>
 
-      {/* New link alerts */}
+      {/* Central link database */}
       <AnimatePresence>
-        {alerts.length > 0 && (
+        {available.length > 0 && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -104,26 +156,50 @@ export function StorefrontManager() {
           >
             <div className="flex items-center gap-2 text-text-strong">
               <Bell size={16} className="text-brand-pink" />
-              <h3 className="font-semibold">Newly available links</h3>
-              <Badge tone="brand">{alerts.length}</Badge>
+              <h3 className="font-semibold">Available to plug</h3>
+              <Badge tone="brand">{available.length}</Badge>
             </div>
+            <p className="mt-1 text-xs text-text-muted">
+              Already in the Pluggz catalogue — add one and you get your own page
+              and link for it.
+            </p>
             <div className="mt-4 space-y-2.5">
-              {alerts.map((a) => (
+              {available.map((a) => (
                 <motion.div
                   key={a.id}
                   layout
                   exit={{ opacity: 0, x: 20 }}
-                  className="flex items-center justify-between gap-4 rounded-sm border border-border bg-surface p-3.5"
+                  className="flex items-center justify-between gap-4 rounded-sm border border-border bg-surface p-3"
                 >
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-text-strong">
-                      {a.name}
-                    </p>
-                    <p className="text-xs text-text-faint">
-                      {a.brand} · {gbp(a.price)}
-                    </p>
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span className="h-10 w-10 shrink-0 overflow-hidden rounded bg-surface-2">
+                      {a.imageUrl && (
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img
+                          src={a.imageUrl}
+                          alt=""
+                          className="h-full w-full object-cover"
+                        />
+                      )}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-text-strong">
+                        {a.name}
+                      </p>
+                      <p className="text-xs text-text-faint">
+                        {a.brand.name}
+                        {a.pricePence !== null && ` · ${gbpFromPence(a.pricePence)}`}
+                        {a._count.creatorProducts > 0 &&
+                          ` · ${a._count.creatorProducts} creator${a._count.creatorProducts === 1 ? "" : "s"}`}
+                      </p>
+                    </div>
                   </div>
-                  <Button size="sm" variant="secondary" onClick={() => claim(a.id)}>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    loading={claiming === a.id}
+                    onClick={() => claim(a.id)}
+                  >
                     <Sparkles size={14} /> Add
                   </Button>
                 </motion.div>
@@ -133,47 +209,114 @@ export function StorefrontManager() {
         )}
       </AnimatePresence>
 
-      {/* Live links */}
+      {/* Live listings */}
       <div className="rounded-md border border-border bg-surface">
         <div className="flex items-center justify-between border-b border-border px-5 py-4">
           <h3 className="font-display text-lg font-semibold text-text-strong">
             Your storefront links
           </h3>
-          <span className="text-sm text-text-faint">{links.length} live</span>
+          <span className="text-sm text-text-faint">{listings.length} live</span>
         </div>
-        <div className="divide-y divide-border">
-          <AnimatePresence initial={false}>
-            {links.map((l) => (
-              <motion.div
-                key={l.id}
-                layout
-                initial={{ opacity: 0, y: -8 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="flex items-center gap-4 px-5 py-4"
-              >
-                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-md bg-surface-2 text-text-muted">
-                  <Link2 size={17} />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-text-strong">
-                    {l.name}
-                  </p>
-                  <p className="text-xs text-text-faint">
-                    {l.brand} · {gbp(l.price)} · {l.clicks.toLocaleString()} clicks
-                  </p>
-                </div>
-                <Badge tone="green">Live</Badge>
-                <button
-                  onClick={() => setLinks((p) => p.filter((x) => x.id !== l.id))}
-                  className="grid h-8 w-8 place-items-center rounded-full text-text-faint transition-colors hover:bg-red-500/10 hover:text-red-400"
-                  aria-label="Remove"
+
+        {!ready ? (
+          <p className="px-5 py-14 text-center text-sm text-text-faint">Loading…</p>
+        ) : listings.length === 0 ? (
+          <p className="px-5 py-14 text-center text-sm text-text-faint">
+            Nothing here yet. Paste a product link above to get started.
+          </p>
+        ) : (
+          <div className="divide-y divide-border">
+            <AnimatePresence initial={false}>
+              {listings.map((l) => (
+                <motion.div
+                  key={l.id}
+                  layout
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:gap-4"
                 >
-                  <Trash2 size={15} />
-                </button>
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </div>
+                  <span className="h-12 w-12 shrink-0 overflow-hidden rounded-md bg-surface-2">
+                    {l.product.imageUrl ? (
+                      /* eslint-disable-next-line @next/next/no-img-element */
+                      <img
+                        src={l.product.imageUrl}
+                        alt=""
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <span className="grid h-full w-full place-items-center text-text-faint">
+                        <Link2 size={16} />
+                      </span>
+                    )}
+                  </span>
+
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-text-strong">
+                      {l.product.name}
+                    </p>
+                    <p className="text-xs text-text-faint">
+                      {l.product.brand.name}
+                      {l.product.pricePence !== null &&
+                        ` · ${gbpFromPence(l.product.pricePence)}`}
+                    </p>
+                    {l.trackingLink && (
+                      <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                        <code className="rounded bg-surface-2 px-2 py-0.5 text-[0.7rem] text-text-muted">
+                          /go/{l.trackingLink.code}
+                        </code>
+                        <span className="inline-flex items-center gap-1 text-[0.7rem] text-text-faint">
+                          <MousePointerClick size={11} />
+                          {compact(l.trackingLink.clickCount)} clicks
+                        </span>
+                        {l.trackingLink.discountCode && (
+                          <span className="text-[0.7rem] text-text-faint">
+                            code {l.trackingLink.discountCode}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {l.trackingLink?.isPlaceholder && (
+                      <Badge tone="amber">Pending brand deal</Badge>
+                    )}
+                    {l.trackingLink && (
+                      <button
+                        onClick={() => copyLink(l.trackingLink!.code)}
+                        title="Copy your tracking link"
+                        className="grid h-8 w-8 place-items-center rounded-full text-text-faint transition-colors hover:bg-surface-2 hover:text-text-strong"
+                      >
+                        {copied === l.trackingLink.code ? (
+                          <Check size={15} className="text-accent-green" />
+                        ) : (
+                          <Copy size={15} />
+                        )}
+                      </button>
+                    )}
+                    <a
+                      href={`/@${handle}/${l.slug}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      title="View the product page"
+                      className="grid h-8 w-8 place-items-center rounded-full text-text-faint transition-colors hover:bg-surface-2 hover:text-text-strong"
+                    >
+                      <ExternalLink size={15} />
+                    </a>
+                    <button
+                      onClick={() => remove(l.id)}
+                      aria-label="Remove"
+                      className="grid h-8 w-8 place-items-center rounded-full text-text-faint transition-colors hover:bg-red-500/10 hover:text-red-400"
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        )}
       </div>
     </div>
   );
