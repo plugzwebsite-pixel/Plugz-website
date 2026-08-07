@@ -15,6 +15,7 @@ datasource db {
 enum Role {
   SHOPPER
   CREATOR
+  BRAND
   ADMIN
 }
 
@@ -46,22 +47,30 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  creatorProfile     CreatorProfile?
-  emailTokens        EmailVerificationToken[]
+  creatorProfile      CreatorProfile?
+  emailTokens         EmailVerificationToken[]
   passwordResetTokens PasswordResetToken[]
 
+  // Set only for BRAND accounts — the brand whose figures this person may see.
+  // A brand can have several contacts; each one is tied to exactly one brand,
+  // which is what scopes every query on the brand dashboard.
+  brandId String?
+  brand   Brand?  @relation(fields: [brandId], references: [id], onDelete: Cascade)
+
   @@index([role])
+  @@index([brandId])
 }
 
 model CreatorProfile {
-  id       String @id @default(cuid())
-  userId   String @unique
-  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  handle   String  @unique // storefront slug, e.g. "freyasinclair" -> pluggz.com/@freyasinclair
-  category String
-  city     String?
-  bio      String?
+  handle    String  @unique // storefront slug, e.g. "freyasinclair" -> pluggz.com/@freyasinclair
+  category  String
+  city      String?
+  bio       String?
+  avatarUrl String?
 
   status CreatorStatus     @default(PENDING)
   source ApplicationSource @default(SELF_SERVE)
@@ -77,20 +86,66 @@ model CreatorProfile {
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
 
+  collections        Collection[]
+  creatorProducts    CreatorProduct[]
+  payouts            Payout[]
+  commissionOverride CommissionOverride?
+
   @@index([status])
 }
 
 model SocialHandle {
-  id        String @id @default(cuid())
+  id        String         @id @default(cuid())
   profileId String
   profile   CreatorProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
 
   platform  String // instagram | tiktok | youtube | ...
   handle    String
   url       String?
-  followers Int    @default(0)
+  followers Int     @default(0)
 
   @@index([profileId])
+}
+
+enum EnquiryStatus {
+  NEW
+  CONTACTED
+  ONBOARDED
+  DECLINED
+}
+
+/**
+ * A brand asking to work with Pluggz.
+ *
+ * Deliberately not a signup. Brands can't self-serve an account because the
+ * commission rate, return window and settlement terms are negotiated before
+ * there is anything to show them — so this captures the lead, and the first
+ * question from the Brand Onboarding Checklist, and lands in the admin queue.
+ */
+model BrandEnquiry {
+  id      String @id @default(cuid())
+  brand   String
+  website String?
+
+  contactName  String
+  contactEmail String
+  contactRole  String?
+
+  // The question that decides everything downstream: a brand already on a
+  // network is a different onboarding path from a direct deal.
+  hasAffiliateProgramme Boolean @default(false)
+  networkName           String?
+
+  categories String? // free text — what they sell
+  message    String?
+
+  status EnquiryStatus @default(NEW)
+  note   String? // admin's own note
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, createdAt])
 }
 
 model WaitlistEntry {
@@ -123,4 +178,319 @@ model PasswordResetToken {
   createdAt DateTime  @default(now())
 
   @@index([userId])
+}
+
+// ---------------------------------------------------------------------------
+// Tracking engine, catalogue and commission pipeline.
+//
+// Money is stored in minor units (pence) as Int so no rounding ever happens in
+// floating point. Rates are percentages, e.g. 8.00 means 8%.
+// ---------------------------------------------------------------------------
+
+// How a sale gets attributed back to Pluggz for a given brand.
+enum TrackingMethod {
+  PLUGGZ_DIRECT // Pluggz's own link, direct brand deal — the launch default
+  DISCOUNT_CODE // unique code per creator; for brands with no technical setup
+  PIXEL // pixel/JS snippet on the brand's order confirmation page
+  NETWORK // third-party network deep link — infrastructure only for now
+}
+
+enum BrandStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+}
+
+model Brand {
+  id         String      @id @default(cuid())
+  name       String
+  slug       String      @unique
+  websiteUrl String?
+  logoUrl    String?
+  status     BrandStatus @default(DRAFT)
+
+  // The first onboarding question — decides which field set below applies.
+  hasAffiliateProgramme Boolean        @default(false)
+  trackingMethod        TrackingMethod @default(DISCOUNT_CODE)
+
+  // Network path. Built now, unusable until Pluggz is accepted as a
+  // sub-affiliate (Awin and Sovrn have both declined pending traffic).
+  networkName     String?
+  publisherId     String?
+  deepLinkPattern String? // {DEST} and {CLICKREF} are substituted at redirect time
+
+  // Direct-deal path — the real launch path today.
+  attributionWindowDays Int     @default(30)
+  invoicingDetails      String?
+
+  // Shared commercial terms, both paths.
+  commissionRate   Decimal @default(11.00) @db.Decimal(5, 2) // % Pluggz earns from the brand
+  returnWindowDays Int     @default(30) // gates Pending -> Verified
+  settlementDays   Int     @default(30) // how long after Verified the brand pays
+  contactName      String?
+  contactRole      String?
+  contactEmail     String?
+
+  // Placeholder launch content. Deleting these cascades through products,
+  // listings and tracking links, so the demo catalogue can be cleared in one
+  // query the moment Lisa and Rachel's real brands are loaded.
+  seeded Boolean @default(false)
+
+  products              Product[]
+  returnWindowOverrides ReturnWindowOverride[]
+  commissionOverride    CommissionOverride?
+  users                 User[] // brand-side contacts with dashboard access
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+}
+
+// Temporary, date-bound extension on top of a brand's normal return window
+// (Christmas, Black Friday). Deliberately separate from returnWindowDays so the
+// base figure never has to be edited and remembered back.
+model ReturnWindowOverride {
+  id      String @id @default(cuid())
+  brandId String
+  brand   Brand  @relation(fields: [brandId], references: [id], onDelete: Cascade)
+
+  label    String // e.g. "Christmas 2026"
+  days     Int
+  startsAt DateTime
+  endsAt   DateTime
+
+  createdAt DateTime @default(now())
+
+  @@index([brandId, startsAt, endsAt])
+}
+
+// Master product record. One row per real-world product; every creator that
+// plugs it attaches their own CreatorProduct review page to this same record,
+// so the catalogue never accumulates duplicates of the same item.
+model Product {
+  id      String @id @default(cuid())
+  brandId String
+  brand   Brand  @relation(fields: [brandId], references: [id], onDelete: Cascade)
+
+  name        String
+  slug        String
+  description String?
+  imageUrl    String?
+  pricePence  Int?
+  currency    String  @default("GBP")
+  category    String
+
+  // Canonical brand URL — the dedupe key that makes shared records work.
+  sourceUrl String @unique
+
+  creatorProducts CreatorProduct[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([brandId, slug])
+  @@index([category])
+}
+
+// A single creator's page for a single product: pluggz.com/@handle/<slug>.
+model CreatorProduct {
+  id        String         @id @default(cuid())
+  profileId String
+  profile   CreatorProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  slug     String
+  review   String?
+  rating   Int? // 1-5
+  videoUrl String? // Cloudflare Stream id/url once video upload ships
+
+  collectionId String?
+  collection   Collection? @relation(fields: [collectionId], references: [id], onDelete: SetNull)
+
+  live      Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  trackingLink TrackingLink?
+  sales        Sale[]
+
+  @@unique([profileId, productId]) // one page per creator per product
+  @@unique([profileId, slug])
+  @@index([live])
+}
+
+// Creator-defined grouping within their own storefront (Travel, Fitness, ...),
+// separate from the platform-level categories.
+model Collection {
+  id        String         @id @default(cuid())
+  profileId String
+  profile   CreatorProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  name     String
+  slug     String
+  position Int    @default(0)
+
+  creatorProducts CreatorProduct[]
+
+  createdAt DateTime @default(now())
+
+  @@unique([profileId, slug])
+}
+
+// Pluggz's own affiliate link.
+//
+// `code` is generated once and NEVER changes. `destinationUrl` is mutable.
+// That split is deliberate: creators publish pluggz.com/go/<code> to Instagram
+// and TikTok immediately, using a placeholder destination, and when the real
+// brand affiliate URL lands we swap only the destination. Every link already
+// out in the world keeps working, and its click history stays intact.
+model TrackingLink {
+  id   String @id @default(cuid())
+  code String @unique
+
+  creatorProductId String         @unique
+  creatorProduct   CreatorProduct @relation(fields: [creatorProductId], references: [id], onDelete: Cascade)
+
+  destinationUrl String
+  isPlaceholder  Boolean @default(true)
+  discountCode   String? // per-creator code when the brand tracks that way
+
+  // Denormalised running total. The Click rows stay the source of truth; this
+  // exists so "trending" can be ordered in the database instead of by pulling
+  // every product into memory and counting.
+  clickCount Int @default(0)
+
+  clicks Click[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isPlaceholder])
+}
+
+model Click {
+  id             String       @id @default(cuid())
+  trackingLinkId String
+  trackingLink   TrackingLink @relation(fields: [trackingLinkId], references: [id], onDelete: Cascade)
+
+  clickedAt DateTime @default(now())
+  sessionId String // attribution cookie value, ties a later sale back to this click
+  ipHash    String? // hashed, never the raw IP
+  userAgent String?
+  referrer  String?
+  country   String?
+
+  sales Sale[]
+
+  @@index([trackingLinkId, clickedAt])
+  @@index([sessionId])
+}
+
+// Brand-reported outcome of a sale.
+enum SaleStatus {
+  PENDING
+  APPROVED
+  RETURNED
+  CANCELLED
+  REJECTED
+}
+
+// Where the money has physically reached.
+enum PayoutStage {
+  PENDING // sale in, return window still open
+  VERIFIED // return window passed
+  PAID_TO_PLUGGZ // brand has settled with Pluggz
+  PAID_TO_CREATOR // creator has been paid out
+}
+
+model Sale {
+  id               String         @id @default(cuid())
+  creatorProductId String
+  creatorProduct   CreatorProduct @relation(fields: [creatorProductId], references: [id], onDelete: Cascade)
+
+  clickId String? // attribution back to the click that earned it
+  click   Click?  @relation(fields: [clickId], references: [id], onDelete: SetNull)
+
+  orderRef   String?
+  valuePence Int
+  currency   String  @default("GBP")
+
+  status SaleStatus  @default(PENDING)
+  stage  PayoutStage @default(PENDING)
+
+  // Rates are snapshotted at sale time. A later change to the global default
+  // or an override must never retroactively rewrite historical commission.
+  creatorRate        Decimal @db.Decimal(5, 2)
+  pluggzRate         Decimal @db.Decimal(5, 2)
+  creatorAmountPence Int
+  pluggzAmountPence  Int
+
+  soldAt         DateTime  @default(now())
+  verifiesAt     DateTime // soldAt + the brand's effective return window
+  verifiedAt     DateTime?
+  paidToPluggzAt DateTime?
+
+  payoutId String?
+  payout   Payout? @relation(fields: [payoutId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, stage])
+  @@index([verifiesAt])
+  @@index([creatorProductId, soldAt])
+}
+
+enum PayoutStatus {
+  SCHEDULED
+  SENT
+  FAILED
+}
+
+// A twice-monthly payout run (1st and 15th) for one creator.
+model Payout {
+  id        String         @id @default(cuid())
+  profileId String
+  profile   CreatorProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  runDate     DateTime
+  amountPence Int
+  status      PayoutStatus @default(SCHEDULED)
+  reference   String? // Wise transfer reference
+  sentAt      DateTime?
+
+  sales Sale[]
+
+  createdAt DateTime @default(now())
+
+  @@unique([profileId, runDate])
+  @@index([runDate, status])
+}
+
+// Single-row table holding the platform-wide default split.
+model PlatformSetting {
+  id                 String   @id @default("singleton")
+  defaultCreatorRate Decimal  @default(8.00) @db.Decimal(5, 2)
+  defaultPluggzRate  Decimal  @default(5.00) @db.Decimal(5, 2)
+  updatedAt          DateTime @updatedAt
+}
+
+// Negotiated rate for one creator or one brand. Exactly one of the two
+// targets is set; creator overrides win over brand overrides.
+model CommissionOverride {
+  id String @id @default(cuid())
+
+  creatorProfileId String?         @unique
+  creatorProfile   CreatorProfile? @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+  brandId          String?         @unique
+  brand            Brand?          @relation(fields: [brandId], references: [id], onDelete: Cascade)
+
+  creatorRate Decimal @db.Decimal(5, 2)
+  pluggzRate  Decimal @db.Decimal(5, 2)
+  note        String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
