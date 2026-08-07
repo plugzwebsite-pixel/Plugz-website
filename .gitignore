@@ -41,8 +41,7 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# local tooling & dev artifacts
-.claude/
+# editors & local dev artifacts
 .idea/
 .vscode/
 .pluggz-dev-mail.json

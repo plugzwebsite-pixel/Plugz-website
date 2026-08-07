@@ -16,6 +16,18 @@ export function gbp(value: number, opts: Intl.NumberFormatOptions = {}) {
   }).format(value);
 }
 
+/**
+ * Money is stored in pence everywhere (see the Prisma schema) so that no
+ * rounding ever happens in floating point. These convert at the display edge.
+ */
+export function gbpFromPence(pence: number, opts: Intl.NumberFormatOptions = {}) {
+  return gbp(pence / 100, { maximumFractionDigits: 2, ...opts });
+}
+
+export function toPence(amount: number) {
+  return Math.round(amount * 100);
+}
+
 /** Compact number formatting: 38200 -> "38.2k". */
 export function compact(value: number) {
   return new Intl.NumberFormat("en-GB", {

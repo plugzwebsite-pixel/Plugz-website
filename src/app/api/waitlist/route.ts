@@ -5,7 +5,7 @@ import { sendWaitlistConfirmation } from "@/lib/email";
 import { rateLimit, clientKey } from "@/lib/rate-limit";
 
 export async function POST(req: Request) {
-  const limit = rateLimit(clientKey(req, "waitlist"), 6, 60_000);
+  const limit = await rateLimit(clientKey(req, "waitlist"), 6, 60_000);
   if (!limit.ok) return fail("Too many attempts. Try again shortly.", 429);
 
   const parsed = await parseBody(req, waitlistSchema);
