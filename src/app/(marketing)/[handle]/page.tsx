@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Heart, Share2, BadgeCheck } from "lucide-react";
-import { Container, Badge, Pill } from "@/components/ui/primitives";
+import { Container, Badge } from "@/components/ui/primitives";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ProductCard } from "@/components/marketing/cards";
@@ -12,17 +12,23 @@ import {
   TikTokIcon,
   YouTubeIcon,
 } from "@/components/brand/social-icons";
-import {
-  creatorByHandle,
-  productsForCreator,
-  creatorPhoto,
-  PRODUCTS,
-} from "@/lib/demo-data";
+import { getCreatorByHandle, getProductsForCreator } from "@/lib/queries";
 import { compact } from "@/lib/utils";
 
 function cleanHandle(raw: string) {
   return decodeURIComponent(raw).replace(/^@/, "").toLowerCase();
 }
+
+const PLATFORM_ICON: Record<string, typeof InstagramIcon> = {
+  instagram: InstagramIcon,
+  tiktok: TikTokIcon,
+  youtube: YouTubeIcon,
+};
+
+// Served from cache and refreshed in the background. Shoppers arriving from a
+// creator's post get a static page rather than a database round trip, and new
+// products appear within the window below.
+export const revalidate = 120;
 
 export async function generateMetadata({
   params,
@@ -30,11 +36,20 @@ export async function generateMetadata({
   params: Promise<{ handle: string }>;
 }): Promise<Metadata> {
   const { handle } = await params;
-  const creator = creatorByHandle(cleanHandle(handle));
-  return { title: creator ? `${creator.name} (@${creator.handle})` : "Storefront" };
-}
+  const creator = await getCreatorByHandle(cleanHandle(handle));
 
-const collections = ["All", "Trending", "The edit", "Favourites", "Wishlist"];
+  // Any unmatched top-level path lands here before falling through to the 404,
+  // so the metadata has to describe that outcome — otherwise every mistyped URL
+  // is titled "Storefront", in the browser tab and in search results.
+  if (!creator) {
+    return { title: "Page not found", robots: { index: false, follow: false } };
+  }
+
+  return {
+    title: `${creator.name} (@${creator.handle})`,
+    description: creator.tag,
+  };
+}
 
 export default async function StorefrontPage({
   params,
@@ -42,11 +57,21 @@ export default async function StorefrontPage({
   params: Promise<{ handle: string }>;
 }) {
   const { handle } = await params;
-  const creator = creatorByHandle(cleanHandle(handle));
+  const slug = cleanHandle(handle);
+
+  const creator = await getCreatorByHandle(slug);
   if (!creator) notFound();
 
-  const owned = productsForCreator(creator.handle);
-  const products = owned.length >= 3 ? owned : [...owned, ...PRODUCTS].slice(0, 8);
+  const products = await getProductsForCreator(slug);
+
+  // Group by category so the page reads as curated collections rather than a
+  // flat product list.
+  const byCategory = new Map<string, typeof products>();
+  for (const p of products) {
+    const list = byCategory.get(p.category) ?? [];
+    list.push(p);
+    byCategory.set(p.category, list);
+  }
 
   return (
     <>
@@ -62,7 +87,7 @@ export default async function StorefrontPage({
             <div className="flex flex-col items-start gap-6 sm:flex-row sm:items-center">
               <Avatar
                 name={creator.name}
-                src={creatorPhoto(creator.handle)}
+                src={creator.avatarUrl ?? undefined}
                 size="xl"
                 ring
               />
@@ -81,15 +106,22 @@ export default async function StorefrontPage({
                     {compact(creator.followers)} followers
                   </span>
                   <div className="flex items-center gap-2 text-text-muted">
-                    <a href="#" aria-label="Instagram" className="transition-colors hover:text-brand-pink">
-                      <InstagramIcon size={18} />
-                    </a>
-                    <a href="#" aria-label="TikTok" className="transition-colors hover:text-brand-pink">
-                      <TikTokIcon size={18} />
-                    </a>
-                    <a href="#" aria-label="YouTube" className="transition-colors hover:text-brand-pink">
-                      <YouTubeIcon size={18} />
-                    </a>
+                    {creator.socials.map((s) => {
+                      const Icon = PLATFORM_ICON[s.platform];
+                      if (!Icon || !s.url) return null;
+                      return (
+                        <a
+                          key={s.platform}
+                          href={s.url}
+                          target="_blank"
+                          rel="noopener noreferrer nofollow"
+                          aria-label={s.platform}
+                          className="transition-colors hover:text-brand-pink"
+                        >
+                          <Icon size={18} />
+                        </a>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
@@ -107,21 +139,29 @@ export default async function StorefrontPage({
       </section>
 
       <Container className="py-10">
-        <div className="flex flex-wrap gap-2.5">
-          {collections.map((c, i) => (
-            <Pill key={c} active={i === 0}>
-              {c}
-            </Pill>
-          ))}
-        </div>
-
-        <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {products.map((p, i) => (
-            <Reveal key={`${p.name}-${i}`} index={i % 4}>
-              <ProductCard product={p} />
-            </Reveal>
-          ))}
-        </div>
+        {products.length === 0 ? (
+          <p className="rounded-md border border-dashed border-border py-20 text-center text-text-faint">
+            {creator.name.split(" ")[0]} hasn&apos;t plugged anything yet. Check back
+            soon.
+          </p>
+        ) : (
+          <div className="space-y-12">
+            {[...byCategory.entries()].map(([category, items]) => (
+              <div key={category}>
+                <h2 className="font-display text-2xl font-semibold text-text-strong">
+                  {category}
+                </h2>
+                <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                  {items.map((p, i) => (
+                    <Reveal key={p.slug} index={i % 4}>
+                      <ProductCard product={p} />
+                    </Reveal>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </Container>
     </>
   );

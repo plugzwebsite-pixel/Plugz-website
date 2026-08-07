@@ -1,3 +1,4 @@
+import { SmartImage } from "@/components/ui/smart-image";
 import { cn, initials } from "@/lib/utils";
 
 /** Multicolour gradient palettes matching the demo's creator avatars. */
@@ -68,11 +69,15 @@ export function Avatar({
       {/* Initials sit underneath as a graceful fallback if the photo is missing. */}
       <span className="absolute">{initials(name)}</span>
       {img && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
+        // Avatars can be a self-hosted portrait or, in future, a creator's own
+        // uploaded photo on another host — SmartImage handles both without
+        // opening the image optimiser to arbitrary remote URLs.
+        <SmartImage
           src={img}
           alt=""
-          loading="lazy"
+          width={160}
+          height={160}
+          sizes="160px"
           className="relative h-full w-full object-cover"
         />
       )}

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import { Hero } from "@/components/marketing/hero";
 import { SectionHeading } from "@/components/marketing/section";
@@ -9,22 +10,52 @@ import { Button } from "@/components/ui/button";
 import { Avatar } from "@/components/ui/avatar";
 import { Reveal } from "@/components/ui/reveal";
 import { Aurora } from "@/components/marketing/aurora";
+import { CATEGORY_NAV } from "@/lib/demo-data";
 import {
-  CREATORS,
-  PRODUCTS,
-  CATEGORY_NAV,
-  IMPACT_STATS,
-  creatorPhoto,
-} from "@/lib/demo-data";
-import { compact } from "@/lib/utils";
+  getFeaturedCreators,
+  getTrendingProducts,
+  getPlatformStats,
+} from "@/lib/queries";
+import { compact, gbpFromPence } from "@/lib/utils";
 
-export default function HomePage() {
-  const trendProducts = PRODUCTS.slice(0, 8);
-  const trendingCreators = CREATORS.filter((c) => c.trending).slice(0, 7);
+export default async function HomePage() {
+  const [trendProducts, featured, stats] = await Promise.all([
+    getTrendingProducts(8),
+    getFeaturedCreators(12),
+    getPlatformStats(),
+  ]);
+  const trendingCreators = featured.slice(0, 7);
+
+  // Counted from the database — no invented figures on a page that is
+  // recruiting real creators.
+  const heroStats = [
+    { value: String(stats.creators), label: "UK creators live" },
+    { value: String(stats.listings), label: "Products plugged" },
+    { value: String(stats.brands), label: "Brands onboard" },
+  ];
+
+  const impactStats = [
+    { value: compact(stats.clicks), label: "shoppers sent to brands" },
+    { value: String(stats.brands), label: "brand partners" },
+    {
+      value: stats.creatorCommissionPence
+        ? gbpFromPence(stats.creatorCommissionPence)
+        : "—",
+      label: "creator commission earned",
+    },
+    {
+      value: stats.averageRating ? `${stats.averageRating.toFixed(1)}★` : "—",
+      label: "average creator rating",
+    },
+  ];
 
   return (
     <>
-      <Hero />
+      <Hero
+        creators={featured}
+        stats={heroStats}
+        creatorCount={stats.creators}
+      />
 
       {/* Trending now — moved high up so shoppers hit the hot picks fast */}
       <Container className="py-14">
@@ -37,7 +68,7 @@ export default function HomePage() {
         </Reveal>
         <div className="mt-9 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {trendProducts.map((p, i) => (
-            <Reveal key={`${p.name}-${i}`} index={i % 4}>
+            <Reveal key={`${p.creatorHandle}-${p.slug}`} index={i % 4}>
               <ProductCard product={p} />
             </Reveal>
           ))}
@@ -89,11 +120,12 @@ export default function HomePage() {
               </div>
             </div>
             <div className="relative min-h-64 lg:min-h-full">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <Image
                 src="/images/products/partner-aura.jpg"
                 alt="Aura Rituals — The Golden Hour Set"
-                className="absolute inset-0 h-full w-full object-cover"
+                fill
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                className="object-cover"
               />
               <div
                 aria-hidden
@@ -119,7 +151,7 @@ export default function HomePage() {
                 href={`/@${c.handle}`}
                 className="group flex w-24 flex-col items-center text-center"
               >
-                <Avatar name={c.name} src={creatorPhoto(c.handle)} size="xl" ring />
+                <Avatar name={c.name} src={c.avatarUrl ?? undefined} size="xl" ring />
                 <p className="mt-3 text-sm font-medium text-text-strong">
                   {c.name.split(" ")[0]}
                 </p>
@@ -136,7 +168,7 @@ export default function HomePage() {
       <Container className="py-10">
         <Reveal>
           <div className="grid gap-6 rounded-lg border border-border bg-bg-elev p-10 sm:grid-cols-4">
-            {IMPACT_STATS.map((s) => (
+            {impactStats.map((s) => (
               <div key={s.label} className="text-center">
                 <div className="font-display text-4xl font-semibold text-gradient">
                   {s.value}

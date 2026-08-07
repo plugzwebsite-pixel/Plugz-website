@@ -7,7 +7,7 @@ import type { Variants } from "framer-motion";
 import { Aurora } from "./aurora";
 import { CreatorCarousel } from "./creator-carousel";
 import { Container } from "@/components/ui/primitives";
-import { STATS } from "@/lib/demo-data";
+import type { CreatorCardData } from "@/lib/queries";
 import { EASE_OUT } from "@/lib/motion";
 
 const container: Variants = {
@@ -19,7 +19,15 @@ const item: Variants = {
   show: { opacity: 1, y: 0, transition: { duration: 0.7, ease: EASE_OUT } },
 };
 
-export function Hero() {
+export function Hero({
+  creators,
+  stats,
+  creatorCount,
+}: {
+  creators: CreatorCardData[];
+  stats: { value: string; label: string }[];
+  creatorCount: number;
+}) {
   const router = useRouter();
 
   function onSearch(e: React.FormEvent<HTMLFormElement>) {
@@ -34,7 +42,7 @@ export function Hero() {
 
       {/* The wall of creators leads the page — the opening hook */}
       <div className="relative pt-8 sm:pt-10">
-        <CreatorCarousel />
+        <CreatorCarousel creators={creators} />
       </div>
 
       <Container className="relative pt-8 text-center sm:pt-10">
@@ -42,7 +50,7 @@ export function Hero() {
           <motion.div variants={item} className="flex justify-center">
             <span className="inline-flex items-center gap-2 rounded-pill border border-border bg-surface-2/70 px-4 py-1.5 text-xs font-medium text-text-muted backdrop-blur">
               <span className="h-1.5 w-1.5 animate-pulse-glow rounded-full bg-accent-green" />
-              Live in the UK · shop 62 creators&apos; edits
+              {`Live in the UK · shop ${creatorCount} creators' edits`}
             </span>
           </motion.div>
 
@@ -50,16 +58,27 @@ export function Hero() {
             variants={item}
             className="mx-auto mt-6 max-w-3xl font-display text-[clamp(2.4rem,6vw,4rem)] font-semibold leading-[1.03] text-text-strong"
           >
-            The edit, straight from the{" "}
-            <span className="text-gradient italic">creators you follow.</span>
+            Your favourite creators.
+            <br />
+            <span className="text-gradient italic">
+              Their favourite products.
+            </span>
           </motion.h1>
 
           <motion.p
             variants={item}
             className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-text-muted"
           >
-            Discover the exact products UK creators actually use — from the holiday
-            edit to 7-step skincare. Find it here, buy it at the brand.
+            The place where creators share what they actually buy, wear, eat, use
+            and love.
+          </motion.p>
+
+          <motion.p
+            variants={item}
+            className="mx-auto mt-4 max-w-2xl text-lg leading-relaxed text-text-muted"
+          >
+            Discover trusted recommendations, watch authentic reviews and shop
+            directly from the brands&mdash;all in one seamless experience.
           </motion.p>
 
           <motion.div variants={item} className="mx-auto mt-8 max-w-2xl">
@@ -81,7 +100,7 @@ export function Hero() {
             variants={item}
             className="mx-auto mt-12 grid max-w-2xl grid-cols-3 gap-4"
           >
-            {STATS.map((s) => (
+            {stats.map((s) => (
               <div key={s.label} className="text-center">
                 <div className="font-display text-4xl font-semibold text-text-strong sm:text-5xl">
                   {s.value}

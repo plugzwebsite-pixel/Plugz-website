@@ -3,7 +3,7 @@ import { Search as SearchIcon, SearchX } from "lucide-react";
 import { Container } from "@/components/ui/primitives";
 import { CreatorCard, ProductCard } from "@/components/marketing/cards";
 import { SectionHeading } from "@/components/marketing/section";
-import { CREATORS, PRODUCTS } from "@/lib/demo-data";
+import { searchCatalogue } from "@/lib/queries";
 
 export const metadata: Metadata = { title: "Search" };
 
@@ -13,27 +13,9 @@ export default async function SearchPage({
   searchParams: Promise<{ q?: string }>;
 }) {
   const { q = "" } = await searchParams;
-  const query = q.trim().toLowerCase();
+  const query = q.trim();
 
-  const creators = query
-    ? CREATORS.filter(
-        (c) =>
-          c.name.toLowerCase().includes(query) ||
-          c.handle.toLowerCase().includes(query) ||
-          c.category.toLowerCase().includes(query) ||
-          c.tag.toLowerCase().includes(query)
-      )
-    : [];
-  const products = query
-    ? PRODUCTS.filter(
-        (p) =>
-          p.name.toLowerCase().includes(query) ||
-          p.brand.toLowerCase().includes(query) ||
-          p.category.toLowerCase().includes(query) ||
-          p.creator.toLowerCase().includes(query)
-      )
-    : [];
-
+  const { creators, products } = await searchCatalogue(query);
   const total = creators.length + products.length;
 
   return (
@@ -94,8 +76,8 @@ export default async function SearchPage({
             <div>
               <SectionHeading title="Products" />
               <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-                {products.map((p, i) => (
-                  <ProductCard key={`${p.name}-${i}`} product={p} />
+                {products.map((p) => (
+                  <ProductCard key={`${p.creatorHandle}-${p.slug}`} product={p} />
                 ))}
               </div>
             </div>

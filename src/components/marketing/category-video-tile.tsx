@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Play } from "lucide-react";
 import type { Category } from "@/lib/demo-data";
 
@@ -31,11 +32,12 @@ export function CategoryVideoTile({ category }: { category: Category }) {
       onMouseLeave={stop}
       className="group relative block aspect-[4/5] overflow-hidden rounded-lg border border-border"
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
+      <Image
         src={category.cover}
         alt={category.name}
-        className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-110"
+        fill
+        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+        className="object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-110"
       />
       {category.video && (
         <video

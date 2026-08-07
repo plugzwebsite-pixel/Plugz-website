@@ -19,8 +19,13 @@ const sans = Hanken_Grotesk({
   display: "swap",
 });
 
+// Canonical origin for Open Graph images, canonical links and sitemaps.
+// Set NEXT_PUBLIC_APP_URL per environment so preview builds don't advertise
+// themselves as the live site.
+const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://pluggzofficial.co.uk";
+
 export const metadata: Metadata = {
-  metadataBase: new URL("https://pluggz.com"),
+  metadataBase: new URL(siteUrl),
   title: {
     default: "Pluggz — Shop what the UK's tastemakers actually plug",
     template: "%s · Pluggz",

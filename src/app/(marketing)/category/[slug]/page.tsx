@@ -5,7 +5,13 @@ import { ProductCard } from "@/components/marketing/cards";
 import { Reveal } from "@/components/ui/reveal";
 import { Aurora } from "@/components/marketing/aurora";
 import { Pill } from "@/components/ui/primitives";
-import { CATEGORY_NAV, PRODUCTS, productsForCategory } from "@/lib/demo-data";
+import { CATEGORY_NAV } from "@/lib/demo-data";
+import { getProductsByCategory } from "@/lib/queries";
+
+// Served from cache and refreshed in the background. Shoppers arriving from a
+// creator's post get a static page rather than a database round trip, and new
+// products appear within the window below.
+export const revalidate = 120;
 
 export async function generateMetadata({
   params,
@@ -28,9 +34,7 @@ export default async function CategoryPage({
   const cat = CATEGORY_NAV.find((c) => c.slug === slug);
   if (!cat) notFound();
 
-  // Fall back to a spread of products so every category feels populated.
-  const scoped = productsForCategory(cat.name);
-  const products = scoped.length >= 4 ? scoped : PRODUCTS;
+  const products = await getProductsByCategory(cat.name);
 
   return (
     <>
@@ -59,13 +63,19 @@ export default async function CategoryPage({
           ))}
         </div>
 
-        <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {products.map((p, i) => (
-            <Reveal key={`${p.name}-${i}`} index={i % 4}>
-              <ProductCard product={p} />
-            </Reveal>
-          ))}
-        </div>
+        {products.length === 0 ? (
+          <p className="mt-10 rounded-md border border-dashed border-border py-20 text-center text-text-faint">
+            Nothing plugged in {cat.name.toLowerCase()} yet. Check back soon.
+          </p>
+        ) : (
+          <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {products.map((p, i) => (
+              <Reveal key={`${p.creatorHandle}-${p.slug}`} index={i % 4}>
+                <ProductCard product={p} />
+              </Reveal>
+            ))}
+          </div>
+        )}
       </Container>
     </>
   );

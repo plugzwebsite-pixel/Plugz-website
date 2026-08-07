@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { Avatar } from "@/components/ui/avatar";
-import { creatorPhoto, CREATORS, type Creator } from "@/lib/demo-data";
+import type { CreatorCardData } from "@/lib/queries";
 import { cn } from "@/lib/utils";
+
+type Creator = CreatorCardData;
 
 function Face({ creator }: { creator: Creator }) {
   return (
@@ -11,7 +13,7 @@ function Face({ creator }: { creator: Creator }) {
       aria-label={`${creator.name} storefront`}
     >
       <span className="transition-transform duration-300 group-hover/face:-translate-y-1 group-hover/face:scale-105">
-        <Avatar name={creator.name} src={creatorPhoto(creator.handle)} size="xl" ring />
+        <Avatar name={creator.name} src={creator.avatarUrl ?? undefined} size="xl" ring />
       </span>
       <span className="text-sm font-medium text-text-strong">
         {creator.name.split(" ")[0]}
@@ -49,9 +51,18 @@ function Row({
  * Cameo-style wall of creators: two rows of circular portraits drifting in
  * opposite directions, pausing on hover. This is the homepage's opening hook.
  */
-export function CreatorCarousel({ className }: { className?: string }) {
-  const rowA = CREATORS.slice(0, 8);
-  const rowB = [...CREATORS.slice(6), ...CREATORS.slice(0, 2)];
+export function CreatorCarousel({
+  creators,
+  className,
+}: {
+  creators: Creator[];
+  className?: string;
+}) {
+  if (creators.length === 0) return null;
+
+  const half = Math.max(1, Math.ceil(creators.length / 2));
+  const rowA = creators.slice(0, half);
+  const rowB = [...creators.slice(half), ...creators.slice(0, 2)];
 
   return (
     <div className={cn("relative overflow-hidden py-2", className)}>
