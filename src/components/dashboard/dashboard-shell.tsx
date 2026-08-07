@@ -14,9 +14,13 @@ import {
   Settings,
   ClipboardList,
   UserPlus,
+  Upload,
   BarChart3,
   Percent,
   Wallet,
+  Package,
+  Receipt,
+  Inbox,
   type LucideIcon,
 } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
@@ -27,7 +31,7 @@ import { cn } from "@/lib/utils";
 
 type NavItem = { label: string; href: string; icon: LucideIcon };
 
-export type DashboardVariant = "creator" | "admin";
+export type DashboardVariant = "creator" | "admin" | "brand";
 
 // Nav lives here (in the client component) — icon components are functions and
 // can't be passed across the server/client boundary as props.
@@ -40,16 +44,26 @@ const NAVS: Record<DashboardVariant, NavItem[]> = {
   admin: [
     { label: "Approvals", href: "/admin/approvals", icon: ClipboardList },
     { label: "Add creator", href: "/admin/creators/new", icon: UserPlus },
-    { label: "Add brand", href: "/admin/brands/new", icon: Store },
+    { label: "Import creators", href: "/admin/creators/import", icon: Upload },
+    { label: "Brands", href: "/admin/brands", icon: Store },
+    { label: "Brand enquiries", href: "/admin/enquiries", icon: Inbox },
     { label: "Analytics", href: "/admin/analytics", icon: BarChart3 },
     { label: "Commission", href: "/admin/commission", icon: Percent },
     { label: "Payouts", href: "/admin/payouts", icon: Wallet },
+  ],
+  // Read-only by design. Brands see their own performance and what they owe;
+  // commission rates, campaigns and creator contact stay with Lisa and Rachel.
+  brand: [
+    { label: "Performance", href: "/brand/dashboard", icon: LayoutDashboard },
+    { label: "Your products", href: "/brand/products", icon: Package },
+    { label: "Invoices", href: "/brand/invoices", icon: Receipt },
   ],
 };
 
 const ROLE_LABELS: Record<DashboardVariant, string> = {
   creator: "Creator",
   admin: "Admin",
+  brand: "Brand",
 };
 
 export function DashboardShell({

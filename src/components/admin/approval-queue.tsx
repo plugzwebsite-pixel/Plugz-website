@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, X, Flag, MapPin } from "lucide-react";
+import { Check, X, Flag, MapPin, ExternalLink } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
@@ -16,8 +16,23 @@ export type Applicant = {
   city: string | null;
   category: string;
   status: "PENDING" | "APPROVED" | "DECLINED" | "SUSPENDED";
-  socials: { platform: string; followers: number }[];
+  socials: {
+    platform: string;
+    handle: string;
+    url: string | null;
+    followers: number;
+  }[];
 };
+
+/** Reconstruct a profile URL when the applicant only gave us their handle. */
+function profileUrl(platform: string, handle: string, url: string | null) {
+  if (url) return url;
+  const clean = handle.replace(/^@/, "");
+  if (platform === "instagram") return `https://instagram.com/${clean}`;
+  if (platform === "tiktok") return `https://tiktok.com/@${clean}`;
+  if (platform === "youtube") return `https://youtube.com/@${clean}`;
+  return null;
+}
 
 const tabs = [
   { key: "PENDING", label: "Pending" },
@@ -106,16 +121,36 @@ export function ApprovalQueue({ initial }: { initial: Applicant[] }) {
                       </span>
                     )}
                   </div>
-                  <p className="mt-1 text-sm text-text-muted">
-                    {a.category}
-                    {a.socials.length > 0 && " · "}
-                    {a.socials
-                      .map(
-                        (s) =>
-                          `${s.platform[0].toUpperCase()}${s.platform.slice(1)} ${compact(s.followers)}`
-                      )
-                      .join(" · ")}
-                  </p>
+                  <p className="mt-1 text-sm text-text-muted">{a.category}</p>
+                  {a.socials.length > 0 && (
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      {a.socials.map((s) => {
+                        const href = profileUrl(s.platform, s.handle, s.url);
+                        const label = `${s.platform[0].toUpperCase()}${s.platform.slice(1)} ${compact(s.followers)}`;
+                        return href ? (
+                          <a
+                            key={s.platform}
+                            href={href}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            // Opens the real profile so the self-reported
+                            // follower count can be checked before approving.
+                            className="inline-flex items-center gap-1.5 rounded-pill border border-border bg-surface-2 px-3 py-1 text-xs font-medium text-text-muted transition-colors hover:border-brand-pink/50 hover:text-text-strong"
+                          >
+                            {label}
+                            <ExternalLink size={11} />
+                          </a>
+                        ) : (
+                          <span
+                            key={s.platform}
+                            className="rounded-pill border border-border bg-surface-2 px-3 py-1 text-xs text-text-faint"
+                          >
+                            {label}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
 
                 {a.status === "PENDING" ? (

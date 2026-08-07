@@ -1,33 +1,65 @@
 import type { Metadata } from "next";
 import { Clock, ShieldCheck, Building2, HandCoins, CalendarClock } from "lucide-react";
 import { Badge } from "@/components/ui/primitives";
-import { gbp } from "@/lib/utils";
+import { payoutPipeline, settlementRows } from "@/lib/stats";
+import { nextPayoutRun } from "@/lib/commission";
+import { gbpFromPence } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Payouts" };
 
-const pipeline = [
-  { label: "Pending", sub: "in return window", value: 4820, icon: Clock, tone: "amber" as const },
-  { label: "Verified", sub: "window passed", value: 9310, icon: ShieldCheck, tone: "cyan" as const },
-  { label: "Paid to Pluggz", sub: "settled by brands", value: 7640, icon: Building2, tone: "brand" as const },
-  { label: "Paid to creators", sub: "this month", value: 6120, icon: HandCoins, tone: "green" as const },
-];
-
-const rows = [
-  { creator: "Freya Sinclair", brand: "Verano", value: 68, window: "30 days", status: "Verified" },
-  { creator: "Aisha Bello", brand: "Aura Rituals", value: 42, window: "30 days", status: "Pending" },
-  { creator: "Sophie Clarke", brand: "Nadine Merabi", value: 180, window: "14 days", status: "Paid" },
-  { creator: "Freya Sinclair", brand: "North Row", value: 95, window: "30 days", status: "Verified" },
-  { creator: "Jordan Reid", brand: "Aurate", value: 120, window: "45 days · seasonal", status: "Pending" },
-  { creator: "Tommy Fields", brand: "Kova", value: 34, window: "30 days", status: "Paid" },
-];
-
-const statusTone: Record<string, "amber" | "cyan" | "green"> = {
-  Pending: "amber",
-  Verified: "cyan",
-  Paid: "green",
+const statusTone: Record<string, "amber" | "cyan" | "green" | "neutral"> = {
+  PENDING: "amber",
+  VERIFIED: "cyan",
+  PAID_TO_PLUGGZ: "cyan",
+  PAID_TO_CREATOR: "green",
 };
 
-export default function PayoutsPage() {
+const stageLabel: Record<string, string> = {
+  PENDING: "Pending",
+  VERIFIED: "Verified",
+  PAID_TO_PLUGGZ: "Paid to Pluggz",
+  PAID_TO_CREATOR: "Paid to creator",
+};
+
+export default async function PayoutsPage() {
+  const [pipeline, rows] = await Promise.all([payoutPipeline(), settlementRows()]);
+  const runDate = nextPayoutRun();
+
+  const cards = [
+    {
+      label: "Pending",
+      sub: "in the return window",
+      value: pipeline.pending.valuePence,
+      count: pipeline.pending.count,
+      icon: Clock,
+      tone: "amber" as const,
+    },
+    {
+      label: "Verified",
+      sub: "window passed",
+      value: pipeline.verified.valuePence,
+      count: pipeline.verified.count,
+      icon: ShieldCheck,
+      tone: "cyan" as const,
+    },
+    {
+      label: "Paid to Pluggz",
+      sub: "settled by brands",
+      value: pipeline.paidToPluggz.valuePence,
+      count: pipeline.paidToPluggz.count,
+      icon: Building2,
+      tone: "brand" as const,
+    },
+    {
+      label: "Paid to creators",
+      sub: "sent via Wise",
+      value: pipeline.paidToCreators.valuePence,
+      count: pipeline.paidToCreators.count,
+      icon: HandCoins,
+      tone: "green" as const,
+    },
+  ];
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -37,28 +69,35 @@ export default function PayoutsPage() {
         <div className="flex items-center gap-2 rounded-md border border-border bg-surface px-4 py-2.5">
           <CalendarClock size={16} className="text-brand-pink" />
           <span className="text-sm text-text-muted">Next payout run</span>
-          <span className="text-sm font-semibold text-text-strong">15 Aug 2026</span>
+          <span className="text-sm font-semibold text-text-strong">
+            {runDate.toLocaleDateString("en-GB", {
+              day: "numeric",
+              month: "short",
+              year: "numeric",
+            })}
+          </span>
         </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {pipeline.map((p) => (
-          <div key={p.label} className="rounded-md border border-border bg-surface p-5">
+        {cards.map((c) => (
+          <div key={c.label} className="rounded-md border border-border bg-surface p-5">
             <div className="flex items-center justify-between">
               <span className="grid h-9 w-9 place-items-center rounded-full bg-surface-2 text-text-muted">
-                <p.icon size={17} />
+                <c.icon size={17} />
               </span>
-              <Badge tone={p.tone}>{p.label}</Badge>
+              <Badge tone={c.tone}>{c.label}</Badge>
             </div>
             <p className="mt-4 font-display text-3xl font-semibold text-text-strong">
-              {gbp(p.value)}
+              {gbpFromPence(c.value)}
             </p>
-            <p className="mt-1 text-xs text-text-faint">{p.sub}</p>
+            <p className="mt-1 text-xs text-text-faint">
+              {c.count} sale{c.count === 1 ? "" : "s"} · {c.sub}
+            </p>
           </div>
         ))}
       </div>
 
-      {/* Flow strip */}
       <div className="hidden items-center justify-between rounded-md border border-border bg-bg-elev px-8 py-5 text-sm text-text-muted sm:flex">
         {["Pending", "Verified", "Paid to Pluggz", "Paid to Creator"].map((s, i, arr) => (
           <div key={s} className="flex items-center gap-4">
@@ -79,32 +118,59 @@ export default function PayoutsPage() {
             Sales &amp; settlement
           </h2>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[640px] text-sm">
-            <thead>
-              <tr className="text-left text-xs uppercase tracking-wide text-text-faint">
-                <th className="px-6 py-3 font-medium">Creator</th>
-                <th className="px-6 py-3 font-medium">Brand</th>
-                <th className="px-6 py-3 font-medium">Value</th>
-                <th className="px-6 py-3 font-medium">Return window</th>
-                <th className="px-6 py-3 font-medium">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((r, i) => (
-                <tr key={i} className="border-t border-border">
-                  <td className="px-6 py-3.5 font-medium text-text-strong">{r.creator}</td>
-                  <td className="px-6 py-3.5 text-text-muted">{r.brand}</td>
-                  <td className="px-6 py-3.5 text-text">{gbp(r.value)}</td>
-                  <td className="px-6 py-3.5 text-text-muted">{r.window}</td>
-                  <td className="px-6 py-3.5">
-                    <Badge tone={statusTone[r.status]}>{r.status}</Badge>
-                  </td>
+
+        {rows.length === 0 ? (
+          <p className="px-6 py-16 text-center text-sm text-text-muted">
+            No sales recorded yet. Clicks are being tracked now; sales appear here
+            once brands report them or a discount code is reconciled.
+          </p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[760px] text-sm">
+              <thead>
+                <tr className="text-left text-xs uppercase tracking-wide text-text-faint">
+                  <th className="px-6 py-3 font-medium">Creator</th>
+                  <th className="px-6 py-3 font-medium">Brand</th>
+                  <th className="px-6 py-3 font-medium">Value</th>
+                  <th className="px-6 py-3 font-medium">Creator earns</th>
+                  <th className="px-6 py-3 font-medium">Verifies</th>
+                  <th className="px-6 py-3 font-medium">Status</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {rows.map((r) => (
+                  <tr key={r.id} className="border-t border-border">
+                    <td className="px-6 py-3.5 font-medium text-text-strong">
+                      {r.creatorProduct.profile.user.name}
+                    </td>
+                    <td className="px-6 py-3.5 text-text-muted">
+                      {r.creatorProduct.product.brand.name}
+                      <span className="ml-1.5 text-xs text-text-faint">
+                        {`(${r.creatorProduct.product.brand.returnWindowDays}d window)`}
+                      </span>
+                    </td>
+                    <td className="px-6 py-3.5 text-text">
+                      {gbpFromPence(r.valuePence)}
+                    </td>
+                    <td className="px-6 py-3.5 text-text">
+                      {gbpFromPence(r.creatorAmountPence)}
+                    </td>
+                    <td className="px-6 py-3.5 text-text-muted">
+                      {r.verifiesAt.toLocaleDateString("en-GB")}
+                    </td>
+                    <td className="px-6 py-3.5">
+                      <Badge tone={statusTone[r.stage] ?? "neutral"}>
+                        {r.status === "RETURNED"
+                          ? "Returned"
+                          : stageLabel[r.stage]}
+                      </Badge>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );

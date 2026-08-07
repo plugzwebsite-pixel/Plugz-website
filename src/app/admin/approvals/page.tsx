@@ -10,7 +10,12 @@ async function loadApplicants(): Promise<{ items: Applicant[]; dbError: boolean 
       orderBy: { createdAt: "asc" },
       include: {
         user: { select: { name: true } },
-        socials: { select: { platform: true, followers: true } },
+        // Handle and url come through too: approval requires spot-checking the
+        // self-reported follower counts against the actual profiles, which is
+        // impossible without a link to open.
+        socials: {
+          select: { platform: true, handle: true, url: true, followers: true },
+        },
       },
     });
     return {

@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { ok, fail, parseBody } from "@/lib/http";
-import { adminAddCreatorSchema } from "@/lib/validation";
+import { adminAddCreatorSchema, profileUrl } from "@/lib/validation";
 import { requireRole } from "@/lib/auth/guard";
 import { hashPassword } from "@/lib/auth/password";
 import { generateToken, expiryFromNow } from "@/lib/auth/tokens";
@@ -40,11 +40,15 @@ export async function POST(req: Request) {
   const tempHash = await hashPassword(randomBytes(24).toString("base64url"));
   const socials = input.socials
     .filter((s) => s.handle && s.handle.trim().length > 0)
-    .map((s) => ({
-      platform: s.platform,
-      handle: s.handle!.replace(/^@/, ""),
-      followers: s.followers ?? 0,
-    }));
+    .map((s) => {
+      const handle = s.handle!.replace(/^@/, "").trim();
+      return {
+        platform: s.platform,
+        handle,
+        url: profileUrl(s.platform, handle),
+        followers: s.followers ?? 0,
+      };
+    });
 
   const user = await db.user.create({
     data: {
