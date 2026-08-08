@@ -21,6 +21,7 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { Checkbox } from "@/components/ui/controls";
 import { Button } from "@/components/ui/button";
 import { postJson } from "@/lib/client/api";
+import { SignupPhotoPicker } from "./signup-photo-picker";
 
 const platforms = [
   { key: "instagram", label: "Instagram", icon: InstagramIcon },
@@ -28,8 +29,35 @@ const platforms = [
   { key: "youtube", label: "YouTube", icon: YouTubeIcon },
 ] as const;
 
+/**
+ * Post the application with the portrait attached, in one request.
+ *
+ * The fields still travel as JSON in a `payload` part, so the server validates
+ * exactly the same shape whether or not a photo came with it.
+ */
+async function postSignupWithPhoto(values: CreatorSignupInput, photo: File) {
+  const body = new FormData();
+  body.append("payload", JSON.stringify(values));
+  body.append("photo", photo);
+
+  const res = await fetch("/api/auth/signup", { method: "POST", body });
+  const json = (await res.json().catch(() => null)) as {
+    message?: string;
+    errors?: Record<string, string>;
+  } | null;
+
+  return res.ok
+    ? { ok: true as const, message: undefined, errors: undefined }
+    : {
+        ok: false as const,
+        message: json?.message ?? "Something went wrong.",
+        errors: json?.errors,
+      };
+}
+
 export function CreatorSignupForm() {
   const [submitted, setSubmitted] = useState<string | null>(null);
+  const [photo, setPhoto] = useState<File | null>(null);
 
   const {
     register,
@@ -57,7 +85,11 @@ export function CreatorSignupForm() {
   const handle = watch("handle");
 
   async function onSubmit(values: CreatorSignupInput) {
-    const res = await postJson<{ email: string }>("/api/auth/signup", values);
+    // Multipart only when there is a file to carry, so the ordinary path stays
+    // a plain JSON post.
+    const res = photo
+      ? await postSignupWithPhoto(values, photo)
+      : await postJson<{ email: string }>("/api/auth/signup", values);
     if (!res.ok) {
       if (res.errors) {
         for (const [field, message] of Object.entries(res.errors)) {
@@ -125,6 +157,8 @@ export function CreatorSignupForm() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <SignupPhotoPicker onChange={setPhoto} />
 
       <div className="grid gap-5 sm:grid-cols-2">
         <Field label="Full name" htmlFor="name" required error={errors.name?.message}>

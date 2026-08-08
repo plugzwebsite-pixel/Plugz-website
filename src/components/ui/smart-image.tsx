@@ -31,7 +31,12 @@ export function SmartImage({
   sizes?: string;
   priority?: boolean;
 }) {
-  const optimisable = src.startsWith("/") || isOptimisableHost(src);
+  // Creator uploads are written after the build, so the optimiser can't read
+  // them — Next indexes public/ at build time. They arrive already square,
+  // already re-encoded and around 40KB, and nginx serves them straight from
+  // disk, so there is nothing for the optimiser to add.
+  const isUpload = src.startsWith("/uploads/");
+  const optimisable = !isUpload && (src.startsWith("/") || isOptimisableHost(src));
 
   if (optimisable) {
     return (
