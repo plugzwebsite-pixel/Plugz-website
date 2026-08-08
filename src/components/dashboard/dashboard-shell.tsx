@@ -50,6 +50,7 @@ const NAVS: Record<DashboardVariant, NavItem[]> = {
     { label: "Brand enquiries", href: "/admin/enquiries", icon: Inbox },
     { label: "Analytics", href: "/admin/analytics", icon: BarChart3 },
     { label: "Commission", href: "/admin/commission", icon: Percent },
+    { label: "Record sales", href: "/admin/sales", icon: Receipt },
     { label: "Payouts", href: "/admin/payouts", icon: Wallet },
   ],
   // Read-only by design. Brands see their own performance and what they owe;
