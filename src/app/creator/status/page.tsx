@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ResendVerification } from "@/components/auth/resend-verification";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Clock, XCircle, Ban, MailWarning } from "lucide-react";
@@ -18,6 +19,8 @@ type State = {
   title: string;
   body: string;
   action?: { label: string; href: string };
+  /** Set when the blocker is an unconfirmed address, to offer a fresh link. */
+  resendTo?: string;
 };
 
 export default async function CreatorStatusPage() {
@@ -56,8 +59,8 @@ export default async function CreatorStatusPage() {
       icon: MailWarning,
       tone: "text-accent-cyan",
       title: "Confirm your email to continue",
-      body: `You're approved — we just need to know ${account.email} reaches you before your storefront goes live. Check your inbox for the verification link.`,
-      action: { label: "Resend verification email", href: "/verify-email" },
+      body: `You're approved — we just need to know ${account.email} reaches you before your storefront goes live. Check your inbox for the verification link; if it isn't there, or it has expired, send yourself a fresh one.`,
+      resendTo: account.email,
     };
   } else {
     // Nothing left to block on.
@@ -93,6 +96,7 @@ export default async function CreatorStatusPage() {
                 <Button className="w-full sm:w-auto">{state.action.label}</Button>
               </Link>
             )}
+            {state.resendTo && <ResendVerification email={state.resendTo} />}
             <Link href="/">
               <Button variant="secondary" className="w-full sm:w-auto">
                 Browse Pluggz

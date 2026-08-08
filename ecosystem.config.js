@@ -24,6 +24,13 @@ module.exports = {
       cwd: "/srv/pluggz",
       instances: 4,
       exec_mode: "cluster",
+      // In cluster mode PM2 forks workers from its own daemon, and NODE_OPTIONS
+      // set here never reached them — which silently killed outbound email.
+      // node_args is applied to the interpreter itself, so it survives the fork.
+      // src/instrumentation.ts sets the same thing in-process as the real
+      // guarantee; this is here so the flag is visible to anyone reading the
+      // process list.
+      node_args: "--dns-result-order=ipv4first",
       env: {
         NODE_ENV: "production",
         NODE_OPTIONS: "--dns-result-order=ipv4first",
