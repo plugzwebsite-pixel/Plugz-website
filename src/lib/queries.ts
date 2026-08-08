@@ -339,3 +339,56 @@ export async function getCategoryCounts() {
   }
   return counts;
 }
+
+/**
+ * The brand the homepage puts its "featured partner" panel behind.
+ *
+ * Read from the catalogue rather than written into the page. The panel used to
+ * name a brand and quote a delivery offer in hard-coded copy, and when that
+ * brand was deleted the homepage carried on advertising it — with a promotion
+ * nobody had agreed to. Anything claimed here now has to be true of a brand
+ * that actually exists, and the picture is one of its own product shots.
+ */
+export async function getFeaturedBrand() {
+  const brand = await db.brand.findFirst({
+    where: { status: "ACTIVE", products: { some: { imageUrl: { not: null } } } },
+    select: {
+      name: true,
+      slug: true,
+      products: {
+        where: { imageUrl: { not: null } },
+        select: {
+          name: true,
+          category: true,
+          imageUrl: true,
+          pricePence: true,
+          creatorProducts: {
+            where: liveProduct,
+            select: { slug: true, profile: { select: { handle: true } } },
+            take: 1,
+          },
+        },
+        orderBy: { pricePence: "desc" },
+        take: 1,
+      },
+      _count: { select: { products: true } },
+    },
+    orderBy: { products: { _count: "desc" } },
+  });
+
+  const hero = brand?.products[0];
+  const listing = hero?.creatorProducts[0];
+  if (!brand || !hero || !listing) return null;
+
+  return {
+    brandName: brand.name,
+    productName: hero.name,
+    category: hero.category,
+    imageUrl: hero.imageUrl!,
+    pricePence: hero.pricePence,
+    productCount: brand._count.products,
+    // Straight to the creator's page for it, so the panel behaves like every
+    // other route into the catalogue.
+    href: `/@${listing.profile.handle}/${listing.slug}`,
+  };
+}

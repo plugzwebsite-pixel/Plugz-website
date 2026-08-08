@@ -75,7 +75,7 @@ export function BrandEnquiryForm() {
         <Field label="Brand name" htmlFor="brand" error={errors.brand?.message} required>
           <Input
             id="brand"
-            placeholder="Aura Rituals"
+            placeholder="Your brand"
             leftIcon={<Building2 size={16} />}
             {...register("brand")}
           />

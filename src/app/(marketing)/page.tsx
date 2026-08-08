@@ -6,12 +6,13 @@ import { ProductCard } from "@/components/marketing/cards";
 import { CategoryVideoTile } from "@/components/marketing/category-video-tile";
 import { Container, Eyebrow } from "@/components/ui/primitives";
 import { Button } from "@/components/ui/button";
-import { ArtPanel } from "@/components/ui/art-panel";
 import { Avatar } from "@/components/ui/avatar";
+import { SmartImage } from "@/components/ui/smart-image";
 import { Reveal } from "@/components/ui/reveal";
 import { Aurora } from "@/components/marketing/aurora";
 import { CATEGORY_NAV } from "@/lib/demo-data";
 import {
+  getFeaturedBrand,
   getFeaturedCreators,
   getTrendingProducts,
   getPlatformStats,
@@ -19,12 +20,13 @@ import {
 import { compact, gbpFromPence } from "@/lib/utils";
 
 export default async function HomePage() {
-  const [trendProducts, featured, stats] = await Promise.all([
+  const [trendProducts, featured, stats, featuredBrand] = await Promise.all([
     getTrendingProducts(8),
     // The hero wall wants every creator it can get: each row has to span the
     // screen on its own, and a short list only loops back on itself.
     getFeaturedCreators(24),
     getPlatformStats(),
+    getFeaturedBrand(),
   ]);
   const trendingCreators = featured.slice(0, 7);
 
@@ -91,7 +93,9 @@ export default async function HomePage() {
         </div>
       </Container>
 
-      {/* Featured partner */}
+      {/* Featured partner — the brand, the product and the picture all come
+          from the catalogue, so the panel can't outlive what it advertises. */}
+      {featuredBrand && (
       <Container className="py-14">
         <Reveal>
           <div className="relative grid overflow-hidden rounded-lg border border-border-strong lg:grid-cols-2">
@@ -105,26 +109,32 @@ export default async function HomePage() {
               <div className="relative">
                 <Eyebrow>Featured partner</Eyebrow>
                 <h3 className="mt-3 font-display text-4xl font-semibold text-text-strong">
-                  Aura Rituals
+                  {featuredBrand.brandName}
                 </h3>
                 <p className="mt-1 text-lg text-text">
-                  The Golden Hour Set — limited UK launch
+                  {featuredBrand.productName}
+                  {featuredBrand.pricePence !== null &&
+                    ` — ${gbpFromPence(featuredBrand.pricePence)}`}
                 </p>
                 <p className="mt-4 max-w-md leading-relaxed text-text-muted">
-                  The peptide-glow ritual creators can&apos;t stop plugging, now
-                  in one edit. Free next-day UK delivery this week only.
+                  {`${featuredBrand.productCount} products from ${featuredBrand.brandName} are plugged by Pluggz creators, each with the review that sold it. This one leads the ${featuredBrand.category.toLowerCase()} edit.`}
                 </p>
-                <Link href="/category/beauty-skincare" className="mt-7 inline-block">
+                <Link href={featuredBrand.href} className="mt-7 inline-block">
                   <Button size="lg">
-                    Shop the launch <ArrowRight size={17} />
+                    Read the review <ArrowRight size={17} />
                   </Button>
                 </Link>
               </div>
             </div>
             <div className="relative min-h-64 lg:min-h-full">
-              {/* Drawn rather than photographed until the partner supplies
-                  artwork at the size this panel actually renders. */}
-              <ArtPanel seed="aura-rituals-golden-hour" label="Aura Rituals" />
+              <SmartImage
+                src={featuredBrand.imageUrl}
+                alt={`${featuredBrand.productName} by ${featuredBrand.brandName}`}
+                width={900}
+                height={900}
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                className="absolute inset-0 h-full w-full object-cover"
+              />
               <div
                 aria-hidden
                 className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent lg:bg-gradient-to-r lg:from-[color:var(--bg)] lg:via-transparent lg:to-transparent"
@@ -133,6 +143,7 @@ export default async function HomePage() {
           </div>
         </Reveal>
       </Container>
+      )}
 
       {/* Trending creators strip */}
       <Container className="py-14">
