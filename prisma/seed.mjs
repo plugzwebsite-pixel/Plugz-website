@@ -154,22 +154,22 @@ const DEMO_CREATORS = [
 ];
 
 const DEMO_PRODUCTS = [
-  { name: "Linen-blend holiday co-ord", brand: "Verano", host: "verano.co.uk", price: 6800, creator: "freyasinclair", category: "Women's Fashion", image: "/images/products/p0.jpg", clicks: 2400 , review: "Packed this for Lisbon and wore it three days running. Doesn't crease in a suitcase." },
-  { name: "Wide-leg denim", brand: "Shein", host: "shein.co.uk", price: 2900, creator: "freyasinclair", category: "Women's Fashion", image: "/images/products/p1.jpg", clicks: 3200 , review: "The rise is the whole thing. Sizing runs generous, I took one down." },
-  { name: "Vitamin C brightening serum", brand: "Lumen Skin", host: "lumenskin.co.uk", price: 3800, creator: "aishabello", category: "Beauty & Skincare", image: "/images/products/p2.jpg", clicks: 4100 , review: "Six weeks in and the pigmentation round my jaw has genuinely faded. Slots under SPF with no pilling." },
-  { name: "Peptide glow moisturiser", brand: "Aura Rituals", host: "aurarituals.co.uk", price: 4200, creator: "aishabello", category: "Beauty & Skincare", image: "/images/products/p3.jpg", clicks: 2600 , review: "The one I reach for on a tired skin day. Cushiony, not greasy." },
-  { name: "Satin slip midi dress", brand: "Halcyon London", host: "halcyonlondon.co.uk", price: 5200, creator: "ellethompson", category: "Women's Fashion", image: "/images/products/p4.jpg", clicks: 1900 , review: "Wedding guest, dinner, Christmas Day. It does all three." },
-  { name: "Oversized tailored blazer", brand: "North Row", host: "northrow.co.uk", price: 9500, creator: "freyasinclair", category: "Women's Fashion", image: "/images/products/p5.jpg", clicks: 1400 , review: "Worth the money. The shoulder is properly structured, not a boxy sack." },
-  { name: "Ribbed knit lounge set", brand: "Marlowe & Co", host: "marloweandco.co.uk", price: 4400, creator: "priyakaur", category: "Home", image: "/images/products/p6.jpg", clicks: 1100 , review: "What I actually live in on a Sunday. Washes without bobbling." },
-  { name: "Everyday gold hoops", brand: "Aurate", host: "aurate.co.uk", price: 12000, creator: "jordanreid", category: "Shoes & Accessories", image: "/images/products/p7.jpg", clicks: 2000 , review: "Haven't taken these out in four months, including showers and the gym." },
-  { name: "Trainer recovery slides", brand: "Kova", host: "kova.co.uk", price: 3400, creator: "tommyfields", category: "Fitness & Lifestyle", image: "/images/products/p8.jpg", clicks: 1600 , review: "Straight on after a session. My feet stopped aching on rest days." },
-  { name: "Carry-on cabin case", brand: "Vomo", host: "vomo.co.uk", price: 14500, creator: "sophieclarke", category: "Travel / Holiday", image: "/images/products/p9.jpg", clicks: 3000 , review: "Fits every budget airline sizer I've thrown at it. The wheels are silent." },
-  { name: "Soy travel candle", brand: "Ember & Oak", host: "emberandoak.co.uk", price: 2800, creator: "islamurray", category: "Home", image: "/images/products/p10.jpg", clicks: 900 , review: "Burns clean for about 20 hours. The tin travels without leaking wax." },
-  { name: "Compression run leggings", brand: "Stride", host: "stride.co.uk", price: 5800, creator: "devsharma", category: "Fitness & Lifestyle", image: "/images/products/p11.jpg", clicks: 1200 , review: "Held up over a half marathon with no slipping or see-through moments." },
+  { name: "Linen-blend holiday co-ord", brand: "Verano", host: "verano.co.uk", price: 6800, creator: "freyasinclair", category: "Women's Fashion", clicks: 2400 , review: "Packed this for Lisbon and wore it three days running. Doesn't crease in a suitcase." },
+  { name: "Wide-leg denim", brand: "Shein", host: "shein.co.uk", price: 2900, creator: "freyasinclair", category: "Women's Fashion", clicks: 3200 , review: "The rise is the whole thing. Sizing runs generous, I took one down." },
+  { name: "Vitamin C brightening serum", brand: "Lumen Skin", host: "lumenskin.co.uk", price: 3800, creator: "aishabello", category: "Beauty & Skincare", clicks: 4100 , review: "Six weeks in and the pigmentation round my jaw has genuinely faded. Slots under SPF with no pilling." },
+  { name: "Peptide glow moisturiser", brand: "Aura Rituals", host: "aurarituals.co.uk", price: 4200, creator: "aishabello", category: "Beauty & Skincare", clicks: 2600 , review: "The one I reach for on a tired skin day. Cushiony, not greasy." },
+  { name: "Satin slip midi dress", brand: "Halcyon London", host: "halcyonlondon.co.uk", price: 5200, creator: "ellethompson", category: "Women's Fashion", clicks: 1900 , review: "Wedding guest, dinner, Christmas Day. It does all three." },
+  { name: "Oversized tailored blazer", brand: "North Row", host: "northrow.co.uk", price: 9500, creator: "freyasinclair", category: "Women's Fashion", clicks: 1400 , review: "Worth the money. The shoulder is properly structured, not a boxy sack." },
+  { name: "Ribbed knit lounge set", brand: "Marlowe & Co", host: "marloweandco.co.uk", price: 4400, creator: "priyakaur", category: "Home", clicks: 1100 , review: "What I actually live in on a Sunday. Washes without bobbling." },
+  { name: "Everyday gold hoops", brand: "Aurate", host: "aurate.co.uk", price: 12000, creator: "jordanreid", category: "Shoes & Accessories", clicks: 2000 , review: "Haven't taken these out in four months, including showers and the gym." },
+  { name: "Trainer recovery slides", brand: "Kova", host: "kova.co.uk", price: 3400, creator: "tommyfields", category: "Fitness & Lifestyle", clicks: 1600 , review: "Straight on after a session. My feet stopped aching on rest days." },
+  { name: "Carry-on cabin case", brand: "Vomo", host: "vomo.co.uk", price: 14500, creator: "sophieclarke", category: "Travel / Holiday", clicks: 3000 , review: "Fits every budget airline sizer I've thrown at it. The wheels are silent." },
+  { name: "Soy travel candle", brand: "Ember & Oak", host: "emberandoak.co.uk", price: 2800, creator: "islamurray", category: "Home", clicks: 900 , review: "Burns clean for about 20 hours. The tin travels without leaking wax." },
+  { name: "Compression run leggings", brand: "Stride", host: "stride.co.uk", price: 5800, creator: "devsharma", category: "Fitness & Lifestyle", clicks: 1200 , review: "Held up over a half marathon with no slipping or see-through moments." },
   // A second creator on an existing product, so the shared master record and
   // the "also plugged by" strip have something real to show.
-  { name: "Vitamin C brightening serum", brand: "Lumen Skin", host: "lumenskin.co.uk", price: 3800, creator: "nadiarahman", category: "Beauty & Skincare", image: "/images/products/p2.jpg", clicks: 1500 , review: "I use this before makeup and everything sits better. A little goes a long way." },
-  { name: "Carry-on cabin case", brand: "Vomo", host: "vomo.co.uk", price: 14500, creator: "chloeadeyemi", category: "Travel / Holiday", image: "/images/products/p9.jpg", clicks: 800 , review: "Four long-hauls this year, still looks new. Worth it if you fly a lot." },
+  { name: "Vitamin C brightening serum", brand: "Lumen Skin", host: "lumenskin.co.uk", price: 3800, creator: "nadiarahman", category: "Beauty & Skincare", clicks: 1500 , review: "I use this before makeup and everything sits better. A little goes a long way." },
+  { name: "Carry-on cabin case", brand: "Vomo", host: "vomo.co.uk", price: 14500, creator: "chloeadeyemi", category: "Travel / Holiday", clicks: 800 , review: "Four long-hauls this year, still looks new. Worth it if you fly a lot." },
 ];
 
 const CODE_ALPHABET = "23456789abcdefghjkmnpqrstuvwxyz";
@@ -206,7 +206,7 @@ async function seedCatalogue() {
     if (existingProfile) {
       await db.creatorProfile.update({
         where: { handle: c.handle },
-        data: { avatarUrl: `/images/creators/${c.handle}.jpg`, bio: c.bio },
+        data: { bio: c.bio },
       });
       continue;
     }
@@ -223,7 +223,6 @@ async function seedCatalogue() {
             category: c.category,
             city: c.city,
             bio: c.bio,
-            avatarUrl: `/images/creators/${c.handle}.jpg`,
             status: "APPROVED",
             source: "SELF_SERVE",
             termsVersion: TERMS_VERSION,

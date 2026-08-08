@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import { Hero } from "@/components/marketing/hero";
 import { SectionHeading } from "@/components/marketing/section";
@@ -7,6 +6,7 @@ import { ProductCard } from "@/components/marketing/cards";
 import { CategoryVideoTile } from "@/components/marketing/category-video-tile";
 import { Container, Eyebrow } from "@/components/ui/primitives";
 import { Button } from "@/components/ui/button";
+import { ArtPanel } from "@/components/ui/art-panel";
 import { Avatar } from "@/components/ui/avatar";
 import { Reveal } from "@/components/ui/reveal";
 import { Aurora } from "@/components/marketing/aurora";
@@ -21,7 +21,9 @@ import { compact, gbpFromPence } from "@/lib/utils";
 export default async function HomePage() {
   const [trendProducts, featured, stats] = await Promise.all([
     getTrendingProducts(8),
-    getFeaturedCreators(12),
+    // The hero wall wants every creator it can get: each row has to span the
+    // screen on its own, and a short list only loops back on itself.
+    getFeaturedCreators(24),
     getPlatformStats(),
   ]);
   const trendingCreators = featured.slice(0, 7);
@@ -120,13 +122,9 @@ export default async function HomePage() {
               </div>
             </div>
             <div className="relative min-h-64 lg:min-h-full">
-              <Image
-                src="/images/products/partner-aura.jpg"
-                alt="Aura Rituals — The Golden Hour Set"
-                fill
-                sizes="(max-width: 1024px) 100vw, 50vw"
-                className="object-cover"
-              />
+              {/* Drawn rather than photographed until the partner supplies
+                  artwork at the size this panel actually renders. */}
+              <ArtPanel seed="aura-rituals-golden-hour" label="Aura Rituals" />
               <div
                 aria-hidden
                 className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent lg:bg-gradient-to-r lg:from-[color:var(--bg)] lg:via-transparent lg:to-transparent"

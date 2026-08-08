@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowUpRight, Flame } from "lucide-react";
+import { ArtPanel } from "@/components/ui/art-panel";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/primitives";
 import { SmartImage } from "@/components/ui/smart-image";
@@ -47,15 +48,20 @@ export function ProductCard({ product }: { product: ProductCardData }) {
       className="group flex flex-col overflow-hidden rounded-md border border-border bg-surface transition-[transform,border-color,box-shadow] duration-300 ease-out-quart hover:-translate-y-1 hover:border-border-strong hover:shadow-[0_20px_44px_-26px_rgba(0,0,0,0.6)]"
     >
       <div className="relative aspect-[4/3] overflow-hidden bg-surface-2">
-        {product.imageUrl && (
+        {product.imageUrl ? (
+          // Contained, not cropped. A brand's own product shot is nearly always
+          // square or portrait, and filling a 4:3 card with it sliced the top
+          // and bottom off the product itself.
           <SmartImage
             src={product.imageUrl}
             alt={product.name}
             width={480}
             height={360}
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            className="h-full w-full object-contain p-3 transition-transform duration-500 group-hover:scale-105"
           />
+        ) : (
+          <ArtPanel seed={`${product.brand}-${product.slug}`} label={product.brand} />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/25 to-transparent" />
         {product.clicks > 0 && (

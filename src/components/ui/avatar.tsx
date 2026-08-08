@@ -23,12 +23,6 @@ function paletteFor(seed: string) {
   return palettes[hash(seed) % palettes.length];
 }
 
-// Self-hosted portrait pool (8 real photos) for avatars without an explicit one.
-const POOL_SIZE = 8;
-function poolPortrait(seed: string) {
-  return `/images/avatars/p${hash(seed) % POOL_SIZE}.jpg`;
-}
-
 const sizes = {
   xs: "h-8 w-8 text-[0.7rem]",
   sm: "h-10 w-10 text-xs",
@@ -37,24 +31,28 @@ const sizes = {
   xl: "h-20 w-20 text-2xl",
 };
 
+/**
+ * A creator's portrait, or their initials on a gradient until one is supplied.
+ *
+ * There is deliberately no stand-in photograph. Dealing out stock headshots to
+ * creators who hadn't sent one put pictures of real, identifiable people under
+ * other people's names, and they were small enough to look blurry at this size
+ * anyway. Initials stay sharp and are honestly empty.
+ */
 export function Avatar({
   name,
   src,
   size = "md",
   ring = false,
-  photo = true,
   className,
 }: {
   name: string;
-  /** Explicit portrait URL; falls back to a seeded photo from the pool. */
+  /** The creator's own portrait. Omitted until they have actually sent one. */
   src?: string;
   size?: keyof typeof sizes;
   ring?: boolean;
-  /** Set false to force gradient initials with no photo. */
-  photo?: boolean;
   className?: string;
 }) {
-  const img = src ?? (photo ? poolPortrait(name) : undefined);
   return (
     <span
       aria-hidden
@@ -68,12 +66,12 @@ export function Avatar({
     >
       {/* Initials sit underneath as a graceful fallback if the photo is missing. */}
       <span className="absolute">{initials(name)}</span>
-      {img && (
-        // Avatars can be a self-hosted portrait or, in future, a creator's own
-        // uploaded photo on another host — SmartImage handles both without
-        // opening the image optimiser to arbitrary remote URLs.
+      {src && (
+        // A portrait can be self-hosted or, in future, a creator's own uploaded
+        // photo on another host — SmartImage handles both without opening the
+        // image optimiser to arbitrary remote URLs.
         <SmartImage
-          src={img}
+          src={src}
           alt=""
           width={160}
           height={160}

@@ -2,14 +2,20 @@
 
 import { useRef } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { Play } from "lucide-react";
+import { ArtPanel } from "@/components/ui/art-panel";
+import { SmartImage } from "@/components/ui/smart-image";
 import type { Category } from "@/lib/demo-data";
 
 /**
- * Instagram-style category tile: a static cover image that plays a short,
- * muted, looping clip on hover. Falls back to a smooth cover zoom until real
- * category videos are supplied (set `category.video`).
+ * Instagram-style category tile: a cover that plays a short, muted, looping
+ * clip on hover.
+ *
+ * The tile renders at roughly 350x435, which is 700x870 on a retina screen, so
+ * it only shows a photograph when one is actually supplied at that size —
+ * `cover` stays unset until real category photography lands. Blowing a small
+ * image up to fill this box was what made the grid look amateur, and cropping a
+ * square one into 4:5 cut the subject off at both edges.
  */
 export function CategoryVideoTile({ category }: { category: Category }) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -32,13 +38,23 @@ export function CategoryVideoTile({ category }: { category: Category }) {
       onMouseLeave={stop}
       className="group relative block aspect-[4/5] overflow-hidden rounded-lg border border-border"
     >
-      <Image
-        src={category.cover}
-        alt={category.name}
-        fill
-        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-        className="object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-110"
-      />
+      {category.cover ? (
+        <SmartImage
+          src={category.cover}
+          alt=""
+          width={700}
+          height={875}
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-110"
+        />
+      ) : (
+        <ArtPanel
+          seed={category.slug}
+          label={category.name}
+          className="transition-transform duration-[1200ms] ease-out group-hover:scale-110"
+        />
+      )}
+
       {category.video && (
         <video
           ref={videoRef}

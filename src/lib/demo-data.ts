@@ -21,12 +21,13 @@ export type Product = {
   category: string;
   heat: string;
   emoji: string;
-  image: string;
+  /** The brand's own photograph, once they supply one. */
+  image?: string;
 };
 
-/** Self-hosted portrait for a demo creator handle. */
-export function creatorPhoto(handle: string) {
-  return `/images/creators/${handle}.jpg`;
+/** A demo creator has no portrait until they send one — initials stand in. */
+export function creatorPhoto(_handle: string): string | undefined {
+  return undefined;
 }
 
 export const STATS = [
@@ -47,18 +48,19 @@ export type Category = {
   slug: string;
   emoji: string;
   edits: number;
-  cover: string;
+  /** Real category photography, once it exists. Drawn artwork until then. */
+  cover?: string;
   /** Optional hover-to-play clip; drops in once real category videos exist. */
   video?: string;
 };
 
 export const CATEGORY_NAV: Category[] = [
-  { name: "Women's Fashion", slug: "womens-fashion", emoji: "👗", edits: 5, cover: "/images/products/p4.jpg" },
-  { name: "Beauty & Skincare", slug: "beauty-skincare", emoji: "✨", edits: 6, cover: "/images/products/p3.jpg" },
-  { name: "Shoes & Accessories", slug: "shoes-accessories", emoji: "👜", edits: 4, cover: "/images/products/p7.jpg" },
-  { name: "Home", slug: "home", emoji: "🕯️", edits: 4, cover: "/images/products/p10.jpg" },
-  { name: "Fitness & Lifestyle", slug: "fitness-lifestyle", emoji: "🏋️", edits: 5, cover: "/images/products/p11.jpg" },
-  { name: "Travel / Holiday", slug: "travel-holiday", emoji: "🌴", edits: 5, cover: "/images/products/p9.jpg" },
+  { name: "Women's Fashion", slug: "womens-fashion", emoji: "👗", edits: 5 },
+  { name: "Beauty & Skincare", slug: "beauty-skincare", emoji: "✨", edits: 6 },
+  { name: "Shoes & Accessories", slug: "shoes-accessories", emoji: "👜", edits: 4 },
+  { name: "Home", slug: "home", emoji: "🕯️", edits: 4 },
+  { name: "Fitness & Lifestyle", slug: "fitness-lifestyle", emoji: "🏋️", edits: 5 },
+  { name: "Travel / Holiday", slug: "travel-holiday", emoji: "🌴", edits: 5 },
 ];
 
 export const TRENDS = [
@@ -96,18 +98,18 @@ export const CREATORS: Creator[] = [
 ];
 
 export const PRODUCTS: Product[] = [
-  { name: "Linen-blend holiday co-ord", brand: "Verano", price: 68, creator: "freyasinclair", category: "Women's Fashion", heat: "2.4k", emoji: "👚", image: "/images/products/p0.jpg" },
-  { name: "Wide-leg denim", brand: "Shein", price: 29, creator: "freyasinclair", category: "Women's Fashion", heat: "3.2k", emoji: "👖", image: "/images/products/p1.jpg" },
-  { name: "Vitamin C brightening serum", brand: "Lumen Skin", price: 38, creator: "aishabello", category: "Beauty & Skincare", heat: "4.1k", emoji: "🧴", image: "/images/products/p2.jpg" },
-  { name: "Peptide glow moisturiser", brand: "Aura Rituals", price: 42, creator: "aishabello", category: "Beauty & Skincare", heat: "2.6k", emoji: "🧴", image: "/images/products/p3.jpg" },
-  { name: "Satin slip midi dress", brand: "Halcyon London", price: 52, creator: "ellethompson", category: "Women's Fashion", heat: "1.9k", emoji: "👗", image: "/images/products/p4.jpg" },
-  { name: "Oversized tailored blazer", brand: "North Row", price: 95, creator: "freyasinclair", category: "Women's Fashion", heat: "1.4k", emoji: "🧥", image: "/images/products/p5.jpg" },
-  { name: "Ribbed knit lounge set", brand: "Marlowe & Co", price: 44, creator: "priyakaur", category: "Home", heat: "1.1k", emoji: "🧦", image: "/images/products/p6.jpg" },
-  { name: "Everyday gold hoops", brand: "Aurate", price: 120, creator: "jordanreid", category: "Shoes & Accessories", heat: "2.0k", emoji: "💛", image: "/images/products/p7.jpg" },
-  { name: "Trainer recovery slides", brand: "Kova", price: 34, creator: "tommyfields", category: "Fitness & Lifestyle", heat: "1.6k", emoji: "🩴", image: "/images/products/p8.jpg" },
-  { name: "Carry-on cabin case", brand: "Vomo", price: 145, creator: "sophieclarke", category: "Travel / Holiday", heat: "3.0k", emoji: "🧳", image: "/images/products/p9.jpg" },
-  { name: "Soy travel candle", brand: "Ember & Oak", price: 28, creator: "islamurray", category: "Home", heat: "0.9k", emoji: "🕯️", image: "/images/products/p10.jpg" },
-  { name: "Compression run leggings", brand: "Stride", price: 58, creator: "devsharma", category: "Fitness & Lifestyle", heat: "1.2k", emoji: "🩱", image: "/images/products/p11.jpg" },
+  { name: "Linen-blend holiday co-ord", brand: "Verano", price: 68, creator: "freyasinclair", category: "Women's Fashion", heat: "2.4k", emoji: "👚" },
+  { name: "Wide-leg denim", brand: "Shein", price: 29, creator: "freyasinclair", category: "Women's Fashion", heat: "3.2k", emoji: "👖" },
+  { name: "Vitamin C brightening serum", brand: "Lumen Skin", price: 38, creator: "aishabello", category: "Beauty & Skincare", heat: "4.1k", emoji: "🧴" },
+  { name: "Peptide glow moisturiser", brand: "Aura Rituals", price: 42, creator: "aishabello", category: "Beauty & Skincare", heat: "2.6k", emoji: "🧴" },
+  { name: "Satin slip midi dress", brand: "Halcyon London", price: 52, creator: "ellethompson", category: "Women's Fashion", heat: "1.9k", emoji: "👗" },
+  { name: "Oversized tailored blazer", brand: "North Row", price: 95, creator: "freyasinclair", category: "Women's Fashion", heat: "1.4k", emoji: "🧥" },
+  { name: "Ribbed knit lounge set", brand: "Marlowe & Co", price: 44, creator: "priyakaur", category: "Home", heat: "1.1k", emoji: "🧦" },
+  { name: "Everyday gold hoops", brand: "Aurate", price: 120, creator: "jordanreid", category: "Shoes & Accessories", heat: "2.0k", emoji: "💛" },
+  { name: "Trainer recovery slides", brand: "Kova", price: 34, creator: "tommyfields", category: "Fitness & Lifestyle", heat: "1.6k", emoji: "🩴" },
+  { name: "Carry-on cabin case", brand: "Vomo", price: 145, creator: "sophieclarke", category: "Travel / Holiday", heat: "3.0k", emoji: "🧳" },
+  { name: "Soy travel candle", brand: "Ember & Oak", price: 28, creator: "islamurray", category: "Home", heat: "0.9k", emoji: "🕯️" },
+  { name: "Compression run leggings", brand: "Stride", price: 58, creator: "devsharma", category: "Fitness & Lifestyle", heat: "1.2k", emoji: "🩱" },
 ];
 
 export function creatorByHandle(handle: string) {
