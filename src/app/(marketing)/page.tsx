@@ -19,6 +19,15 @@ import {
 } from "@/lib/queries";
 import { compact, gbpFromPence } from "@/lib/utils";
 
+/**
+ * The homepage was fully dynamic, so every visitor waited on the trending
+ * products, the creator wall, the platform counters and the featured brand
+ * being queried again from scratch — about two seconds before anything
+ * rendered. None of it changes minute to minute; a minute of cache is honest
+ * for counters that only move when a shopper clicks.
+ */
+export const revalidate = 60;
+
 export default async function HomePage() {
   const [trendProducts, featured, stats, featuredBrand] = await Promise.all([
     getTrendingProducts(8),

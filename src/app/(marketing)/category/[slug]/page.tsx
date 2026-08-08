@@ -13,6 +13,11 @@ import { getProductsByCategory } from "@/lib/queries";
 // products appear within the window below.
 export const revalidate = 120;
 
+/** The six lifestyle categories are a fixed list, so prerender all of them. */
+export async function generateStaticParams() {
+  return CATEGORY_NAV.map(({ slug }) => ({ slug }));
+}
+
 export async function generateMetadata({
   params,
 }: {

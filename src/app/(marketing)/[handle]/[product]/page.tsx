@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { db } from "@/lib/db";
+import { publiclyVisibleCreator } from "@/lib/queries";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowUpRight, Star, Ticket, BadgeCheck } from "lucide-react";
@@ -29,6 +31,19 @@ function cleanHandle(raw: string) {
 // creator's post get a static page rather than a database round trip, and new
 // products appear within the window below.
 export const revalidate = 120;
+
+/**
+ * Product pages get the same treatment as the storefronts above: without this
+ * they are rendered fresh, uncached, for every shopper who taps a creator's
+ * link. New listings still render on demand.
+ */
+export async function generateStaticParams() {
+  const listings = await db.creatorProduct.findMany({
+    where: { live: true, profile: publiclyVisibleCreator },
+    select: { slug: true, profile: { select: { handle: true } } },
+  });
+  return listings.map((l) => ({ handle: `@${l.profile.handle}`, product: l.slug }));
+}
 
 export async function generateMetadata({
   params,

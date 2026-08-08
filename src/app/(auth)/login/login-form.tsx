@@ -1,8 +1,9 @@
 "use client";
 
 import { useForm } from "react-hook-form";
+import { hardNavigate } from "@/lib/auth/navigate";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Mail, AlertCircle } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -14,7 +15,6 @@ import { useToast } from "@/components/ui/toast";
 import { postJson } from "@/lib/client/api";
 
 export function LoginForm() {
-  const router = useRouter();
   const params = useSearchParams();
   const next = params.get("next");
   const toast = useToast();
@@ -49,8 +49,9 @@ export function LoginForm() {
 
     toast.success("Signed in", "Welcome back to Pluggz.");
     const dest = next && next.startsWith("/") ? next : res.data!.redirect;
-    router.push(dest);
-    router.refresh();
+    // Full load, not a client navigation: whatever the previous account left in
+    // the Router Cache has to go, or the new one can be shown its pages.
+    hardNavigate(dest);
   }
 
   return (

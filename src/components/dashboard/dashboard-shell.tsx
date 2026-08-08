@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { hardNavigate } from "@/lib/auth/navigate";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Menu,
@@ -76,7 +77,6 @@ export function DashboardShell({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const router = useRouter();
   const [open, setOpen] = useState(false);
 
   const nav = NAVS[variant];
@@ -90,8 +90,7 @@ export function DashboardShell({
 
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/");
-    router.refresh();
+    hardNavigate("/");
   }
 
   const sidebar = (

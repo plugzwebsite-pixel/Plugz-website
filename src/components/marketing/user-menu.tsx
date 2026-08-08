@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { hardNavigate } from "@/lib/auth/navigate";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { LayoutDashboard, Settings, LogOut, ChevronDown } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
@@ -17,7 +17,6 @@ const roleHome: Record<string, string> = {
 export function UserMenu({ user }: { user: SessionUser }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const router = useRouter();
 
   useEffect(() => {
     function onClick(e: MouseEvent) {
@@ -30,8 +29,7 @@ export function UserMenu({ user }: { user: SessionUser }) {
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST" });
     setOpen(false);
-    router.push("/");
-    router.refresh();
+    hardNavigate("/");
   }
 
   return (

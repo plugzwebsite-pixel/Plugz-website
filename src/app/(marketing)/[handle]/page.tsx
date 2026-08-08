@@ -12,7 +12,8 @@ import {
   TikTokIcon,
   YouTubeIcon,
 } from "@/components/brand/social-icons";
-import { getCreatorByHandle, getProductsForCreator } from "@/lib/queries";
+import { getCreatorByHandle, getProductsForCreator, publiclyVisibleCreator } from "@/lib/queries";
+import { db } from "@/lib/db";
 import { compact } from "@/lib/utils";
 
 function cleanHandle(raw: string) {
@@ -29,6 +30,24 @@ const PLATFORM_ICON: Record<string, typeof InstagramIcon> = {
 // creator's post get a static page rather than a database round trip, and new
 // products appear within the window below.
 export const revalidate = 120;
+
+/**
+ * Prerender the storefronts that exist so they are served from the cache.
+ *
+ * A dynamic segment with no generateStaticParams is treated as fully dynamic
+ * whatever `revalidate` says — Next was sending these pages as
+ * `private, no-store`, so neither the browser nor the CDN could ever hold one.
+ * These are the pages a shopper lands on from Instagram, so that was the worst
+ * possible route to leave uncacheable. Handles added later still render on
+ * demand and join the cache on first request.
+ */
+export async function generateStaticParams() {
+  const creators = await db.creatorProfile.findMany({
+    where: publiclyVisibleCreator,
+    select: { handle: true },
+  });
+  return creators.map(({ handle }) => ({ handle: `@${handle}` }));
+}
 
 export async function generateMetadata({
   params,

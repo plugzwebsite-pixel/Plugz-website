@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { hardNavigate } from "@/lib/auth/navigate";
 import { Button } from "@/components/ui/button";
 
 export function SignOutButton({
@@ -12,13 +12,11 @@ export function SignOutButton({
   className?: string;
 }) {
   const [busy, setBusy] = useState(false);
-  const router = useRouter();
 
   async function signOut() {
     setBusy(true);
     await fetch("/api/auth/logout", { method: "POST" });
-    router.replace("/");
-    router.refresh();
+    hardNavigate("/");
   }
 
   return (
