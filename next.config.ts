@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { OPTIMISED_IMAGE_HOSTS } from "./src/lib/image-hosts";
 
 const isProd = process.env.NODE_ENV === "production";
 
@@ -33,6 +34,17 @@ const nextConfig: NextConfig = {
   // leaves a client that throws on construction, and the rate limiter then
   // quietly falls back to in-memory counters.
   serverExternalPackages: ["ioredis"],
+
+  images: {
+    // Named hosts only — see src/lib/image-hosts.ts for why this isn't a
+    // wildcard. A brand's own photography runs to a megabyte an image, which
+    // is fine to fetch once and resize, and ruinous to serve to shoppers whole.
+    remotePatterns: OPTIMISED_IMAGE_HOSTS.map((hostname) => ({
+      protocol: "https" as const,
+      hostname,
+    })),
+    formats: ["image/avif", "image/webp"],
+  },
 
   async headers() {
     return [

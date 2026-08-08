@@ -1,15 +1,15 @@
 import Image from "next/image";
+import { isOptimisableHost } from "@/lib/image-hosts";
 import { cn } from "@/lib/utils";
 
 /**
  * Picks the right image strategy for where the file actually lives.
  *
- * Product photos are scraped from whatever brand site a creator pasted, so
- * their hostnames aren't known ahead of time. Configuring next/image to
- * optimise any remote host would turn this server into an open image proxy —
- * anyone could point it at arbitrary URLs and spend our CPU and bandwidth
- * resizing them. So remote images are served as-is, and only files we host
- * ourselves go through the optimiser.
+ * Files we host ourselves, and brand hosts on the allowlist in
+ * src/lib/image-hosts.ts, go through the optimiser and come back resized to
+ * the box they're rendered in. Anything else is served as-is: product photos
+ * are scraped from whatever brand site a creator pasted, and optimising an
+ * arbitrary hostname would turn this server into an open image proxy.
  *
  * Both paths get explicit dimensions and lazy loading, which is what actually
  * stops the page jumping around as images arrive.
@@ -31,9 +31,9 @@ export function SmartImage({
   sizes?: string;
   priority?: boolean;
 }) {
-  const isLocal = src.startsWith("/");
+  const optimisable = src.startsWith("/") || isOptimisableHost(src);
 
-  if (isLocal) {
+  if (optimisable) {
     return (
       <Image
         src={src}
