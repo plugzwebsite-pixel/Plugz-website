@@ -144,8 +144,8 @@ const DEMO_CREATORS = [
   { name: "Jordan Reid", handle: "jordanreid", bio: "Everyday gold & loafers.", category: "Shoes & Accessories", city: "London", ig: 118000, tt: 46000 },
   { name: "Priya Kaur", handle: "priyakaur", bio: "Calm interiors & the reset.", category: "Home", city: "Leicester", ig: 96000, tt: 31000 },
   { name: "Tommy Fields", handle: "tommyfields", bio: "Strength & everyday kit.", category: "Fitness & Lifestyle", city: "Manchester", ig: 210000, tt: 88000 },
-  { name: "Chloe Adeyemi", handle: "chloeadeyemi", bio: "City breaks & long-hauls.", category: "Travel / Holiday", city: "London", ig: 456000, tt: 190000 },
-  { name: "Aisha Bello", handle: "aishabello", bio: "7-step skincare & the glow.", category: "Beauty & Skincare", city: "London", ig: 128000, tt: 64000 },
+  { name: "Chloe Ferreira", handle: "chloeferreira", bio: "City breaks & long-hauls.", category: "Travel / Holiday", city: "London", ig: 456000, tt: 190000 },
+  { name: "Aisha Nasser", handle: "aishanasser", bio: "7-step skincare & the glow.", category: "Beauty & Skincare", city: "London", ig: 128000, tt: 64000 },
   { name: "Elle Thompson", handle: "ellethompson", bio: "Slip dresses & staples.", category: "Women's Fashion", city: "Brighton", ig: 174000, tt: 52000 },
   { name: "Sophie Clarke", handle: "sophieclarke", bio: "Boutique stays, packed light.", category: "Travel / Holiday", city: "Bath", ig: 890000, tt: 410000 },
   { name: "Marcus Hale", handle: "marcushale", bio: "The finishing details.", category: "Shoes & Accessories", city: "Glasgow", ig: 64000, tt: 22000 },
@@ -156,8 +156,8 @@ const DEMO_CREATORS = [
 const DEMO_PRODUCTS = [
   { name: "Linen-blend holiday co-ord", brand: "Verano", host: "verano.co.uk", price: 6800, creator: "freyasinclair", category: "Women's Fashion", clicks: 2400 , review: "Packed this for Lisbon and wore it three days running. Doesn't crease in a suitcase." },
   { name: "Wide-leg denim", brand: "Shein", host: "shein.co.uk", price: 2900, creator: "freyasinclair", category: "Women's Fashion", clicks: 3200 , review: "The rise is the whole thing. Sizing runs generous, I took one down." },
-  { name: "Vitamin C brightening serum", brand: "Lumen Skin", host: "lumenskin.co.uk", price: 3800, creator: "aishabello", category: "Beauty & Skincare", clicks: 4100 , review: "Six weeks in and the pigmentation round my jaw has genuinely faded. Slots under SPF with no pilling." },
-  { name: "Peptide glow moisturiser", brand: "Aura Rituals", host: "aurarituals.co.uk", price: 4200, creator: "aishabello", category: "Beauty & Skincare", clicks: 2600 , review: "The one I reach for on a tired skin day. Cushiony, not greasy." },
+  { name: "Vitamin C brightening serum", brand: "Lumen Skin", host: "lumenskin.co.uk", price: 3800, creator: "aishanasser", category: "Beauty & Skincare", clicks: 4100 , review: "Six weeks in and the pigmentation round my jaw has genuinely faded. Slots under SPF with no pilling." },
+  { name: "Peptide glow moisturiser", brand: "Aura Rituals", host: "aurarituals.co.uk", price: 4200, creator: "aishanasser", category: "Beauty & Skincare", clicks: 2600 , review: "The one I reach for on a tired skin day. Cushiony, not greasy." },
   { name: "Satin slip midi dress", brand: "Halcyon London", host: "halcyonlondon.co.uk", price: 5200, creator: "ellethompson", category: "Women's Fashion", clicks: 1900 , review: "Wedding guest, dinner, Christmas Day. It does all three." },
   { name: "Oversized tailored blazer", brand: "North Row", host: "northrow.co.uk", price: 9500, creator: "freyasinclair", category: "Women's Fashion", clicks: 1400 , review: "Worth the money. The shoulder is properly structured, not a boxy sack." },
   { name: "Ribbed knit lounge set", brand: "Marlowe & Co", host: "marloweandco.co.uk", price: 4400, creator: "priyakaur", category: "Home", clicks: 1100 , review: "What I actually live in on a Sunday. Washes without bobbling." },
@@ -169,7 +169,7 @@ const DEMO_PRODUCTS = [
   // A second creator on an existing product, so the shared master record and
   // the "also plugged by" strip have something real to show.
   { name: "Vitamin C brightening serum", brand: "Lumen Skin", host: "lumenskin.co.uk", price: 3800, creator: "nadiarahman", category: "Beauty & Skincare", clicks: 1500 , review: "I use this before makeup and everything sits better. A little goes a long way." },
-  { name: "Carry-on cabin case", brand: "Vomo", host: "vomo.co.uk", price: 14500, creator: "chloeadeyemi", category: "Travel / Holiday", clicks: 800 , review: "Four long-hauls this year, still looks new. Worth it if you fly a lot." },
+  { name: "Carry-on cabin case", brand: "Vomo", host: "vomo.co.uk", price: 14500, creator: "chloeferreira", category: "Travel / Holiday", clicks: 800 , review: "Four long-hauls this year, still looks new. Worth it if you fly a lot." },
 ];
 
 const CODE_ALPHABET = "23456789abcdefghjkmnpqrstuvwxyz";
@@ -206,7 +206,7 @@ async function seedCatalogue() {
     if (existingProfile) {
       await db.creatorProfile.update({
         where: { handle: c.handle },
-        data: { bio: c.bio },
+        data: { avatarUrl: `/images/creators/${c.handle}.jpg`, bio: c.bio },
       });
       continue;
     }

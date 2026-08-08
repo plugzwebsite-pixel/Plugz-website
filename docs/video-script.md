@@ -39,13 +39,12 @@ scroll slowly to the headline.
 Your favourite creators. Their favourite products.
 ```
 
-**What you'll actually see, and why.** The wall is initials on brand gradients,
-not photographs. Every stand-in photo has been taken off the site: they were
-thumbnails being blown up past seven times their real size, which is what made
-the page look amateur, and several were watermarked stock we had no commercial
-licence to use. Initials stay sharp at any size and promise nothing that isn't
-there. **Don't write a caption that promises faces** — the moment the first
-cohort sends portraits they drop straight in, and that's the version to reshoot.
+**About the faces.** They are generated portraits, not photographs of real
+people, and that is deliberate: the set that used to be here was stock headshots
+of identifiable strangers standing in under invented influencer names, which is
+not ours to publish however good the photo is. These belong to nobody. They are
+placeholders on placeholder creators, and a real creator's own photo replaces
+theirs the day it arrives.
 
 Both rows now span the full width and nobody appears twice on a 1440-wide
 screen. If you record on a 1920 monitor you'll see three creators repeat,
@@ -83,7 +82,7 @@ Every approved creator gets a permanent storefront.
 
 ## Shot 4 · The product page — 0:15–0:23
 
-**URL:** `pluggzofficial.co.uk/@aishabello/seoulista-beauty-rosy-hands-instant-manicure-mask`
+**URL:** `pluggzofficial.co.uk/@aishanasser/seoulista-beauty-rosy-hands-instant-manicure-mask`
 
 **This is the shot that sells it — give it the most time.** Scroll slowly
 through, in this order:
