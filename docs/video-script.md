@@ -39,8 +39,19 @@ scroll slowly to the headline.
 Your favourite creators. Their favourite products.
 ```
 
-*Note: creator avatars currently render as initials, not photographs — real
-photos land with the first cohort. Don't write a caption that promises faces.*
+**What you'll actually see, and why.** The wall is initials on brand gradients,
+not photographs. Every stand-in photo has been taken off the site: they were
+thumbnails being blown up past seven times their real size, which is what made
+the page look amateur, and several were watermarked stock we had no commercial
+licence to use. Initials stay sharp at any size and promise nothing that isn't
+there. **Don't write a caption that promises faces** — the moment the first
+cohort sends portraits they drop straight in, and that's the version to reshoot.
+
+Both rows now span the full width and nobody appears twice on a 1440-wide
+screen. If you record on a 1920 monitor you'll see three creators repeat,
+because only twelve are approved and fifteen fit across. **Record at 1440 to
+avoid it**, or approve the six creators sitting in Admin → Creators first, which
+takes the wall to eighteen and fixes it at any width.
 
 ---
 
@@ -77,10 +88,17 @@ Every approved creator gets a permanent storefront.
 **This is the shot that sells it — give it the most time.** Scroll slowly
 through, in this order:
 
-1. Product image and price
+1. Product name and price
 2. The creator's review, her rating, the verified tick
 3. The discount code panel
 4. **Also plugged by** — a second creator on the same product
+
+The product panel is drawn artwork, not a photograph, for the same reason as the
+wall — the demo catalogue had no usable images. **Lead with the review, not the
+panel.** The review, the rating and *Also plugged by* are what this page is for,
+and they're all real. A product added through paste-a-URL pulls the brand's own
+photograph automatically, so this shot gets its picture the day a real listing
+goes in.
 
 **Caption:**
 ```
