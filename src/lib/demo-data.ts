@@ -48,19 +48,25 @@ export type Category = {
   slug: string;
   emoji: string;
   edits: number;
-  /** Real category photography, once it exists. Drawn artwork until then. */
+  /**
+   * Cover photograph. These are the brands' own product shots, taken from
+   * listings already live on the site, so the tile shows something real rather
+   * than an approximation of it — and they arrive at 1600x2000 or better, which
+   * is the size this tile actually renders at. Unset falls back to drawn
+   * artwork.
+   */
   cover?: string;
   /** Optional hover-to-play clip; drops in once real category videos exist. */
   video?: string;
 };
 
 export const CATEGORY_NAV: Category[] = [
-  { name: "Women's Fashion", slug: "womens-fashion", emoji: "👗", edits: 5 },
-  { name: "Beauty & Skincare", slug: "beauty-skincare", emoji: "✨", edits: 6 },
-  { name: "Shoes & Accessories", slug: "shoes-accessories", emoji: "👜", edits: 4 },
-  { name: "Home", slug: "home", emoji: "🕯️", edits: 4 },
-  { name: "Fitness & Lifestyle", slug: "fitness-lifestyle", emoji: "🏋️", edits: 5 },
-  { name: "Travel / Holiday", slug: "travel-holiday", emoji: "🌴", edits: 5 },
+  { name: "Women's Fashion", slug: "womens-fashion", emoji: "👗", edits: 5, cover: "https://www.oliverbonas.com/static/media/catalog/product/p/i/pink_jumper_1_.jpg" },
+  { name: "Beauty & Skincare", slug: "beauty-skincare", emoji: "✨", edits: 6, cover: "https://www.oliverbonas.com/static/media/catalog/product/1/3/1360257_2.jpg" },
+  { name: "Shoes & Accessories", slug: "shoes-accessories", emoji: "👜", edits: 4, cover: "https://www.oliverbonas.com/static/media/catalog/product/1/8/1846300_1.jpg" },
+  { name: "Home", slug: "home", emoji: "🕯️", edits: 4, cover: "https://www.oliverbonas.com/static/media/catalog/product/1/3/1393170_2__.jpg" },
+  { name: "Fitness & Lifestyle", slug: "fitness-lifestyle", emoji: "🏋️", edits: 5, cover: "https://cdn.media.amplience.net/i/SweatyBetty/sb9218_black.jpg" },
+  { name: "Travel / Holiday", slug: "travel-holiday", emoji: "🌴", edits: 5, cover: "https://www.oliverbonas.com/static/media/catalog/product/1/9/1926804_1.jpg" },
 ];
 
 export const TRENDS = [
