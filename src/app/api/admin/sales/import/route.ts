@@ -1,0 +1,154 @@
+import { ok, fail } from "@/lib/http";
+import { requireAdmin } from "@/lib/auth/access";
+import { recordSale, resolveListing, SaleError } from "@/lib/sales";
+import { rateLimit, clientKey } from "@/lib/rate-limit";
+
+/**
+ * Load a brand's sales report.
+ *
+ * This is how money actually reaches the commission engine today: a brand sends
+ * a report, or a per-creator discount code is reconciled by hand. Both come in
+ * as rows here.
+ *
+ * Runs as a dry run unless `commit` is set, because a mis-mapped report would
+ * write commission against the wrong creators, and unpicking that by hand is
+ * far worse than reading a preview first.
+ */
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
+type Row = Record<string, string>;
+
+/** Split a CSV honouring quoted fields — order references contain commas. */
+function parseCsv(src: string): Row[] {
+  const rows: string[][] = [];
+  let row: string[] = [], cell = "", quoted = false;
+  for (let i = 0; i < src.length; i++) {
+    const c = src[i];
+    if (quoted) {
+      if (c === '"') {
+        if (src[i + 1] === '"') { cell += '"'; i++; } else quoted = false;
+      } else cell += c;
+    } else if (c === '"') quoted = true;
+    else if (c === ",") { row.push(cell); cell = ""; }
+    else if (c === "\n") { row.push(cell); rows.push(row); row = []; cell = ""; }
+    else if (c !== "\r") cell += c;
+  }
+  if (cell || row.length) { row.push(cell); rows.push(row); }
+
+  const [header, ...body] = rows.filter((r) => r.some((c) => c.trim()));
+  if (!header) return [];
+  const keys = header.map((h) => h.trim().toLowerCase().replace(/[^a-z]/g, ""));
+  return body.map((r) => Object.fromEntries(keys.map((k, i) => [k, (r[i] ?? "").trim()])));
+}
+
+/** "48.50", "£48.50" and "4850p" all mean the same thing to a brand. */
+function toPence(raw: string): number | null {
+  const value = raw.replace(/[£$,\s]/g, "");
+  if (!value) return null;
+  if (/^\d+p$/i.test(value)) return parseInt(value, 10);
+  const n = Number(value);
+  if (!Number.isFinite(n) || n <= 0) return null;
+  return Math.round(n * 100);
+}
+
+export async function POST(req: Request) {
+  const limit = await rateLimit(clientKey(req, "sales-import"), 10, 60_000);
+  if (!limit.ok) return fail("Too many imports. Try again shortly.", 429);
+
+  const admin = await requireAdmin();
+  if (!admin.ok) return fail("Admins only.", 403);
+
+  let form: FormData;
+  try {
+    form = await req.formData();
+  } catch {
+    return fail("Couldn't read that upload.", 400);
+  }
+
+  const file = form.get("file");
+  const commit = form.get("commit") === "true";
+  if (!(file instanceof File) || file.size === 0) {
+    return fail("Choose a CSV file first.", 400);
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    return fail("That file is over 5MB. Split it and try again.", 400);
+  }
+
+  const rows = parseCsv(await file.text());
+  if (rows.length === 0) return fail("That file had no rows.", 400);
+  if (rows.length > 2000) return fail("Import up to 2000 rows at a time.", 400);
+
+  const results: {
+    line: number;
+    order: string;
+    value: string;
+    outcome: string;
+    creator?: string;
+  }[] = [];
+  let recorded = 0;
+
+  for (const [i, row] of rows.entries()) {
+    const line = i + 2; // header is line 1
+    const order = row.orderref || row.order || row.orderid || row.reference || "";
+    const pence = toPence(row.value || row.amount || row.total || row.ordervalue || "");
+
+    if (pence === null) {
+      results.push({ line, order, value: "-", outcome: "Skipped — no usable order value" });
+      continue;
+    }
+
+    const listingId = await resolveListing({
+      clickRef: row.clickref || row.pz || row.pluggzref || null,
+      discountCode: row.discountcode || row.code || row.coupon || null,
+      handle: row.creator || row.handle || null,
+      productSlug: row.product || row.productslug || row.slug || null,
+    });
+
+    if (!listingId) {
+      results.push({
+        line,
+        order,
+        value: `£${(pence / 100).toFixed(2)}`,
+        outcome: "Skipped — couldn't match this to a creator's listing",
+      });
+      continue;
+    }
+
+    const soldRaw = row.date || row.soldat || row.orderdate || "";
+    const soldAt = soldRaw && !Number.isNaN(Date.parse(soldRaw)) ? new Date(soldRaw) : undefined;
+
+    if (!commit) {
+      results.push({ line, order, value: `£${(pence / 100).toFixed(2)}`, outcome: "Will record" });
+      recorded++;
+      continue;
+    }
+
+    try {
+      await recordSale({
+        creatorProductId: listingId,
+        valuePence: pence,
+        orderRef: order || null,
+        soldAt,
+        clickRef: row.clickref || row.pz || null,
+      });
+      results.push({ line, order, value: `£${(pence / 100).toFixed(2)}`, outcome: "Recorded" });
+      recorded++;
+    } catch (err) {
+      results.push({
+        line,
+        order,
+        value: `£${(pence / 100).toFixed(2)}`,
+        outcome: err instanceof SaleError ? err.message : "Failed to record",
+      });
+    }
+  }
+
+  return ok({
+    dryRun: !commit,
+    total: rows.length,
+    recorded,
+    skipped: rows.length - recorded,
+    results: results.slice(0, 200),
+  });
+}
