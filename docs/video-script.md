@@ -12,8 +12,8 @@ carry it. Record at 1440×900 or 1920×1080, then crop to 16:9.
 **1. Sign out.** The header shows a user menu if you're signed in, which
 distracts from a shopper-first story. Use a private window.
 
-**2. Decide the Shot 5 click-out.** This is the one shot that can undercut the
-whole video — see Shot 5 below. Settle it before recording, not during.
+**2. Record at 1440 wide.** At 1920 the creator wall shows three repeats,
+because only twelve creators are approved and fifteen fit across. See Shot 1.
 
 **3. Don't zoom the address bar on the redirect.** The tracked URL is
 `?ref=pluggz&pz=<long-token>`. The token is per-click and looks like noise at
@@ -69,7 +69,7 @@ Every product carries the creator who recommended it.
 
 ## Shot 3 · A creator's storefront — 0:10–0:15
 
-**URL:** `pluggzofficial.co.uk/@freyasinclair`
+**URL:** `pluggzofficial.co.uk/@ellethompson`
 
 Click a creator. Show the header — follower count, category — then scroll to
 the products grouped under their category heading.
@@ -83,22 +83,25 @@ Every approved creator gets a permanent storefront.
 
 ## Shot 4 · The product page — 0:15–0:23
 
-**URL:** `pluggzofficial.co.uk/@aishabello/vitamin-c-brightening-serum`
+**URL:** `pluggzofficial.co.uk/@aishabello/seoulista-beauty-rosy-hands-instant-manicure-mask`
 
 **This is the shot that sells it — give it the most time.** Scroll slowly
 through, in this order:
 
 1. Product name and price
 2. The creator's review, her rating, the verified tick
-3. The discount code panel
-4. **Also plugged by** — a second creator on the same product
+3. **Also plugged by** — a second creator on the same product
 
-The product panel is drawn artwork, not a photograph, for the same reason as the
-wall — the demo catalogue had no usable images. **Lead with the review, not the
-panel.** The review, the rating and *Also plugged by* are what this page is for,
-and they're all real. A product added through paste-a-URL pulls the brand's own
-photograph automatically, so this shot gets its picture the day a real listing
-goes in.
+The product shot is the brand's own photography, pulled in automatically when
+the listing was created. It is shown whole rather than cropped to fill, so on a
+tall product you'll see the panel padded either side — that is deliberate, and
+it is why nothing gets its top and bottom sliced off any more.
+
+**There is no discount-code panel on these products, on purpose.** The feature
+works and appears the moment a brand gives us a code. Inventing one for the
+video would put a code on a real Oliver Bonas listing that fails at their
+checkout, which is a worse thing to be caught doing than leaving the panel out.
+Demo it on a partner brand once there is a real code to show.
 
 **Caption:**
 ```
@@ -115,28 +118,18 @@ one product carries several creators' reviews rather than duplicating itself.
 
 Click **Buy at …** and let the redirect land.
 
-### ⚠️ Read this before recording
+**This shot is now safe to record on any product.** The invented brands are
+gone, and with them the risk that a click landed on a parked domain belonging to
+a stranger. Every product in the catalogue is a real listing from Oliver Bonas
+or Sweaty Betty, and the redirect goes to that brand's own product page with
+`?ref=pluggz&pz=…` in the address bar.
 
-The tracking works — the redirect carries `?ref=pluggz&pz=…` correctly. The
-problem is where it lands. The demo catalogue was seeded with invented brand
-domains, and `lumenskin.co.uk` is **a parked domain owned by someone else**
-("Submit Your Organization", "In an ideal world this website wouldn't exist…").
-It is not ours to publish to. A brand watching the caption *"the sale happens on
-your site"* while a stranger's parked page loads will not finish the video.
+Verified end to end on the live site: `/@ellethompson/power-7-8-gym-leggings`
+redirects to the Power 7/8 Gym Leggings on sweatybetty.com, attribution intact,
+and the click is recorded against the creator.
 
-**Use the SHEIN click-out.** Record this shot from
-`/@freyasinclair/wide-leg-denim` instead — "Buy at Shein" lands on the real
-shein.co.uk with `?ref=pluggz&pz=…` intact in the address bar. Keep Shot 4 on
-the serum page for the review and the "also plugged by" strip, then cut to the
-denim page purely for the click.
-
-It lands on SHEIN's general shop rather than the denim product page, which is a
-fair trade: the point of the shot is the address bar carrying the attribution,
-and that is real.
-
-**If you'd rather not leave the site at all,** end Shot 4 holding on the Buy
-button. You lose the strongest proof — that the sale completes on the brand's
-own site — so only do this if the SHEIN landing looks wrong on the day.
+Record the click-out on the same product you used for Shot 4 — no cutting to a
+different page any more.
 
 **Caption:**
 ```
