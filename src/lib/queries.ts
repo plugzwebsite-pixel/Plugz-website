@@ -350,45 +350,42 @@ export async function getCategoryCounts() {
  * that actually exists, and the picture is one of its own product shots.
  */
 export async function getFeaturedBrand() {
-  const brand = await db.brand.findFirst({
-    where: { status: "ACTIVE", products: { some: { imageUrl: { not: null } } } },
+  // Lead with the standout piece in the catalogue rather than whichever brand
+  // happens to have the most rows. "Featured partner" is a shop window: the
+  // most-listings rule put a GBP24 hat there while a Mulberry bag sat further
+  // down the page.
+  const hero = await db.product.findFirst({
+    where: {
+      imageUrl: { not: null },
+      pricePence: { not: null },
+      brand: { status: "ACTIVE" },
+      creatorProducts: { some: liveProduct },
+    },
     select: {
       name: true,
-      slug: true,
-      products: {
-        where: { imageUrl: { not: null } },
-        select: {
-          name: true,
-          category: true,
-          imageUrl: true,
-          pricePence: true,
-          creatorProducts: {
-            where: liveProduct,
-            select: { slug: true, profile: { select: { handle: true } } },
-            take: 1,
-          },
-        },
-        orderBy: { pricePence: "desc" },
+      category: true,
+      imageUrl: true,
+      pricePence: true,
+      brand: { select: { name: true, _count: { select: { products: true } } } },
+      creatorProducts: {
+        where: liveProduct,
+        select: { slug: true, profile: { select: { handle: true } } },
         take: 1,
       },
-      _count: { select: { products: true } },
     },
-    orderBy: { products: { _count: "desc" } },
+    orderBy: { pricePence: "desc" },
   });
 
-  const hero = brand?.products[0];
   const listing = hero?.creatorProducts[0];
-  if (!brand || !hero || !listing) return null;
+  if (!hero || !listing) return null;
 
   return {
-    brandName: brand.name,
+    brandName: hero.brand.name,
     productName: hero.name,
     category: hero.category,
     imageUrl: hero.imageUrl!,
     pricePence: hero.pricePence,
-    productCount: brand._count.products,
-    // Straight to the creator's page for it, so the panel behaves like every
-    // other route into the catalogue.
+    productCount: hero.brand._count.products,
     href: `/@${listing.profile.handle}/${listing.slug}`,
   };
 }

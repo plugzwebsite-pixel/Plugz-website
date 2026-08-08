@@ -126,7 +126,9 @@ export default async function HomePage() {
                     ` — ${gbpFromPence(featuredBrand.pricePence)}`}
                 </p>
                 <p className="mt-4 max-w-md leading-relaxed text-text-muted">
-                  {`${featuredBrand.productCount} products from ${featuredBrand.brandName} are plugged by Pluggz creators, each with the review that sold it. This one leads the ${featuredBrand.category.toLowerCase()} edit.`}
+                  {featuredBrand.productCount > 1
+                    ? `${featuredBrand.productCount} pieces from ${featuredBrand.brandName} are plugged by Pluggz creators, each with the review that sold it. This one leads the ${featuredBrand.category.toLowerCase()} edit.`
+                    : `Plugged by a Pluggz creator with the review that sold it, and leading the ${featuredBrand.category.toLowerCase()} edit this week.`}
                 </p>
                 <Link href={featuredBrand.href} className="mt-7 inline-block">
                   <Button size="lg">

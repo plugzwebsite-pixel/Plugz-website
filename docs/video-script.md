@@ -1,29 +1,31 @@
 # Pluggz — 30-second walkthrough
 
 For sending to brands. Screen recording, no face, no voiceover needed — captions
-carry it. Record at 1440×900 or 1920×1080, then crop to 16:9.
+carry it. Record at 1440×900, then crop to 16:9.
 
 **Site:** https://pluggzofficial.co.uk
+
+Every URL and every number below was checked on the live site before this was
+written. Nothing here is a guess.
 
 ---
 
 ## Before you hit record
 
-**1. Sign out.** The header shows a user menu if you're signed in, which
-distracts from a shopper-first story. Use a private window.
+**1. Sign out.** Use a private window. Signed in, the header shows a user menu
+and the story stops being shopper-first.
 
-**2. Record at 1440 wide.** At 1920 the creator wall shows three repeats,
-because only twelve creators are approved and fifteen fit across. See Shot 1.
+**2. Record at 1440 wide.** Thirteen creators are live and about fifteen fit
+across a 1920 screen, so at that width a few faces repeat. At 1440 they don't.
 
-**3. Don't zoom the address bar on the redirect.** The tracked URL is
-`?ref=pluggz&pz=<long-token>`. The token is per-click and looks like noise at
-full size. Frame the browser normally so it reads as "tracked" without inviting
-anyone to read the string.
+**3. Don't zoom the address bar on the redirect.** The tracked URL carries
+`?ref=pluggz&pz=<token>`. It should read as "tracked" without inviting anyone to
+squint at the string.
 
-**4. Ignore the live counters.** Click counts change between takes and the
-homepage commission figure currently shows an em-dash, because no sale has
-cleared yet. Nothing in the captions below quotes a number, on purpose. Don't
-add one.
+**4. The counters are real, so leave them alone.** The homepage currently says
+**13 UK creators live · 51 products plugged · 39 brands onboard**. Further down,
+*creator commission earned* shows an em-dash because no sale has cleared yet.
+None of the captions below quote a figure, deliberately. Don't add one.
 
 ---
 
@@ -32,46 +34,38 @@ add one.
 **URL:** `pluggzofficial.co.uk`
 
 Land on the homepage. Let the two rows of creator faces drift for a beat, then
-scroll slowly to the headline.
+scroll to the headline and let the three counters land.
 
 **Caption:**
 ```
 Your favourite creators. Their favourite products.
 ```
 
-**About the faces.** They are generated portraits, not photographs of real
-people, and that is deliberate: the set that used to be here was stock headshots
-of identifiable strangers standing in under invented influencer names, which is
-not ours to publish however good the photo is. These belong to nobody. They are
-placeholders on placeholder creators, and a real creator's own photo replaces
-theirs the day it arrives.
-
-Both rows now span the full width and nobody appears twice on a 1440-wide
-screen. If you record on a 1920 monitor you'll see three creators repeat,
-because only twelve are approved and fifteen fit across. **Record at 1440 to
-avoid it**, or approve the six creators sitting in Admin → Creators first, which
-takes the wall to eighteen and fixes it at any width.
-
 ---
 
-## Shot 2 · What's being shopped — 0:05–0:10
+## Shot 2 · Real brands, real prices — 0:05–0:11
 
-Keep scrolling to **What everyone's shopping this week**. Pause on the grid so
-one card is readable: brand name, `@handle`, price.
+Scroll to **What everyone's shopping this week**. Pause where a full row is
+readable. The first four cards are Nadine Merabi, Oura Ring, Mulberry and Fenty
+Beauty — that mix is the point, so hold it long enough to be read.
+
+Keep scrolling one beat into **Shop by lifestyle**: seven category tiles, each
+carrying a real product photograph.
 
 **Caption:**
 ```
-Every product carries the creator who recommended it.
+Forty products. Forty real brands.
+Every price and every picture comes from the brand itself.
 ```
 
 ---
 
-## Shot 3 · A creator's storefront — 0:10–0:15
+## Shot 3 · A creator's storefront — 0:11–0:16
 
-**URL:** `pluggzofficial.co.uk/@ellethompson`
+**URL:** `pluggzofficial.co.uk/@freyasinclair`
 
-Click a creator. Show the header — follower count, category — then scroll to
-the products grouped under their category heading.
+Show the header — follower count, category — then scroll into the products
+grouped under their category headings. Freya has the fullest storefront.
 
 **Caption:**
 ```
@@ -80,27 +74,22 @@ Every approved creator gets a permanent storefront.
 
 ---
 
-## Shot 4 · The product page — 0:15–0:23
+## Shot 4 · The product page — 0:16–0:24
 
-**URL:** `pluggzofficial.co.uk/@aishanasser/seoulista-beauty-rosy-hands-instant-manicure-mask`
+**URL:** `pluggzofficial.co.uk/@freyasinclair/izzie-black-dress`
 
-**This is the shot that sells it — give it the most time.** Scroll slowly
-through, in this order:
+**This is the shot that sells it — give it the most time.** Nadine Merabi at
+£375 on a black dress photographed against black; it is the best-looking page in
+the catalogue. Scroll slowly, in this order:
 
 1. Product name and price
 2. The creator's review, her rating, the verified tick
-3. **Also plugged by** — a second creator on the same product
+3. **Also plugged by** — Elle Thompson on the same dress
 
-The product shot is the brand's own photography, pulled in automatically when
-the listing was created. It is shown whole rather than cropped to fill, so on a
-tall product you'll see the panel padded either side — that is deliberate, and
-it is why nothing gets its top and bottom sliced off any more.
-
-**There is no discount-code panel on these products, on purpose.** The feature
-works and appears the moment a brand gives us a code. Inventing one for the
-video would put a code on a real Oliver Bonas listing that fails at their
-checkout, which is a worse thing to be caught doing than leaving the panel out.
-Demo it on a partner brand once there is a real code to show.
+**Linger on "Also plugged by".** It is the clearest proof that one product
+carries several creators' reviews instead of duplicating itself, and it is what
+a brand needs to understand about how this works. Eleven products are plugged by
+two creators, so the strip is genuinely populated.
 
 **Caption:**
 ```
@@ -108,48 +97,40 @@ Shoppers land here first, not on your site.
 They read a real review before they ever click Buy.
 ```
 
-The "also plugged by" strip is worth lingering on. It's the clearest proof that
-one product carries several creators' reviews rather than duplicating itself.
-
 ---
 
-## Shot 5 · The tracked click-out — 0:23–0:27
+## Shot 5 · The tracked click-out — 0:24–0:28
 
-Click **Buy at …** and let the redirect land.
+Click **Buy at Nadine Merabi** and let the redirect land.
 
-**This shot is now safe to record on any product.** The invented brands are
-gone, and with them the risk that a click landed on a parked domain belonging to
-a stranger. Every product in the catalogue is a real listing from Oliver Bonas
-or Sweaty Betty, and the redirect goes to that brand's own product page with
-`?ref=pluggz&pz=…` in the address bar.
-
-Verified end to end on the live site: `/@ellethompson/power-7-8-gym-leggings`
-redirects to the Power 7/8 Gym Leggings on sweatybetty.com, attribution intact,
-and the click is recorded against the creator.
-
-Record the click-out on the same product you used for Shot 4 — no cutting to a
-different page any more.
+You arrive on Nadine Merabi's own product page with `?ref=pluggz&pz=…` in the
+address bar. Verified: the destination answers in about 1.3 seconds.
 
 **Caption:**
 ```
 One click to your site — attributed to the creator who sent them.
 ```
 
+**If you want a second take with a bigger name**, use
+`/@marcushale/alexa-bag-in-bright-oak-heavy-grain`. Mulberry, £1,245, lands in
+about 1.6 seconds and is the most recognisable destination in the set.
+
+**Don't use the John Lewis product for this shot.** That destination took a
+minute to answer when tested. Every other one is fast.
+
 ---
 
-## Shot 6 · Where a brand goes next — 0:27–0:30
+## Shot 6 · Where a brand goes next — 0:28–0:30
 
 **URL:** `pluggzofficial.co.uk/brands`
 
 End here, not on the consumer homepage. A brand watching this needs somewhere to
 go.
 
-**Framing, checked at 1440×900:** the page is two columns — benefits on the
-left, the enquiry form on the right. Landing at the top gives you the headline,
-*Tell us about your brand*, and the first form fields all in frame. The
-affiliate-programme question and the Send button sit below the fold, so if you
-want the question on screen (it's the most distinctive part), scroll one short
-beat rather than trying to fit everything at once.
+**Framing, checked at 1440×900:** two columns — benefits left, enquiry form
+right. Landing at the top gives you the headline, *Tell us about your brand* and
+the first fields. The affiliate-programme question and the Send button sit below
+the fold, so scroll one short beat if you want the question on screen.
 
 **Caption:**
 ```
@@ -161,23 +142,21 @@ Creator-led. Fully tracked. Commission only on sales.
 
 ## If you want a longer cut (60s) for brand calls
 
-Everything above, plus after Shot 5:
+Everything above, plus:
+
+**Shot 4b · The featured partner panel — 4 seconds.** Between Shots 2 and 3,
+pause on the *Featured partner* block: Mulberry, the Alexa bag at £1,245, with
+the brand's own photography filling half the panel. It is the single most
+premium-looking thing on the page.
 
 **Shot 5b · The brand dashboard — 8 seconds.** Sign in as a brand contact and
-show the Performance page: shoppers sent, sales, commission, and the *What you
-keep* panel with net revenue. This is the single most persuasive screen for a
-brand, because it answers "what does this cost me" before they ask.
+show the Performance page: shoppers sent, conversion rate, *What you keep*, net
+revenue, and the creators driving their sales. There are **no editable controls
+anywhere** on any of the three brand pages — worth saying out loud, because a
+cautious brand asks.
 
-**Verified on the live site**, signed in as a real brand contact: all three
-brand pages load, the Performance page shows *Shoppers sent to you*, *Products
-live*, *Conversion rate*, *What you keep*, *Net revenue*, *Your rate*, and
-*Creators driving your sales*, and there are zero editable controls anywhere —
-the read-only promise holds on camera.
-
-**You'll need a brand login to record it.** Make one through the real flow:
-**Admin → Brands → Invite contact** on any active brand. The contact gets an
-email, sets their own password, and lands straight on the Performance page.
-Do that before the shoot, not during.
+Make a login through the real flow first: **Admin → Brands → Invite contact**.
+The contact sets their own password by email. Do it before the shoot.
 
 **Caption:**
 ```
@@ -185,7 +164,17 @@ Your own dashboard. Commission on confirmed sales only —
 never on clicks or impressions.
 ```
 
-Don't include this in the 30-second cut; it needs room to be read.
+---
+
+## Two things to avoid on camera
+
+**The search box.** It works, but an empty-handed search on a forty-product
+catalogue looks thinner than the site is. Navigate by category instead.
+
+**The discount-code panel.** The feature is built and appears the moment a brand
+supplies a code. None of the current products carry one, on purpose — inventing
+a code that fails at a real retailer's checkout is a worse thing to be caught
+doing than leaving the panel out.
 
 ---
 
