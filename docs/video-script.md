@@ -1,116 +1,145 @@
-# Pluggz — 30 second walkthrough
+# Pluggz — 30-second walkthrough
 
-Shot-by-shot script for the brand-facing demo video. Every screen below is a
-real page on the live site — nothing here is a mockup, so the recording can be
-made by simply following the URLs in order.
+For sending to brands. Screen recording, no face, no voiceover needed — captions
+carry it. Record at 1440×900 or 1920×1080, then crop to 16:9.
 
-**Audience:** brands Pluggz is approaching. The point of the video is to answer
-their two silent questions: *what does my product look like on this platform,*
-and *how do I know a sale came from it.*
-
-**Format:** screen recording, 1440×900, no cursor jitter. Record each shot
-separately and cut them together — smoother than one continuous take.
+**Site:** https://pluggzofficial.co.uk
 
 ---
 
-## Before recording
+## Before you hit record
 
-1. Open an incognito window (no signed-in header, no cookie banners).
-2. Pre-load every URL once so images are cached and nothing pops in mid-shot.
-3. Zoom at 100%. Hide bookmarks bar.
-4. Turn off notifications.
+**1. Sign out.** The header shows a user menu if you're signed in, which
+distracts from a shopper-first story. Use a private window.
+
+**2. Decide the Shot 5 click-out.** This is the one shot that can undercut the
+whole video — see Shot 5 below. Settle it before recording, not during.
+
+**3. Don't zoom the address bar on the redirect.** The tracked URL is
+`?ref=pluggz&pz=<long-token>`. The token is per-click and looks like noise at
+full size. Frame the browser normally so it reads as "tracked" without inviting
+anyone to read the string.
+
+**4. Ignore the live counters.** Click counts change between takes and the
+homepage commission figure currently shows an em-dash, because no sale has
+cleared yet. Nothing in the captions below quotes a number, on purpose. Don't
+add one.
 
 ---
 
-## The shots
-
-### Shot 1 — the wall of creators · 0:00–0:04 (4s)
+## Shot 1 · Homepage — 0:00–0:05
 
 **URL:** `pluggzofficial.co.uk`
 
-Land on the homepage. The two rows of creator faces are already drifting — let
-them move for a beat, then scroll slowly to the headline.
+Land on the homepage. Let the two rows of creator faces drift for a beat, then
+scroll slowly to the headline.
 
-**On screen:** *Your favourite creators. Their favourite products.*
+**Caption:**
+```
+Your favourite creators. Their favourite products.
+```
 
-**Caption:** `Creators your customers already trust`
-
-> Why it opens here: the first thing a brand sees is faces, not a product grid.
-> That's the whole proposition — this is a recommendation platform, not another
-> marketplace.
-
----
-
-### Shot 2 — real products, real creators · 0:04–0:09 (5s)
-
-**URL:** same page, scroll to **"What everyone's shopping this week"**
-
-Scroll through the product grid at reading pace. Each card shows the brand name,
-the creator's handle, the price and a click count.
-
-**Caption:** `Every product is plugged by a named creator`
-
-> Pause half a second on a card so the `@handle` and the click badge are
-> legible. That badge is the brand's first hint that this is measured.
+*Note: creator avatars currently render as initials, not photographs — real
+photos land with the first cohort. Don't write a caption that promises faces.*
 
 ---
 
-### Shot 3 — a creator's storefront · 0:09–0:14 (5s)
+## Shot 2 · What's being shopped — 0:05–0:10
+
+Keep scrolling to **What everyone's shopping this week**. Pause on the grid so
+one card is readable: brand name, `@handle`, price.
+
+**Caption:**
+```
+Every product carries the creator who recommended it.
+```
+
+---
+
+## Shot 3 · A creator's storefront — 0:10–0:15
 
 **URL:** `pluggzofficial.co.uk/@freyasinclair`
 
-Show the profile header — photo, follower count, category — then scroll to the
-products grouped under **Women's Fashion**.
+Click a creator. Show the header — follower count, category — then scroll to
+the products grouped under their category heading.
 
-**Caption:** `Every creator gets a permanent storefront`
-
-> The grouping matters visually: it reads as a curated edit, not a product
-> dump. Worth letting the section heading land on screen.
+**Caption:**
+```
+Every approved creator gets a permanent storefront.
+```
 
 ---
 
-### Shot 4 — the product page, and the review · 0:14–0:21 (7s)
+## Shot 4 · The product page — 0:15–0:23
 
 **URL:** `pluggzofficial.co.uk/@aishabello/vitamin-c-brightening-serum`
 
-**This is the most important shot — give it the most time.** Show, in order:
+**This is the shot that sells it — give it the most time.** Scroll slowly
+through, in this order:
 
-1. The product image and price — **£38.00**
-2. **"157 shoppers clicked through"** just under it
-3. The creator block: Aisha Bello, verified tick, five stars, and her review in
-   her own words
-4. The discount code panel — **PLUGGZ-AISHAB**
-5. Scroll a little to **"Also plugged by"** — Nadia Rahman's face
+1. Product image and price
+2. The creator's review, her rating, the verified tick
+3. The discount code panel
+4. **Also plugged by** — a second creator on the same product
 
-**Caption:** `A page of its own, with the creator's honest review`
+**Caption:**
+```
+Shoppers land here first, not on your site.
+They read a real review before they ever click Buy.
+```
 
-> This shot answers the brand's real question. Their product isn't a thumbnail
-> in a feed — it has a page, a review, a rating, a tracked link and a code, and
-> a second creator vouching for the same item.
-
----
-
-### Shot 5 — the click-out · 0:21–0:26 (5s)
-
-**Action:** click **"Buy at Lumen Skin"**
-
-Let the redirect happen on camera. Land on the brand's own site. Then move the
-cursor to the address bar and let the `?ref=pluggz` parameter be readable for a
-beat before cutting.
-
-**Caption:** `The sale happens on your site — and we can prove it came from us`
-
-> Do not cut before the URL is visible. That parameter is the entire commercial
-> argument in one frame: attribution.
+The "also plugged by" strip is worth lingering on. It's the clearest proof that
+one product carries several creators' reviews rather than duplicating itself.
 
 ---
 
-### Shot 6 — close · 0:26–0:30 (4s)
+## Shot 5 · The tracked click-out — 0:23–0:27
+
+Click **Buy at …** and let the redirect land.
+
+### ⚠️ Read this before recording
+
+The tracking works — the redirect carries `?ref=pluggz&pz=…` correctly. The
+problem is where it lands. The demo catalogue was seeded with invented brand
+domains, and `lumenskin.co.uk` is **a parked domain owned by someone else**
+("Submit Your Organization", "In an ideal world this website wouldn't exist…").
+It is not ours to publish to. A brand watching the caption *"the sale happens on
+your site"* while a stranger's parked page loads will not finish the video.
+
+**Use the SHEIN click-out.** Record this shot from
+`/@freyasinclair/wide-leg-denim` instead — "Buy at Shein" lands on the real
+shein.co.uk with `?ref=pluggz&pz=…` intact in the address bar. Keep Shot 4 on
+the serum page for the review and the "also plugged by" strip, then cut to the
+denim page purely for the click.
+
+It lands on SHEIN's general shop rather than the denim product page, which is a
+fair trade: the point of the shot is the address bar carrying the attribution,
+and that is real.
+
+**If you'd rather not leave the site at all,** end Shot 4 holding on the Buy
+button. You lose the strongest proof — that the sale completes on the brand's
+own site — so only do this if the SHEIN landing looks wrong on the day.
+
+**Caption:**
+```
+One click to your site — attributed to the creator who sent them.
+```
+
+---
+
+## Shot 6 · Where a brand goes next — 0:27–0:30
 
 **URL:** `pluggzofficial.co.uk/brands`
 
-End on the brand page, not the consumer homepage — a brand watching this needs
-somewhere to go. Hold on the headline and the enquiry form beside it.
+End here, not on the consumer homepage. A brand watching this needs somewhere to
+go.
+
+**Framing, checked at 1440×900:** the page is two columns — benefits on the
+left, the enquiry form on the right. Landing at the top gives you the headline,
+*Tell us about your brand*, and the first form fields all in frame. The
+affiliate-programme question and the Send button sit below the fold, so if you
+want the question on screen (it's the most distinctive part), scroll one short
+beat rather than trying to fit everything at once.
 
 **Caption:**
 ```
@@ -120,55 +149,40 @@ Creator-led. Fully tracked. Commission only on sales.
 
 ---
 
-## Captions, in order
+## If you want a longer cut (60s) for brand calls
 
-Burn these in rather than using a voiceover — the video will mostly be watched
-on a phone with the sound off.
+Everything above, plus after Shot 5:
 
-| Time | Caption |
-| ---- | ------- |
-| 0:00 | Creators your customers already trust |
-| 0:04 | Every product is plugged by a named creator |
-| 0:09 | Every creator gets a permanent storefront |
-| 0:14 | A page of its own, with the creator's honest review |
-| 0:21 | The sale happens on your site — and we can prove it came from us |
-| 0:26 | Creator-led. Fully tracked. Commission only on sales. |
+**Shot 5b · The brand dashboard — 8 seconds.** Sign in as a brand contact and
+show the Performance page: shoppers sent, sales, commission, and the *What you
+keep* panel with net revenue. This is the single most persuasive screen for a
+brand, because it answers "what does this cost me" before they ask.
 
----
+**Verified on the live site**, signed in as a real brand contact: all three
+brand pages load, the Performance page shows *Shoppers sent to you*, *Products
+live*, *Conversion rate*, *What you keep*, *Net revenue*, *Your rate*, and
+*Creators driving your sales*, and there are zero editable controls anywhere —
+the read-only promise holds on camera.
 
-## If a voiceover is wanted instead
+**You'll need a brand login to record it.** Make one through the real flow:
+**Admin → Brands → Invite contact** on any active brand. The contact gets an
+email, sets their own password, and lands straight on the Performance page.
+Do that before the shoot, not during.
 
-Roughly 75 words, which is about 30 seconds read at a natural pace:
+**Caption:**
+```
+Your own dashboard. Commission on confirmed sales only —
+never on clicks or impressions.
+```
 
-> Pluggz is where UK creators share what they actually use. Every product gets
-> its own page, with the creator's own review, their rating, and a tracked link.
-> Shoppers read the recommendation, then buy on your site — and every click is
-> attributed, so you know exactly which creator drove the sale. You pay
-> commission on sales, not on impressions. Pluggz dot co dot uk.
-
----
-
-## What to avoid on camera
-
-- **Don't show the admin or creator dashboards.** This video is for brands.
-  Showing internal tools invites questions about a brand login, which doesn't
-  exist yet.
-- **Don't linger on the platform counters** (creators live, products plugged).
-  The numbers are real but early, and a brand reading "12 creators" draws the
-  wrong conclusion from a screen that's meant to be about quality.
-- **Don't record signed in.** The header shows a user menu instead of the
-  sign-in buttons, which makes it look like a members-only site.
+Don't include this in the 30-second cut; it needs room to be read.
 
 ---
 
-## Current live figures
+## Editing
 
-Accurate as of recording. Useful if anyone asks, but keep them out of the video.
-
-| | |
-| --- | --- |
-| Creators live | 12 |
-| Products plugged | 14 |
-| Brands in catalogue | 12 |
-| Categories | 6 |
-| Clicks tracked | 1,677 |
+- No music, or something quiet and neutral. This is a product demo, not an ad.
+- Captions as plain overlaid text in the Pluggz pink-to-orange gradient, or
+  white on a dark scrim. Match the site.
+- Slow, deliberate scrolling. Fast scrolling reads as hiding something.
+- Cut on movement, not on stillness — it hides the transitions.
