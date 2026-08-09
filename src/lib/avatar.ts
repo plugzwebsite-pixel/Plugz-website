@@ -51,9 +51,14 @@ export async function storeAvatar(
     return { ok: false, error: "That image is too small — 400×400 or larger works best." };
   }
 
+  // Never enlarge. A 224px photo stretched to 512 is softer than the original
+  // and bigger on the wire, for a picture that renders at 80px anyway — so the
+  // square is cut at whatever the source can actually give, up to 512.
+  const side = Math.min(SIDE, meta.width, meta.height);
+
   const output = await sharp(buf, { animated: false })
     .rotate() // honour the EXIF orientation before it is discarded
-    .resize(SIDE, SIDE, { fit: "cover", position: "attention" })
+    .resize(side, side, { fit: "cover", position: "attention" })
     .jpeg({ quality: 88, mozjpeg: true })
     .toBuffer();
 
