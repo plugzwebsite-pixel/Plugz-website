@@ -176,7 +176,7 @@ export default async function HomePage() {
                   {c.name.split(" ")[0]}
                 </p>
                 <p className="text-xs text-text-faint">
-                  {compact(c.followers)} followers
+                  {c.followers > 0 ? `${compact(c.followers)} followers` : ""}
                 </p>
               </Link>
             </Reveal>

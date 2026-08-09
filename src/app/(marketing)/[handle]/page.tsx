@@ -122,7 +122,7 @@ export default async function StorefrontPage({
                 <div className="mt-4 flex flex-wrap items-center gap-3">
                   <Badge tone="brand">{creator.category}</Badge>
                   <span className="text-sm text-text-faint">
-                    {compact(creator.followers)} followers
+                    {creator.followers > 0 ? `${compact(creator.followers)} followers` : ""}
                   </span>
                   <div className="flex items-center gap-2 text-text-muted">
                     {creator.socials.map((s) => {

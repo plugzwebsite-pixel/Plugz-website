@@ -32,7 +32,7 @@ export function CreatorCard({ creator }: { creator: CreatorCardData }) {
       <div className="mt-4 flex items-center justify-between">
         <Badge tone={creator.trending ? "brand" : "neutral"}>{creator.category}</Badge>
         <span className="text-xs text-text-faint">
-          {compact(creator.followers)} followers
+          {creator.followers > 0 ? `${compact(creator.followers)} followers` : ""}
         </span>
       </div>
     </Link>
