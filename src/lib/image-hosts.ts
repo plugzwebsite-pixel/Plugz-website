@@ -13,6 +13,12 @@
  *
  * Both this list and next.config.ts's remotePatterns are generated from here,
  * so a host can only ever be allowed in one place.
+ *
+ * **Next allows at most 50 remote patterns and refuses to build past that**, so
+ * this list is full. Adding a host now means retiring one, and the honest way
+ * to choose is by weight: everything left off serves its own file whole through
+ * SmartImage, which is fine at a hundred kilobytes and expensive at a megabyte.
+ * The heaviest photography earns its place here.
  */
 export const OPTIMISED_IMAGE_HOSTS = [
   "airyday.co.uk",
@@ -20,15 +26,20 @@ export const OPTIMISED_IMAGE_HOSTS = [
   "assets.andrewmartin.co.uk",
   "assets.aspinaloflondon.com",
   "assets.digitalcontent.marksandspencer.app",
+  "auvodka.co.uk",
   "boots.scene7.com",
   "boutiquecamping.com",
   "cdn-revamp.airalo.com",
   "cdn.media.amplience.net",
   "cdn.notinoimg.com",
+  "cdn.shopify.com",
   "cdn11.bigcommerce.com",
   "chloejadehome.com",
   "clubllondon.com",
+  "damsonmadder.com",
+  "dtcralphlauren.scene7.com",
   "fentybeauty.co.uk",
+  "hrd-live.cdn.scayle.cloud",
   "images.beautybay.com",
   "images.hollandandbarrettimages.co.uk",
   "images.mulberry.com",
@@ -38,6 +49,7 @@ export const OPTIMISED_IMAGE_HOSTS = [
   "main.thgimages.com",
   "mayfairandfinch.co.uk",
   "media.4rgos.it",
+  "media.diy.com",
   "media.johnlewiscontent.com",
   "media.kurtgeiger.com",
   "mediahub.boohoo.com",
@@ -45,6 +57,7 @@ export const OPTIMISED_IMAGE_HOSTS = [
   "mediahub.prettylittlething.com",
   "res.cloudinary.com",
   "rowenhomes.com",
+  "shop.elfontheshelf.co.uk",
   "supremecbd.uk",
   "the-mabel.com",
   "unicorn.lush.com",
@@ -52,7 +65,11 @@ export const OPTIMISED_IMAGE_HOSTS = [
   "www.barbour.com",
   "www.charlesandivy.co.uk",
   "www.grahamandgreen.co.uk",
+  "www.havaianas-store.com",
+  "www.hollandcooper.com",
   "www.nadinemerabi.com",
+  "www.nakeddresses.com",
+  "www.scarlettlily.co.uk",
   "www.spacenk.com",
 ] as const;
 
