@@ -31,6 +31,12 @@ export const CATEGORY_NAV: Category[] = [
   { name: "Fitness & Lifestyle", slug: "fitness-lifestyle", emoji: "🏋️", cover: "https://media.johnlewiscontent.com/i/JohnLewis/014247239" },
   { name: "Travel / Holiday", slug: "travel-holiday", emoji: "🌴", cover: "https://cdn-revamp.airalo.com/images/acadbcf2-0733-496a-b8db-7f48637ea016.png" },
   { name: "Festival Edit", slug: "festival-edit", emoji: "🎪", cover: "https://the-mabel.com/cdn/shop/files/violet-crystal-mirror-mini-dress-high-neck-short-sleeve-disco-party-dress-10.jpg?v=1777563884&width=1920" },
+  { name: "Cocktail Edit", slug: "cocktail-edit", emoji: "🍸", cover: "https://clubllondon.com/cdn/shop/files/CL13516100206_1.jpg?v=1770380484&width=2000" },
+  { name: "Day at the Races", slug: "day-at-the-races", emoji: "🏇", cover: "https://www.hollandcooper.com/cdn/shop/files/AimeeSleevelessShirtDress_LightBlueChambray__1.jpg?v=1777388019" },
+  { name: "Christmas Edit", slug: "christmas-edit", emoji: "🎄", cover: "https://hrd-live.cdn.scayle.cloud/images/3d3067abd06ac4158b4ba5109d499e43.jpg?quality=75" },
+  { name: "Mini Edit", slug: "mini-edit", emoji: "🧸", cover: "https://www.bouxavenue.com/on/demandware.static/-/Sites-bouxavenue-master-catalog/default/dwd1f107fe/211815_20PX_1__04894.jpg" },
+  { name: "New You", slug: "new-you", emoji: "💫", cover: "https://cdn.shopify.com/s/files/1/0259/5448/4284/products/SKIMS-SHAPEWEAR-BD-BRF-3370-ONX.jpg?v=1742584261" },
+  { name: "IT Girl Edit", slug: "it-girl-edit", emoji: "💅", cover: "https://www.nakeddresses.com/cdn/shop/files/MultiDarkNude_ASHLEYlauren_4755_Lira_Mini_Dress.jpg?crop=top&height=1500&v=1767974125&width=1200" },
 ];
 
 export const TRENDS = [
