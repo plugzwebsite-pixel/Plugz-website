@@ -354,27 +354,55 @@ export async function getFeaturedBrand() {
   // happens to have the most rows. "Featured partner" is a shop window: the
   // most-listings rule put a GBP24 hat there while a Mulberry bag sat further
   // down the page.
-  const hero = await db.product.findFirst({
-    where: {
-      imageUrl: { not: null },
-      pricePence: { not: null },
-      brand: { status: "ACTIVE" },
-      creatorProducts: { some: liveProduct },
-    },
+  //
+  // The panel's whole pitch is the creator's review, so a listing that carries
+  // one wins even over a more expensive piece that doesn't. Not every product
+  // has been written up — the catalogue is loaded from the client's list well
+  // before the creators get to it — and the panel must not send a shopper to
+  // read a review that was never written.
+  const select = {
+    name: true,
+    category: true,
+    imageUrl: true,
+    pricePence: true,
+    brand: { select: { name: true, _count: { select: { products: true } } } },
+  } satisfies Prisma.ProductSelect;
+
+  const where = {
+    imageUrl: { not: null },
+    pricePence: { not: null },
+    brand: { status: "ACTIVE" },
+  } satisfies Prisma.ProductWhereInput;
+
+  const reviewed = { ...liveProduct, review: { not: null } };
+
+  const written = await db.product.findFirst({
+    where: { ...where, creatorProducts: { some: reviewed } },
     select: {
-      name: true,
-      category: true,
-      imageUrl: true,
-      pricePence: true,
-      brand: { select: { name: true, _count: { select: { products: true } } } },
+      ...select,
       creatorProducts: {
-        where: liveProduct,
+        where: reviewed,
         select: { slug: true, profile: { select: { handle: true } } },
         take: 1,
       },
     },
     orderBy: { pricePence: "desc" },
   });
+
+  const hero =
+    written ??
+    (await db.product.findFirst({
+      where: { ...where, creatorProducts: { some: liveProduct } },
+      select: {
+        ...select,
+        creatorProducts: {
+          where: liveProduct,
+          select: { slug: true, profile: { select: { handle: true } } },
+          take: 1,
+        },
+      },
+      orderBy: { pricePence: "desc" },
+    }));
 
   const listing = hero?.creatorProducts[0];
   if (!hero || !listing) return null;
@@ -387,5 +415,6 @@ export async function getFeaturedBrand() {
     pricePence: hero.pricePence,
     productCount: hero.brand._count.products,
     href: `/@${listing.profile.handle}/${listing.slug}`,
+    hasReview: hero === written,
   };
 }

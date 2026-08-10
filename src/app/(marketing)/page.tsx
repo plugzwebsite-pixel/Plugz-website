@@ -130,12 +130,15 @@ export default async function HomePage() {
                 </p>
                 <p className="mt-4 max-w-md leading-relaxed text-text-muted">
                   {featuredBrand.productCount > 1
-                    ? `${featuredBrand.productCount} pieces from ${featuredBrand.brandName} are plugged by Pluggz creators, each with the review that sold it. This one leads the ${featuredBrand.category.toLowerCase()} edit.`
-                    : `Plugged by a Pluggz creator with the review that sold it, and leading the ${featuredBrand.category.toLowerCase()} edit this week.`}
+                    ? `${featuredBrand.productCount} pieces from ${featuredBrand.brandName} are plugged by Pluggz creators. This one leads the ${featuredBrand.category.toLowerCase()} edit.`
+                    : `Plugged by a Pluggz creator, and leading the ${featuredBrand.category.toLowerCase()} edit this week.`}
                 </p>
                 <Link href={featuredBrand.href} className="mt-7 inline-block">
                   <Button size="lg">
-                    Read the review <ArrowRight size={17} />
+                    {/* Not every listing has been written up yet, and the panel
+                        must not send a shopper to read a review nobody wrote. */}
+                    {featuredBrand.hasReview ? "Read the review" : "See the piece"}{" "}
+                    <ArrowRight size={17} />
                   </Button>
                 </Link>
               </div>
