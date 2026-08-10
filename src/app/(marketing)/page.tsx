@@ -12,6 +12,7 @@ import { Reveal } from "@/components/ui/reveal";
 import { Aurora } from "@/components/marketing/aurora";
 import { CATEGORY_NAV } from "@/lib/demo-data";
 import {
+  getCategoryCounts,
   getFeaturedBrand,
   getFeaturedCreators,
   getTrendingProducts,
@@ -29,14 +30,16 @@ import { compact, gbpFromPence } from "@/lib/utils";
 export const revalidate = 60;
 
 export default async function HomePage() {
-  const [trendProducts, featured, stats, featuredBrand] = await Promise.all([
-    getTrendingProducts(8),
-    // The hero wall wants every creator it can get: each row has to span the
-    // screen on its own, and a short list only loops back on itself.
-    getFeaturedCreators(24),
-    getPlatformStats(),
-    getFeaturedBrand(),
-  ]);
+  const [trendProducts, featured, stats, featuredBrand, categoryCounts] =
+    await Promise.all([
+      getTrendingProducts(8),
+      // The hero wall wants every creator it can get: each row has to span the
+      // screen on its own, and a short list only loops back on itself.
+      getFeaturedCreators(24),
+      getPlatformStats(),
+      getFeaturedBrand(),
+      getCategoryCounts(),
+    ]);
   const trendingCreators = featured.slice(0, 7);
 
   // Counted from the database — no invented figures on a page that is
@@ -96,7 +99,7 @@ export default async function HomePage() {
         <div className="mt-9 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {CATEGORY_NAV.map((c, i) => (
             <Reveal key={c.slug} index={i % 3}>
-              <CategoryVideoTile category={c} />
+              <CategoryVideoTile category={c} count={categoryCounts.get(c.name) ?? 0} />
             </Reveal>
           ))}
         </div>

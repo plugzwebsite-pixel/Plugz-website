@@ -17,7 +17,13 @@ import type { Category } from "@/lib/demo-data";
  * image up to fill this box was what made the grid look amateur, and cropping a
  * square one into 4:5 cut the subject off at both edges.
  */
-export function CategoryVideoTile({ category }: { category: Category }) {
+export function CategoryVideoTile({
+  category,
+  count,
+}: {
+  category: Category;
+  count: number;
+}) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   function play() {
@@ -82,7 +88,8 @@ export function CategoryVideoTile({ category }: { category: Category }) {
           {category.name}
         </h3>
         <p className="mt-0.5 text-sm text-white/75">
-          {category.edits} edits · shop the look
+          {count > 0 && `${count} ${count === 1 ? "edit" : "edits"} · `}shop the
+          look
         </p>
       </div>
     </Link>

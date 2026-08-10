@@ -52,8 +52,10 @@ export default async function CategoryPage({
               <span className="text-4xl">{cat.emoji}</span> {cat.name}
             </h1>
             <p className="mt-3 max-w-xl text-text-muted">
-              {cat.edits} curated edits · the products UK creators are actually
-              plugging in {cat.name.toLowerCase()}.
+              {products.length > 0 &&
+                `${products.length} curated ${products.length === 1 ? "edit" : "edits"} · `}
+              the products UK creators are actually plugging in{" "}
+              {cat.name.toLowerCase()}.
             </p>
           </Reveal>
         </Container>
