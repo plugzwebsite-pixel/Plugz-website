@@ -46,3 +46,7 @@ next-env.d.ts
 .vscode/
 .pluggz-dev-mail.json
 /scripts/*.ps1
+
+# python (the client-facing document builders in docs/)
+__pycache__/
+*.pyc
