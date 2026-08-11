@@ -116,6 +116,10 @@ export async function DELETE() {
   const admin = await requireAdmin();
   if (!admin.ok) return fail("Admins only.", 403);
 
-  const removed = await db.sale.deleteMany({ where: { orderRef: { startsWith: "DEMO-" } } });
+  // Both prefixes: DEMO- from the admin walkthrough, AA- from an order placed
+  // through the demo shop. Nothing else is touched.
+  const removed = await db.sale.deleteMany({
+    where: { OR: [{ orderRef: { startsWith: "DEMO-" } }, { orderRef: { startsWith: "AA-" } }] },
+  });
   return ok({ removed: removed.count });
 }
