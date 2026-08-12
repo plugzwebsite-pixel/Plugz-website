@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, X, Flag, MapPin, ExternalLink } from "lucide-react";
+import { Check, X, Flag, Star, MapPin, ExternalLink } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
@@ -16,6 +16,7 @@ export type Applicant = {
   city: string | null;
   category: string;
   status: "PENDING" | "APPROVED" | "DECLINED" | "SUSPENDED";
+  featured: boolean;
   socials: {
     platform: string;
     handle: string;
@@ -53,7 +54,9 @@ export function ApprovalQueue({ initial }: { initial: Applicant[] }) {
   };
   const visible = items.filter((i) => i.status === tab);
 
-  async function act(id: string, action: "approve" | "decline") {
+  type Action = "approve" | "decline" | "feature" | "unfeature";
+
+  async function act(id: string, action: Action) {
     setBusy(id);
     const res = await patchJson(`/api/admin/creators/${id}`, { action });
     setBusy(null);
@@ -61,11 +64,26 @@ export function ApprovalQueue({ initial }: { initial: Applicant[] }) {
       toast.error("Couldn't update", res.message);
       return;
     }
+
+    if (action === "feature" || action === "unfeature") {
+      const featured = action === "feature";
+      setItems((prev) => prev.map((i) => (i.id === id ? { ...i, featured } : i)));
+      toast.success(
+        featured ? "Added to the homepage" : "Removed from the homepage",
+        featured
+          ? "They now appear on the creator wall."
+          : "Their storefront stays live; they just aren't on the front page."
+      );
+      return;
+    }
+
     const status = action === "approve" ? "APPROVED" : "DECLINED";
     setItems((prev) => prev.map((i) => (i.id === id ? { ...i, status } : i)));
     toast.success(
       action === "approve" ? "Creator approved" : "Application declined",
-      action === "approve" ? "They're now live on Pluggz." : undefined
+      action === "approve"
+        ? "Their storefront is live. Use Feature to put them on the homepage."
+        : undefined
     );
   }
 
@@ -178,17 +196,42 @@ export function ApprovalQueue({ initial }: { initial: Applicant[] }) {
                       <Flag size={15} />
                     </button>
                   </div>
-                ) : (
-                  <span
-                    className={
-                      a.status === "APPROVED"
-                        ? "rounded-pill bg-accent-green/12 px-3 py-1 text-xs font-semibold text-accent-green"
-                        : "rounded-pill bg-red-500/12 px-3 py-1 text-xs font-semibold text-red-400"
-                    }
-                  >
-                    {a.status}
-                  </span>
-                )}
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      {/* Approving gives a creator their storefront. Featuring
+                          puts them on the homepage wall, which is a separate
+                          decision — otherwise a test sign-up appears beside the
+                          headline names the moment it is let through. */}
+                      {a.status === "APPROVED" && (
+                        <Button
+                          size="sm"
+                          variant={a.featured ? "secondary" : "ghost"}
+                          disabled={busy === a.id}
+                          onClick={() => act(a.id, a.featured ? "unfeature" : "feature")}
+                          title={
+                            a.featured
+                              ? "Showing on the homepage creator wall"
+                              : "Not on the homepage — their storefront is still live"
+                          }
+                        >
+                          <Star
+                            size={15}
+                            className={a.featured ? "fill-current text-accent-gold" : ""}
+                          />
+                          {a.featured ? "Featured" : "Feature"}
+                        </Button>
+                      )}
+                      <span
+                        className={
+                          a.status === "APPROVED"
+                            ? "rounded-pill bg-accent-green/12 px-3 py-1 text-xs font-semibold text-accent-green"
+                            : "rounded-pill bg-red-500/12 px-3 py-1 text-xs font-semibold text-red-400"
+                        }
+                      >
+                        {a.status}
+                      </span>
+                    </div>
+                  )}
               </motion.div>
             ))
           )}

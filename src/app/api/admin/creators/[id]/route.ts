@@ -5,7 +5,7 @@ import { z } from "zod";
 import type { CreatorStatus } from "@prisma/client";
 
 const schema = z.object({
-  action: z.enum(["approve", "decline", "suspend", "reinstate"]),
+  action: z.enum(["approve", "decline", "suspend", "reinstate", "feature", "unfeature"]),
 });
 
 const nextStatus: Record<string, CreatorStatus> = {
@@ -37,8 +37,13 @@ export async function PATCH(
 
   const updated = await db.creatorProfile.update({
     where: { id },
-    data: { status: nextStatus[parsed.data.action] },
-    select: { id: true, status: true },
+    data:
+      parsed.data.action === "feature"
+        ? { featured: true }
+        : parsed.data.action === "unfeature"
+          ? { featured: false }
+          : { status: nextStatus[parsed.data.action] },
+    select: { id: true, status: true, featured: true },
   });
 
   return ok(updated);

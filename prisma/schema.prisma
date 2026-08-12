@@ -75,6 +75,12 @@ model CreatorProfile {
   status CreatorStatus     @default(PENDING)
   source ApplicationSource @default(SELF_SERVE)
 
+  // Approving somebody and putting them on the front page are two different
+  // decisions. Every approved creator gets a storefront; only the ones the team
+  // chooses appear on the homepage wall — otherwise a test account or a very
+  // small creator lands next to the headline names the moment they sign up.
+  featured Boolean @default(false)
+
   // Dual-consent: admin-added creators must log in and release their profile.
   profileReleasedAt DateTime?
 

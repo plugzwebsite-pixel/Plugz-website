@@ -57,6 +57,8 @@ const productSelect = {
   profile: { select: { handle: true } },
   product: {
     select: {
+      // Needed to collapse a grid to one card per product.
+      id: true,
       name: true,
       imageUrl: true,
       pricePence: true,
@@ -115,9 +117,16 @@ export async function getCreatorByHandle(handle: string) {
 }
 
 /** Ordered by reach — the wall of faces that opens the homepage. */
+/**
+ * The creators on the homepage wall.
+ *
+ * Featured is a separate decision from approved. Approving somebody gives them
+ * a storefront; being on the front page is the team's call, and it has to be,
+ * or a test sign-up appears beside the headline names the moment it is let in.
+ */
 export async function getFeaturedCreators(limit = 12): Promise<CreatorCardData[]> {
   const rows = await db.creatorProfile.findMany({
-    where: publiclyVisibleCreator,
+    where: { ...publiclyVisibleCreator, featured: true },
     select: creatorSelect,
     take: limit * 3,
   });
@@ -131,14 +140,41 @@ export async function getFeaturedCreators(limit = 12): Promise<CreatorCardData[]
 // --- products ---------------------------------------------------------------
 
 /** Most-clicked first — what shoppers are actually going through to. */
+/**
+ * One product, one card.
+ *
+ * A product is a single record that several creators can plug, each with their
+ * own review — that is the point of the shared catalogue. But a browse grid is
+ * a list of *products*, so the same bag appearing twice because two people
+ * plugged it reads as a duplicate, not as a feature. The rule the client set is
+ * plain: one product equals one page, shown once in any grid, with every
+ * creator's review attached to that page.
+ *
+ * The card keeps whichever creator's listing is doing best, since that is the
+ * one a shopper is most likely to have seen.
+ */
+function oneCardPerProduct(rows: ProductRow[]): ProductRow[] {
+  const seen = new Set<string>();
+  const out: ProductRow[] = [];
+  for (const row of rows) {
+    const id = row.product.id;
+    if (seen.has(id)) continue;
+    seen.add(id);
+    out.push(row);
+  }
+  return out;
+}
+
 export async function getTrendingProducts(limit = 8): Promise<ProductCardData[]> {
   const rows = await db.creatorProduct.findMany({
     where: liveProduct,
     select: productSelect,
     orderBy: [{ trackingLink: { clickCount: "desc" } }, { createdAt: "desc" }],
-    take: limit,
+    // Over-fetch, then collapse: the same product plugged by three creators
+    // would otherwise fill three of the eight slots.
+    take: limit * 4,
   });
-  return rows.map(toProductCard);
+  return oneCardPerProduct(rows).slice(0, limit).map(toProductCard);
 }
 
 export async function getProductsForCreator(handle: string, limit = 24) {
@@ -156,9 +192,9 @@ export async function getProductsByCategory(category: string, limit = 24) {
     where: { ...liveProduct, product: { category } },
     select: productSelect,
     orderBy: [{ trackingLink: { clickCount: "desc" } }, { createdAt: "desc" }],
-    take: limit,
+    take: limit * 4,
   });
-  return rows.map(toProductCard);
+  return oneCardPerProduct(rows).slice(0, limit).map(toProductCard);
 }
 
 /** The single product page: pluggz.com/@handle/<slug>. */
@@ -225,9 +261,9 @@ export async function getSimilarProducts(
     },
     select: productSelect,
     orderBy: { trackingLink: { clickCount: "desc" } },
-    take: limit,
+    take: limit * 4,
   });
-  return rows.map(toProductCard);
+  return oneCardPerProduct(rows).slice(0, limit).map(toProductCard);
 }
 
 // --- search -----------------------------------------------------------------
@@ -282,7 +318,7 @@ export async function searchCatalogue(query: string) {
 
   return {
     creators: creatorRows.map((r) => toCreatorCard(r)),
-    products: productRows.map(toProductCard),
+    products: oneCardPerProduct(productRows).slice(0, 24).map(toProductCard),
   };
 }
 

@@ -27,6 +27,7 @@ async function loadApplicants(): Promise<{ items: Applicant[]; dbError: boolean 
         city: p.city,
         category: p.category,
         status: p.status,
+        featured: p.featured,
         socials: p.socials,
       })),
     };
