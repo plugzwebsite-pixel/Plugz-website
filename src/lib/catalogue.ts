@@ -56,10 +56,30 @@ export function brandNameFromUrl(raw: string): string {
 export async function findOrCreateBrand(sourceUrl: string, siteName?: string | null) {
   const name = siteName?.trim() || brandNameFromUrl(sourceUrl);
   const slug = slugify(name);
+  const websiteUrl = new URL(sourceUrl).origin;
+  const host = new URL(sourceUrl).hostname.replace(/^www\./, "").toLowerCase();
+
+  // Match the host before the name. A brand onboarded by hand carries agreed
+  // terms and its tracking key, and the name typed on the form rarely matches
+  // what a hostname or an og:site_name produces — matching on name alone would
+  // quietly create a second, DRAFT copy with no key, attach the product to it,
+  // and leave every postback failing with "Unknown key".
+  const hostMatch = {
+    OR: [
+      { websiteUrl: { contains: `//${host}`, mode: "insensitive" as const } },
+      { websiteUrl: { contains: `//www.${host}`, mode: "insensitive" as const } },
+    ],
+  };
+  // A brand somebody set up by hand wins over one auto-created from a paste,
+  // whatever order the enum happens to be declared in.
+  const byHost =
+    (await db.brand.findFirst({ where: { ...hostMatch, status: "ACTIVE" } })) ??
+    (await db.brand.findFirst({ where: hostMatch }));
+  if (byHost) return byHost;
+
   const existing = await db.brand.findUnique({ where: { slug } });
   if (existing) return existing;
 
-  const websiteUrl = new URL(sourceUrl).origin;
   return db.brand.create({
     // A brand auto-created from a pasted link starts as DRAFT — Lisa or Rachel
     // still has to work through the onboarding checklist and agree terms

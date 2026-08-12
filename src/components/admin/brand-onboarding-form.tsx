@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { postJson } from "@/lib/client/api";
 import { AnimatePresence, motion } from "framer-motion";
 import { Building2, CheckCircle2, Ticket, Network } from "lucide-react";
 import { Field, Input } from "@/components/ui/input";
@@ -15,15 +16,44 @@ export function BrandOnboardingForm() {
   const [path, setPath] = useState<Path>(null);
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
+  const [f, setF] = useState({
+    name: "",
+    websiteUrl: "",
+    commissionRate: "",
+    returnWindow: "",
+    settlementTerms: "",
+    contact: "",
+    attributionWindow: "",
+    invoicingDetails: "",
+    trackingMethod: "PLUGGZ_DIRECT",
+    networkName: "",
+    publisherId: "",
+    deepLinkPattern: "",
+  });
   const toast = useToast();
+
+  const set = (k: keyof typeof f) => (v: string) => setF((s) => ({ ...s, [k]: v }));
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!f.name.trim()) {
+      toast.error("Give the brand a name");
+      return;
+    }
     setSaving(true);
-    await new Promise((r) => setTimeout(r, 800));
+    const res = await postJson<{ name: string }>("/api/admin/brands", {
+      ...f,
+      hasAffiliateProgramme: path === "network",
+      trackingMethod: path === "network" ? "NETWORK" : f.trackingMethod,
+    });
     setSaving(false);
+
+    if (!res.ok) {
+      toast.error("Couldn't add that brand", res.message);
+      return;
+    }
     setDone(true);
-    toast.success("Brand added", "The commercial relationship is set up.");
+    toast.success("Brand added", `${res.data!.name} is live and ready for products.`);
   }
 
   if (done) {
@@ -96,7 +126,10 @@ export function BrandOnboardingForm() {
               <Section title="Network details">
                 <div className="grid gap-5 sm:grid-cols-2">
                   <Field label="Network / platform">
-                    <Select defaultValue="">
+                    <Select
+                      value={f.networkName}
+                      onChange={(e) => set("networkName")(e.target.value)}
+                    >
                       <option value="" disabled>
                         Choose network
                       </option>
@@ -108,28 +141,38 @@ export function BrandOnboardingForm() {
                     </Select>
                   </Field>
                   <Field label="Publisher / affiliate ID" hint="Once Pluggz is accepted">
-                    <Input placeholder="e.g. 1284402" />
+                    <Input placeholder="e.g. 1284402" value={f.publisherId} onChange={(e) => set("publisherId")(e.target.value)} />
                   </Field>
                 </div>
                 <Field label="Link / deep-link structure" className="mt-5">
-                  <Input placeholder="https://track.network.com/click?pid=…&url=…" />
+                  <Input placeholder="https://track.network.com/click?pid=…&url=…" value={f.deepLinkPattern} onChange={(e) => set("deepLinkPattern")(e.target.value)} />
                 </Field>
               </Section>
             ) : (
               <Section title="Direct-deal tracking">
                 <div className="grid gap-5 sm:grid-cols-2">
                   <Field label="Tracking method">
-                    <Select defaultValue="Discount code">
-                      <option>Discount / promo code per creator</option>
-                      <option>Tracking pixel on order confirmation</option>
+                    <Select
+                      value={f.trackingMethod}
+                      onChange={(e) => set("trackingMethod")(e.target.value)}
+                    >
+                      <option value="PLUGGZ_DIRECT">
+                        Pluggz link + sale postback
+                      </option>
+                      <option value="DISCOUNT_CODE">
+                        Discount / promo code per creator
+                      </option>
+                      <option value="PIXEL">
+                        Tracking pixel on order confirmation
+                      </option>
                     </Select>
                   </Field>
                   <Field label="Attribution window" hint="Separate from returns">
-                    <Input placeholder="e.g. 30 days" />
+                    <Input placeholder="e.g. 30 days" value={f.attributionWindow} onChange={(e) => set("attributionWindow")(e.target.value)} />
                   </Field>
                 </div>
                 <Field label="Invoicing / payment details" className="mt-5">
-                  <Input placeholder="How the brand pays Pluggz (Stripe / Wise / bank)" />
+                  <Input placeholder="How the brand pays Pluggz (Stripe / Wise / bank)" value={f.invoicingDetails} onChange={(e) => set("invoicingDetails")(e.target.value)} />
                 </Field>
               </Section>
             )}
@@ -138,22 +181,22 @@ export function BrandOnboardingForm() {
             <Section title="Brand details">
               <div className="grid gap-5 sm:grid-cols-2">
                 <Field label="Brand name" required>
-                  <Input placeholder="Dawsylicious" leftIcon={<Building2 size={16} />} />
+                  <Input placeholder="Dawsylicious" leftIcon={<Building2 size={16} />} value={f.name} onChange={(e) => set("name")(e.target.value)} />
                 </Field>
                 <Field label="Product page URL" required>
-                  <Input placeholder="https://brand.com/products/…" />
+                  <Input placeholder="https://brand.com/products/…" value={f.websiteUrl} onChange={(e) => set("websiteUrl")(e.target.value)} />
                 </Field>
                 <Field label="Commission rate">
-                  <Input placeholder="e.g. 11%" />
+                  <Input placeholder="e.g. 11%" value={f.commissionRate} onChange={(e) => set("commissionRate")(e.target.value)} />
                 </Field>
                 <Field label="Return / refund window">
-                  <Input placeholder="e.g. 14 days" />
+                  <Input placeholder="e.g. 14 days" value={f.returnWindow} onChange={(e) => set("returnWindow")(e.target.value)} />
                 </Field>
                 <Field label="Settlement terms">
-                  <Input placeholder="e.g. 30 days after verified" />
+                  <Input placeholder="e.g. 30 days after verified" value={f.settlementTerms} onChange={(e) => set("settlementTerms")(e.target.value)} />
                 </Field>
                 <Field label="Primary contact">
-                  <Input placeholder="Name · role · email" />
+                  <Input placeholder="Name · role · email" value={f.contact} onChange={(e) => set("contact")(e.target.value)} />
                 </Field>
               </div>
             </Section>
