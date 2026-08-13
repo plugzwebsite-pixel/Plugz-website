@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { Play } from "lucide-react";
 import { ArtPanel } from "@/components/ui/art-panel";
@@ -26,6 +26,12 @@ export function CategoryVideoTile({
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
+  // Covers point at the brand's own CDN, which occasionally stops answering for
+  // a photograph that worked last week. A tile with a dead cover was rendering
+  // as an empty box; the drawn artwork is a better answer than nothing.
+  const [coverFailed, setCoverFailed] = useState(false);
+  const cover = coverFailed ? undefined : category.cover;
+
   function play() {
     videoRef.current?.play().catch(() => {});
   }
@@ -44,9 +50,13 @@ export function CategoryVideoTile({
       onMouseLeave={stop}
       className="group relative block aspect-[4/5] overflow-hidden rounded-lg border border-border"
     >
-      {category.cover ? (
+      {cover ? (
         <SmartImage
-          src={category.cover}
+          src={cover}
+          onError={() => setCoverFailed(true)}
+          imgRef={(el) => {
+            if (el?.complete && el.naturalWidth === 0) setCoverFailed(true);
+          }}
           alt=""
           width={700}
           height={875}
@@ -65,7 +75,7 @@ export function CategoryVideoTile({
         <video
           ref={videoRef}
           src={category.video}
-          poster={category.cover}
+          poster={cover}
           muted
           loop
           playsInline
@@ -79,9 +89,14 @@ export function CategoryVideoTile({
         className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent"
       />
 
-      <span className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-black/40 text-white backdrop-blur transition-colors group-hover:bg-brand-pink">
-        <Play size={14} className="translate-x-[1px]" fill="currentColor" />
-      </span>
+      {/* Only where there is something to play. Every tile used to carry this,
+          which advertised a clip on thirteen tiles that had none between them —
+          hovering did nothing at all. */}
+      {category.video && (
+        <span className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-black/40 text-white backdrop-blur transition-colors group-hover:bg-brand-pink">
+          <Play size={14} className="translate-x-[1px]" fill="currentColor" />
+        </span>
+      )}
 
       <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5">
         <h3 className="font-display text-xl font-semibold text-white">
