@@ -19,10 +19,13 @@ export function SectionHeading({
           {title}
         </h2>
       </div>
+      {/* As bare text this is a 20px tap target, well under what a thumb can
+          reliably hit. The overlay grows the hit area to 44px without touching
+          the layout, so the link still sits on the heading's baseline. */}
       {action && (
         <Link
           href={action.href}
-          className="group inline-flex items-center gap-1.5 text-sm font-semibold text-brand-pink hover:underline"
+          className="group relative inline-flex items-center gap-1.5 text-sm font-semibold text-brand-pink before:absolute before:-inset-y-3 before:inset-x-0 before:content-[''] hover:underline"
         >
           {action.label}
           <ArrowRight
