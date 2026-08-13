@@ -503,3 +503,39 @@ export async function settlementRows(take = 20) {
     },
   });
 }
+
+/**
+ * The handful of sales just recorded, for the page that records them.
+ *
+ * The ledger proper is on Payouts; this exists so an import gives visible
+ * confirmation on the spot rather than appearing to do nothing.
+ */
+export async function recentSales(take = 5) {
+  const rows = await db.sale.findMany({
+    orderBy: { createdAt: "desc" },
+    take,
+    select: {
+      id: true,
+      orderRef: true,
+      valuePence: true,
+      creatorAmountPence: true,
+      soldAt: true,
+      creatorProduct: {
+        select: {
+          profile: { select: { handle: true } },
+          product: { select: { brand: { select: { name: true } } } },
+        },
+      },
+    },
+  });
+
+  return rows.map((r) => ({
+    id: r.id,
+    orderRef: r.orderRef,
+    valuePence: r.valuePence,
+    creatorAmountPence: r.creatorAmountPence,
+    soldAt: r.soldAt,
+    handle: r.creatorProduct.profile.handle,
+    brand: r.creatorProduct.product.brand.name,
+  }));
+}
