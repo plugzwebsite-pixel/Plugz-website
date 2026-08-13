@@ -12,13 +12,68 @@ import {
   Check,
   ExternalLink,
   MousePointerClick,
+  ImageOff,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/primitives";
 import { useToast } from "@/components/ui/toast";
-import { compact, gbpFromPence } from "@/lib/utils";
+import { cn, compact, gbpFromPence } from "@/lib/utils";
 import { postJson } from "@/lib/client/api";
+
+/**
+ * A product thumbnail that copes with the brand's own photography.
+ *
+ * These URLs point straight at the shop that sells the item, so some are
+ * missing, some are a megabyte of full-resolution studio shot going into a
+ * 40px box, and some simply stop resolving when the brand reorganises its CDN.
+ * All three used to leave an empty grey square with no explanation.
+ */
+function ProductThumb({
+  src,
+  size,
+  className,
+}: {
+  src: string | null;
+  size: number;
+  className?: string;
+}) {
+  const [failed, setFailed] = useState(false);
+
+  // A photo that 404s during the server-rendered pass has already fired its
+  // error event by the time React attaches the handler, so onError alone leaves
+  // the broken ones as blank squares. Re-check whatever the browser managed to
+  // load as each image mounts.
+  const check = useCallback((el: HTMLImageElement | null) => {
+    if (el?.complete && el.naturalWidth === 0) setFailed(true);
+  }, []);
+
+  return (
+    <span className={cn("shrink-0 overflow-hidden bg-surface-2", className)}>
+      {src && !failed ? (
+        /* eslint-disable-next-line @next/next/no-img-element */
+        <img
+          ref={check}
+          src={src}
+          alt=""
+          width={size}
+          height={size}
+          loading="lazy"
+          decoding="async"
+          onError={() => setFailed(true)}
+          onLoad={(e) => {
+            if (e.currentTarget.naturalWidth === 0) setFailed(true);
+          }}
+          className="h-full w-full object-cover"
+        />
+      ) : (
+        <span className="grid h-full w-full place-items-center text-text-faint">
+          <ImageOff size={size > 44 ? 16 : 14} />
+        </span>
+      )}
+    </span>
+  );
+}
 
 type Listing = {
   id: string;
@@ -172,16 +227,11 @@ export function StorefrontManager({ handle }: { handle: string }) {
                   className="flex items-center justify-between gap-4 rounded-sm border border-border bg-surface p-3"
                 >
                   <div className="flex min-w-0 items-center gap-3">
-                    <span className="h-10 w-10 shrink-0 overflow-hidden rounded bg-surface-2">
-                      {a.imageUrl && (
-                        /* eslint-disable-next-line @next/next/no-img-element */
-                        <img
-                          src={a.imageUrl}
-                          alt=""
-                          className="h-full w-full object-cover"
-                        />
-                      )}
-                    </span>
+                    <ProductThumb
+                      src={a.imageUrl}
+                      size={40}
+                      className="h-10 w-10 rounded"
+                    />
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium text-text-strong">
                         {a.name}
@@ -236,20 +286,11 @@ export function StorefrontManager({ handle }: { handle: string }) {
                   exit={{ opacity: 0 }}
                   className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:gap-4"
                 >
-                  <span className="h-12 w-12 shrink-0 overflow-hidden rounded-md bg-surface-2">
-                    {l.product.imageUrl ? (
-                      /* eslint-disable-next-line @next/next/no-img-element */
-                      <img
-                        src={l.product.imageUrl}
-                        alt=""
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <span className="grid h-full w-full place-items-center text-text-faint">
-                        <Link2 size={16} />
-                      </span>
-                    )}
-                  </span>
+                  <ProductThumb
+                    src={l.product.imageUrl}
+                    size={48}
+                    className="h-12 w-12 rounded-md"
+                  />
 
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium text-text-strong">

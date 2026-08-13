@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { publicBrand } from "@/lib/queries";
 import { ok, fail, parseBody } from "@/lib/http";
 import { checkCreatorAccess } from "@/lib/auth/access";
 import { rateLimit, clientKey } from "@/lib/rate-limit";
@@ -67,7 +68,9 @@ export async function GET() {
   // down a URL for something another creator has already added.
   const available = await db.product.findMany({
     where: {
-      brand: { status: "ACTIVE" },
+      // publicBrand keeps the demonstration shop out: a creator offered it here
+      // would put a fictional label on their own storefront.
+      brand: { status: "ACTIVE", ...publicBrand },
       creatorProducts: { none: { profileId: access.profileId } },
     },
     orderBy: { createdAt: "desc" },
