@@ -22,6 +22,8 @@ export function SmartImage({
   className,
   sizes,
   priority = false,
+  onError,
+  imgRef,
 }: {
   src: string;
   alt: string;
@@ -30,6 +32,18 @@ export function SmartImage({
   className?: string;
   sizes?: string;
   priority?: boolean;
+  /**
+   * Called when the file will not load. Brand CDNs drop photographs without
+   * warning, so anything rendering someone else's image wants a way to notice.
+   * Client components only — passing it from a server component will not build.
+   */
+  onError?: () => void;
+  /**
+   * The underlying element. An image that 404s during the server-rendered pass
+   * has already fired its error event before React attaches onError, so the
+   * only way to notice is to look at what actually loaded.
+   */
+  imgRef?: (el: HTMLImageElement | null) => void;
 }) {
   // Creator uploads are written after the build, so the optimiser can't read
   // them — Next indexes public/ at build time. They arrive already square,
@@ -47,6 +61,8 @@ export function SmartImage({
         height={height}
         sizes={sizes}
         priority={priority}
+        onError={onError}
+        ref={imgRef}
         className={className}
       />
     );
@@ -64,6 +80,8 @@ export function SmartImage({
       // A brand's page shouldn't learn which creator's storefront sent the
       // shopper simply because their image was embedded.
       referrerPolicy="no-referrer"
+      onError={onError}
+      ref={imgRef}
       className={cn(className)}
     />
   );

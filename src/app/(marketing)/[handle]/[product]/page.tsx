@@ -5,12 +5,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowUpRight, Star, Ticket, BadgeCheck } from "lucide-react";
 import { Container, Badge, Eyebrow } from "@/components/ui/primitives";
-import { ArtPanel } from "@/components/ui/art-panel";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ProductCard } from "@/components/marketing/cards";
 import { Reveal } from "@/components/ui/reveal";
-import { SmartImage } from "@/components/ui/smart-image";
+import { ProductImage } from "@/components/ui/product-image";
 import { getCreatorProduct, getSimilarProducts } from "@/lib/queries";
 import { compact, gbpFromPence } from "@/lib/utils";
 
@@ -86,27 +85,23 @@ export default async function ProductPage({
           {/* Image */}
           <Reveal>
             <div className="relative overflow-hidden rounded-lg border border-border bg-surface-2">
-              {product.imageUrl ? (
-                <SmartImage
-                  src={product.imageUrl}
-                  alt={product.name}
-                  width={800}
-                  height={800}
-                  sizes="(max-width: 1024px) 100vw, 50vw"
-                  // Above the fold and the largest thing on the page, so it
-                  // shouldn't wait its turn behind lazy images.
-                  priority
-                  // Whatever shape the brand shot is, show all of it. This is
-                  // the image the shopper decides on — cropping it to a square
-                  // is how you cut the product in half.
-                  className="aspect-square w-full object-contain p-6"
-                />
-              ) : (
-                <>
-                  <div className="aspect-square w-full" />
-                  <ArtPanel seed={`${product.brand.slug}-${slug}`} label={product.brand.name} />
-                </>
-              )}
+              <ProductImage
+                src={product.imageUrl}
+                alt={product.name}
+                width={800}
+                height={800}
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                // Above the fold and the largest thing on the page, so it
+                // shouldn't wait its turn behind lazy images.
+                priority
+                // Whatever shape the brand shot is, show all of it. This is the
+                // image the shopper decides on — cropping it to a square is how
+                // you cut the product in half.
+                className="aspect-square w-full object-contain p-6"
+                seed={`${product.brand.slug}-${slug}`}
+                label={product.brand.name}
+                spacerClassName="aspect-square w-full"
+              />
             </div>
             {row.videoUrl && (
               <video
