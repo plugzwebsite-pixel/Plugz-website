@@ -9,16 +9,23 @@ const isProd = process.env.NODE_ENV === "production";
  * 'unsafe-inline' on scripts is required by Next's inlined bootstrap and the
  * pre-paint theme script; using nonces instead would force every page to be
  * dynamic. Styles are inline because Tailwind injects them. Everything else is
- * locked to this origin — the platform loads no third-party scripts at all.
+ * locked to this origin. The only third party allowed is Cloudflare's own
+ * analytics beacon, which it injects into every page it proxies for us.
  */
 const csp = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline'" + (isProd ? "" : " 'unsafe-eval'"),
+  // Cloudflare injects its own analytics beacon into every proxied page. It is
+  // cookieless and sends only page timings, but our own policy was blocking it,
+  // which left a CSP violation in the console of every visit — the first thing
+  // anyone technical sees when they open dev tools.
+  "script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com" +
+    (isProd ? "" : " 'unsafe-eval'"),
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com data:",
   "img-src 'self' data: blob: https:",
   "media-src 'self' https:",
-  "connect-src 'self'" + (isProd ? "" : " ws: http://localhost:*"),
+  "connect-src 'self' https://cloudflareinsights.com" +
+    (isProd ? "" : " ws: http://localhost:*"),
   "frame-ancestors 'none'",
   "form-action 'self'",
   "base-uri 'self'",
