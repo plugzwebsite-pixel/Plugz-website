@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { ok, fail, parseBody } from "@/lib/http";
 import { requireAdmin } from "@/lib/auth/access";
 import { rateLimit, clientKey } from "@/lib/rate-limit";
+import { platformDefaultRates } from "@/lib/commission";
 import { z } from "zod";
 
 /**
@@ -124,6 +125,30 @@ export async function POST(req: Request) {
       returnWindowDays: true, attributionWindowDays: true, settlementDays: true,
     },
   });
+
+  // Split this brand's rate the way the platform splits everything else.
+  //
+  // Brand.commissionRate is what the brand pays us. The creator/Pluggz split is
+  // a separate thing, read from a CommissionOverride and falling back to the
+  // platform default. Without this, a brand onboarded at 12% would be invoiced
+  // 12% while the engine paid out the default 8 + 5 = 13% — a loss on every
+  // sale, and a discrepancy the brand can see on their own dashboard.
+  const defaults = await platformDefaultRates();
+  const total = defaults.creatorRate + defaults.pluggzRate;
+  const rate = Number(brand.commissionRate);
+
+  if (total > 0 && Math.abs(rate - total) > 0.005) {
+    const creatorRate = Math.round(((rate * defaults.creatorRate) / total) * 100) / 100;
+    await db.commissionOverride.create({
+      data: {
+        brandId: brand.id,
+        creatorRate,
+        // Pluggz takes the remainder, so the two always sum to exactly what the
+        // brand is charged rather than drifting by a rounded penny.
+        pluggzRate: Math.round((rate - creatorRate) * 100) / 100,
+      },
+    });
+  }
 
   return ok(brand, 201);
 }
