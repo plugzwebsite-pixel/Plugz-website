@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { db } from "@/lib/db";
-import { publiclyVisibleCreator } from "@/lib/queries";
+import { publicBrand, publiclyVisibleCreator } from "@/lib/queries";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowUpRight, Star, Ticket, BadgeCheck } from "lucide-react";
@@ -39,7 +39,7 @@ export const revalidate = 120;
  */
 export async function generateStaticParams() {
   const listings = await db.creatorProduct.findMany({
-    where: { live: true, profile: publiclyVisibleCreator },
+    where: { live: true, profile: publiclyVisibleCreator, product: { brand: publicBrand } },
     select: { slug: true, profile: { select: { handle: true } } },
   });
   return listings.map((l) => ({ handle: `@${l.profile.handle}`, product: l.slug }));

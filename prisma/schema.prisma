@@ -248,6 +248,12 @@ model Brand {
   // query the moment Lisa and Rachel's real brands are loaded.
   seeded Boolean @default(false)
 
+  // The demonstration shop. It is a genuine brand row with genuine credentials,
+  // because the walkthrough has to drive the same code a real integration does
+  // — but it is a fictional label, and its listing sits on a real influencer's
+  // storefront. It must never reach the catalogue a shopper browses.
+  demo Boolean @default(false)
+
   products              Product[]
   returnWindowOverrides ReturnWindowOverride[]
   commissionOverride    CommissionOverride?

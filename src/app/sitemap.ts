@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { db } from "@/lib/db";
-import { publiclyVisibleCreator } from "@/lib/queries";
+import { publicBrand, publiclyVisibleCreator } from "@/lib/queries";
 import { CATEGORY_NAV } from "@/lib/demo-data";
 
 const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://pluggzofficial.co.uk";
@@ -40,7 +40,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         select: { handle: true, updatedAt: true },
       }),
       db.creatorProduct.findMany({
-        where: { live: true, profile: publiclyVisibleCreator },
+        where: { live: true, profile: publiclyVisibleCreator, product: { brand: publicBrand } },
         select: {
           slug: true,
           updatedAt: true,

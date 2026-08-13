@@ -101,9 +101,19 @@ function toProductCard(row: ProductRow): ProductCardData {
   };
 }
 
+/**
+ * The demonstration shop is excluded everywhere a shopper can see. It is a real
+ * brand row driving real tracking, so the walkthrough proves the pipeline
+ * rather than mocking it — but the label is invented and its listing hangs off
+ * a real influencer's storefront, which is not something to leave in the
+ * catalogue.
+ */
+export const publicBrand = { demo: false } satisfies Prisma.BrandWhereInput;
+
 const liveProduct = {
   live: true,
   profile: publiclyVisibleCreator,
+  product: { brand: publicBrand },
 } satisfies Prisma.CreatorProductWhereInput;
 
 // --- creators ---------------------------------------------------------------
@@ -189,7 +199,7 @@ export async function getProductsForCreator(handle: string, limit = 24) {
 
 export async function getProductsByCategory(category: string, limit = 24) {
   const rows = await db.creatorProduct.findMany({
-    where: { ...liveProduct, product: { category } },
+    where: { ...liveProduct, product: { category, brand: publicBrand } },
     select: productSelect,
     orderBy: [{ trackingLink: { clickCount: "desc" } }, { createdAt: "desc" }],
     take: limit * 4,
@@ -203,6 +213,7 @@ export async function getCreatorProduct(handle: string, slug: string) {
     where: {
       slug,
       live: true,
+      product: { brand: publicBrand },
       profile: { handle: handle.toLowerCase(), ...publiclyVisibleCreator },
     },
     select: {
@@ -256,7 +267,7 @@ export async function getSimilarProducts(
   const rows = await db.creatorProduct.findMany({
     where: {
       ...liveProduct,
-      product: { category },
+      product: { category, brand: publicBrand },
       NOT: { slug: excludeSlug },
     },
     select: productSelect,
@@ -334,7 +345,7 @@ export async function getPlatformStats() {
     await Promise.all([
       db.creatorProfile.count({ where: publiclyVisibleCreator }),
       db.creatorProduct.count({ where: liveProduct }),
-      db.brand.count({ where: { status: "ACTIVE" } }),
+      db.brand.count({ where: { status: "ACTIVE", ...publicBrand } }),
       db.sale.aggregate({
         where: { status: "APPROVED" },
         _sum: { valuePence: true, creatorAmountPence: true },
@@ -407,7 +418,7 @@ export async function getFeaturedBrand() {
   const where = {
     imageUrl: { not: null },
     pricePence: { not: null },
-    brand: { status: "ACTIVE" },
+    brand: { status: "ACTIVE", ...publicBrand },
   } satisfies Prisma.ProductWhereInput;
 
   const reviewed = { ...liveProduct, review: { not: null } };

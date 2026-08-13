@@ -16,14 +16,16 @@ export async function GET() {
   const admin = await requireAdmin();
   if (!admin.ok) return fail("Admins only.", 403);
 
-  // Prefer a listing whose brand already has credentials, so the walkthrough
-  // runs without setup.
+  // The demonstration shop, which exists for exactly this and already holds
+  // credentials. Named outright rather than inferred: picking "the oldest brand
+  // with a tracking key" quietly moves the walkthrough onto a real brand the
+  // day one is onboarded, and then the checkout it links to is the wrong shop.
   const listing =
     (await db.creatorProduct.findFirst({
       where: {
         live: true,
         trackingLink: { isNot: null },
-        product: { brand: { trackingKey: { not: null } } },
+        product: { brand: { demo: true } },
       },
       select: pick(),
       orderBy: { createdAt: "asc" },
