@@ -26,7 +26,7 @@ function client(): Redis | null {
     // Say so once. Silently degrading to memory is how a limiter ends up
     // looking healthy while an attacker gets a fresh allowance on every deploy.
     if (!warned) {
-      console.warn("[rate-limit] REDIS_URL not set — falling back to in-memory limits");
+      console.warn("[rate-limit] REDIS_URL not set, falling back to in-memory limits");
       warned = true;
     }
     return null;
@@ -118,7 +118,7 @@ export async function rateLimit(
   } catch (err) {
     // Fall back for this request only. A single failed command is not proof
     // that Redis is gone, and permanently giving up on it would silently
-    // weaken every limit from then on — which is exactly the kind of thing
+    // weaken every limit from then on, which is exactly the kind of thing
     // that looks fine until someone is brute-forcing logins.
     console.error(
       "[rate-limit] redis command failed, using memory for this request:",

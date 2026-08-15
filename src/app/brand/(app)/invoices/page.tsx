@@ -58,7 +58,7 @@ export default async function BrandInvoicesPage() {
 
         {rows.length === 0 ? (
           <p className="px-6 py-16 text-center text-sm text-text-muted">
-            No sales recorded yet. Clicks to your site are being tracked now —
+            No sales recorded yet. Clicks to your site are being tracked now, and
             sales appear here as they are reported and reconciled.
           </p>
         ) : (
@@ -79,7 +79,7 @@ export default async function BrandInvoicesPage() {
                 {rows.map((r) => (
                   <tr key={r.id} className="border-t border-border">
                     <td className="px-6 py-3.5 text-text-faint">
-                      {r.orderRef ?? "—"}
+                      {r.orderRef ?? "Not given"}
                     </td>
                     <td className="px-6 py-3.5 font-medium text-text-strong">
                       {r.creatorProduct.product.name}
@@ -114,8 +114,8 @@ export default async function BrandInvoicesPage() {
       </div>
 
       <p className="text-xs text-text-faint">
-        Questions about an invoice or a specific order? Contact the Pluggz team —
-        billing is handled directly rather than through this dashboard.
+        Questions about an invoice or a specific order? Contact the Pluggz team.
+        Billing is handled directly rather than through this dashboard.
       </p>
     </div>
   );

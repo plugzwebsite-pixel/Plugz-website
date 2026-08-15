@@ -1,20 +1,20 @@
 #!/usr/bin/env bash
 #
-# Pluggz — build and (re)start the app. Run for every release.
+# Pluggz: build and (re)start the app. Run for every release.
 #
 #   sudo -u pluggz bash /srv/pluggz/deploy/deploy.sh
 #
 set -euo pipefail
 
 APP_DIR=/srv/pluggz
-# PM2 keeps its state outside the app directory — see setup-server.sh.
+# PM2 keeps its state outside the app directory. See setup-server.sh.
 export PM2_HOME=/var/lib/pluggz-pm2
 cd "$APP_DIR"
 
 log() { printf '\n\033[1;35m==> %s\033[0m\n' "$1"; }
 
 if [[ ! -f .env ]]; then
-  echo "No .env in $APP_DIR — copy .env.example and fill it in first." >&2
+  echo "No .env in $APP_DIR. Copy .env.example and fill it in first." >&2
   exit 1
 fi
 
@@ -51,5 +51,5 @@ for i in $(seq 1 10); do
   sleep 2
 done
 
-echo "App did not respond on :3000 — check: pm2 logs pluggz" >&2
+echo "App did not respond on :3000. Check: pm2 logs pluggz" >&2
 exit 1

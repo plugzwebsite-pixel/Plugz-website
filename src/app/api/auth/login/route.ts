@@ -71,7 +71,7 @@ export async function POST(req: Request) {
 /**
  * Where a successful sign-in actually lands. A creator who isn't approved,
  * hasn't confirmed their email, or hasn't released an admin-created profile
- * has no dashboard to show yet — sending them straight to it would only bounce.
+ * has no dashboard to show yet, and sending them straight to it would bounce.
  */
 function landingFor(
   user: { role: string; emailVerified: Date | null },

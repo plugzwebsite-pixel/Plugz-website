@@ -55,7 +55,7 @@ export function BrandEnquiryForm() {
           <CheckCircle2 className="text-accent-green" size={28} />
         </div>
         <h2 className="mt-5 font-display text-2xl font-semibold text-text-strong">
-          Thanks — we&apos;ll be in touch
+          Thanks, we&apos;ll be in touch
         </h2>
         <p className="mx-auto mt-3 max-w-md text-text-muted">
           Someone from the Pluggz team will come back to you shortly to talk
@@ -117,7 +117,7 @@ export function BrandEnquiryForm() {
           Do you already run an affiliate or referral programme?
         </p>
         <p className="mt-1 text-xs text-text-faint">
-          Either way works — it just changes how we set up tracking.
+          Either way works. It just changes how we set up tracking.
         </p>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           <Choice

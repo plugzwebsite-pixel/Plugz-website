@@ -33,13 +33,13 @@ function Face({ creator }: { creator: Creator }) {
  * The animation slides the track left by exactly half its width, so the back
  * half has to be a pixel-perfect copy of the front half or the loop visibly
  * jumps. The front half also has to be wider than the screen, otherwise the row
- * runs out of faces part-way across and drifts as a gap — six creators only
+ * runs out of faces part-way across and drifts as a gap. Six creators only
  * covered 644px of a 1440px page, so a third of the hero was empty on every
  * pass.
  *
  * The list is laid down unchanged each time rather than shuffled between
  * passes. That keeps the sequence's period equal to the number of creators, and
- * any run of that many consecutive faces is then the full cast exactly once —
+ * any run of that many consecutive faces is then the full cast exactly once,
  * so nobody appears twice on screen while there are more creators than fit
  * across it. Rotating the passes lengthens the period and puts duplicates back
  * in view, which is worth remembering before trying to improve this.

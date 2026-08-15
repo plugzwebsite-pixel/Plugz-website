@@ -7,7 +7,7 @@ import { useState } from "react";
  * The order button.
  *
  * Posts to the demo shop's own "server", which is what signs the message and
- * calls the public tracking endpoint — the same two things a real brand's
+ * calls the public tracking endpoint: the same two things a real brand's
  * backend does when an order is confirmed.
  */
 export function PlaceOrder({
@@ -56,7 +56,7 @@ export function PlaceOrder({
       {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
       {!pz && (
         <p className="mt-3 text-sm text-[#7a6a45]">
-          No Pluggz reference on this order — it will complete, but there is
+          No Pluggz reference on this order. It will complete, but there is
           nothing to attribute it to.
         </p>
       )}

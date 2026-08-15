@@ -22,7 +22,7 @@ export default async function BrandEnquiriesPage() {
     <div className="space-y-6">
       <p className="max-w-2xl text-text-muted">
         Brands who got in touch through the site. The affiliate-programme answer
-        tells you which onboarding path they&apos;re on before you even reply —
+        tells you which onboarding path they&apos;re on before you even reply:
         a brand already on a network is a different conversation from a direct
         deal.
       </p>

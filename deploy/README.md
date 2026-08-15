@@ -51,7 +51,7 @@ NEXT_PUBLIC_APP_URL="https://DOMAIN"
 NODE_ENV="production"
 ```
 
-`AUTH_SECRET` must be new — never reuse the development one. Changing it later
+`AUTH_SECRET` must be new. Never reuse the development one. Changing it later
 signs every user out.
 
 **4. Deploy**
@@ -102,14 +102,14 @@ Add the domain, then:
 | A | `@` | `SERVER_IP` | Proxied |
 | A | `www` | `SERVER_IP` | Proxied |
 
-- SSL/TLS mode: **Full (strict)** — anything less leaves the Cloudflare-to-server
+- SSL/TLS mode: **Full (strict)**. Anything less leaves the Cloudflare-to-server
   hop unencrypted.
 - Always Use HTTPS: on.
 - Add SPF, DKIM and DMARC from the Brevo dashboard. Without them the creator
   verification and invite emails land in spam and nobody gets an error.
 
 Because Cloudflare holds the DNS, moving to a different server later is one
-record change — the registrar and the client are never involved again.
+record change, and the registrar and the client are never involved again.
 
 ---
 

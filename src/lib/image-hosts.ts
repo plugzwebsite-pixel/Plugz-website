@@ -3,7 +3,7 @@
  *
  * Product photos are scraped from whatever brand site a creator pasted, so most
  * hostnames aren't known ahead of time. Letting next/image resize any remote
- * host would turn this server into an open image proxy — anyone could point it
+ * host would turn this server into an open image proxy. Anyone could point it
  * at arbitrary URLs and spend our CPU and bandwidth. So the optimiser gets an
  * allowlist, and everything else is served as-is by SmartImage.
  *

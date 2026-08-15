@@ -31,7 +31,7 @@ async function sendJson<T = unknown>(
   } catch {
     return {
       ok: false,
-      message: "Network error — please check your connection and try again.",
+      message: "Network error. Please check your connection and try again.",
       status: 0,
     };
   }

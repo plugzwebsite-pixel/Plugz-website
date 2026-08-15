@@ -25,7 +25,7 @@ type Preview = {
  *
  * Always previews first. A row matched to the wrong listing pays the wrong
  * creator, and once commission has been written and a payout has run, unpicking
- * it is a manual job — so the preview is not a nicety, it is the check.
+ * it is a manual job, so the preview is not a nicety, it is the check.
  */
 export function ImportSales() {
   const input = useRef<HTMLInputElement>(null);
@@ -105,21 +105,21 @@ export function ImportSales() {
 
         <dl className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
           <div>
-            <dt className="text-text">Order value — required</dt>
+            <dt className="text-text">Order value (required)</dt>
             <dd className="text-text-faint">value, amount, total or order value</dd>
           </div>
           <div>
-            <dt className="text-text">Who earned it — one of these</dt>
+            <dt className="text-text">Who earned it (one of these)</dt>
             <dd className="text-text-faint">
               pz / clickref, or discount code, or creator + product
             </dd>
           </div>
           <div>
-            <dt className="text-text">Order reference — optional</dt>
+            <dt className="text-text">Order reference (optional)</dt>
             <dd className="text-text-faint">order ref, order id or reference</dd>
           </div>
           <div>
-            <dt className="text-text">Date — optional</dt>
+            <dt className="text-text">Date (optional)</dt>
             <dd className="text-text-faint">date or order date; today if absent</dd>
           </div>
         </dl>
@@ -188,7 +188,7 @@ export function ImportSales() {
                 {preview.results.map((r) => (
                   <tr key={r.line} className="border-t border-border">
                     <td className="px-3 py-2 text-text-faint">{r.line}</td>
-                    <td className="px-3 py-2 text-text">{r.order || "—"}</td>
+                    <td className="px-3 py-2 text-text">{r.order || "Not given"}</td>
                     <td className="px-3 py-2 text-text">{r.value}</td>
                     <td
                       className={

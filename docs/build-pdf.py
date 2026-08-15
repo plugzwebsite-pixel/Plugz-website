@@ -16,7 +16,7 @@ def build(path):
         path, pagesize=A4,
         leftMargin=22 * mm, rightMargin=22 * mm,
         topMargin=24 * mm, bottomMargin=20 * mm,
-        title="Pluggz — Deployment Status & Next Steps",
+        title="Pluggz Deployment Status and Next Steps",
         author="Pluggz development",
     )
     s = []
@@ -30,7 +30,7 @@ def build(path):
         Paragraph("Where things stand", S["h3"]),
         Paragraph(
             "The platform is built, deployed to its production server and tested end to end. "
-            "The affiliate tracking engine &mdash; the part everything else depends on &mdash; is "
+            "The affiliate tracking engine, the part everything else depends on, is "
             "live and recording real clicks. Creator sign-up, storefronts, product pages and the "
             "admin tools are all working against the live database.",
             S["body"]),
@@ -57,7 +57,7 @@ def build(path):
         ["<b>Links survive a brand change</b><br/>"
          "Creators can publish links today, before affiliate deals are signed.",
          "A link's destination was switched from a placeholder to a live affiliate URL. The "
-         "short code stayed the same and its click history was preserved &mdash; so anything "
+         "short code stayed the same and its click history was preserved, so anything "
          "already shared to social keeps working."],
         ["<b>Shared product catalogue</b><br/>"
          "Two creators plugging the same item share one product record.",
@@ -69,8 +69,8 @@ def build(path):
          "profiles so follower counts can be checked before approving."],
         ["<b>Creator consent</b><br/>"
          "Creators added by an admin must release their own profile.",
-         "An admin-created profile stays invisible &mdash; no storefront, no search result, no "
-         "dashboard &mdash; until the creator signs in and accepts the Creator Terms. Their "
+         "An admin-created profile stays invisible (no storefront, no search result, no "
+         "dashboard) until the creator signs in and accepts the Creator Terms. Their "
          "acceptance is recorded with a timestamp and version."],
         ["<b>Adding products</b>",
          "Pasting a brand's product link pulls the title, image, description and price, builds "
@@ -93,7 +93,7 @@ def build(path):
         S["muted"]))
 
     # ------------------------------------------------------- next steps
-    s.append(Paragraph("Next steps &mdash; what we need from you", S["h2"]))
+    s.append(Paragraph("Next steps: what we need from you", S["h2"]))
 
     s.append(Paragraph("1. Change the nameservers at GoDaddy <i>(Rachel)</i>", S["h3"]))
     s.append(Paragraph(
@@ -131,7 +131,7 @@ def build(path):
     s.append(Paragraph("2. Confirm the primary domain <i>(Lisa / Rachel)</i>", S["h3"]))
     s.append(Paragraph(
         "We have set <b>pluggzofficial.co.uk</b> as the main site, with the .com redirecting to "
-        "it. That follows your own email &mdash; a creator link reading pluggzofficial.co.uk "
+        "it. That follows your own email, and a creator link reading pluggzofficial.co.uk "
         "matches the address the invitation came from, which is what makes a link feel safe to "
         "click. Please confirm, because the domain is written into every creator link and "
         "changing it later breaks links already shared.",
@@ -148,7 +148,7 @@ def build(path):
     s.append(Paragraph("What happens once the nameservers change", S["h2"]))
     s.append(Paragraph(
         "DNS takes anywhere from fifteen minutes to a few hours to propagate. Once it has, we "
-        "complete the following the same day &mdash; no further input needed from you:",
+        "complete the following the same day, with no further input needed from you:",
         S["body"]))
     s.extend(bullets([
         "SSL certificates on both domains, so the site loads with the padlock",
@@ -161,7 +161,7 @@ def build(path):
     s.extend(rule(8, 6))
     s.append(Paragraph(
         "Prepared by the Pluggz development team. Questions on any of the above are welcome "
-        "&mdash; particularly the domain confirmation, which is the one item that has to be "
+        "particularly the domain confirmation, which is the one item that has to be "
         "settled before creators start sharing links.",
         S["foot"]))
 

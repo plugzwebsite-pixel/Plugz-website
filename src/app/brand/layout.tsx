@@ -3,7 +3,7 @@ import { getSession } from "@/lib/auth/session";
 
 /**
  * Signed-in check only. The status page lives directly under /brand and has to
- * stay reachable by a brand whose partnership is paused — gating it here would
+ * stay reachable by a brand whose partnership is paused, and gating it here would
  * bounce them between the dashboard and the explanation forever. The real
  * access check is in (app)/layout.tsx.
  */

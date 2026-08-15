@@ -99,14 +99,14 @@ export function BrandOnboardingForm() {
             active={path === "network"}
             onClick={() => setPath("network")}
             icon={<Network size={18} />}
-            title="Yes — on a network"
+            title="Yes, on a network"
             desc="Awin, Impact, ShareASale, or a Shopify app"
           />
           <BranchButton
             active={path === "direct"}
             onClick={() => setPath("direct")}
             icon={<Ticket size={18} />}
-            title="No — direct deal"
+            title="No, direct deal"
             desc="Pluggz becomes their affiliate directly"
           />
         </div>

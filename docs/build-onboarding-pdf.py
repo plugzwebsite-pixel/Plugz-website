@@ -76,7 +76,7 @@ A(datatable([
 ], widths=[42 * mm, 118 * mm]))
 
 gap(2)
-p("You can type these naturally — “12%”, “21 days”, “30 days after verified” "
+p("You can type these naturally: “12%”, “21 days”, “30 days after verified” "
   "are all read correctly.", "muted")
 
 gap(3)
@@ -84,7 +84,7 @@ A(panel([
     Paragraph("<b>The return window is per brand, and it matters</b>", S["body"]),
     Spacer(1, 2 * mm),
     Paragraph(
-        "A creator is paid once it passes. Set it to what was actually agreed — "
+        "A creator is paid once it passes. Set it to what was actually agreed. "
         "too short pays out before the refund risk is over, too long makes "
         "people wait for nothing. Thirty days unless the brand says otherwise.",
         S["muted"]),
@@ -101,7 +101,7 @@ A(panel([
     Spacer(1, 2 * mm),
     Paragraph(
         "Copy both before leaving the screen. If the secret is lost, issue a new "
-        "pair — which also stops the old one working, and is how a leaked secret "
+        "pair, which also stops the old one working, and is how a leaked secret "
         "is dealt with. Send them to the brand the same way you would a "
         "password: a one-time link, never WhatsApp or plain email.",
         S["muted"]),
@@ -113,7 +113,7 @@ gap(2)
 p("They receive an email, set their own password, and land on their dashboard. "
   "<b>You never send anyone a password.</b>")
 gap(2)
-p("They see their own clicks, sales, conversion rate and what they owe — and "
+p("They see their own clicks, sales, conversion rate and what they owe, and "
   "nothing else. There is not one editable control on any of their pages, and "
   "a brand can only ever see its own figures.", "muted")
 
@@ -139,7 +139,7 @@ A(datatable([
     ["Pending", "Recorded. The brand's return window is running"],
     ["Verified", "The window passed. The refund risk is over"],
     ["Paid to Pluggz", "The brand has settled their invoice"],
-    ["Paid to creator", "Sent on a payout run — the 1st or the 15th"],
+    ["Paid to creator", "Sent on a payout run: the 1st or the 15th"],
 ], widths=[38 * mm, 122 * mm]))
 
 gap(4)
@@ -188,7 +188,7 @@ gap(2)
 p("<font face='Courier'>https://yourshop.com/products/…?ref=pluggz&amp;pz=cmsq0k…</font>", "code")
 gap(2)
 p("<b>Store the value of <font face='Courier'>pz</font></b> against that "
-  "visitor's session or cart — a cookie is fine — and keep it until checkout. "
+  "visitor's session or cart (a cookie is fine) and keep it until checkout. "
   "It identifies the individual click, so it is what ties an order back to the "
   "creator who earned it.")
 gap(2)
@@ -238,7 +238,7 @@ gap(2)
 p("<font face='Courier'>const signature = crypto.createHmac(\"sha256\", SECRET)"
   ".update(rawBody).digest(\"hex\");</font>", "code")
 gap(2)
-p("Sign the raw body, not a re-serialised object — re-encoding JSON will not "
+p("Sign the raw body, not a re-serialised object. Re-encoding JSON will not "
   "reproduce the same bytes and the signature will not match. This is what "
   "stops anyone else claiming sales against your account.", "muted")
 
@@ -246,10 +246,10 @@ h3("What comes back")
 gap(2)
 A(datatable([
     ["Code", "Meaning"],
-    ["200", "Recorded — or already recorded, if you are retrying"],
+    ["200", "Recorded, or already recorded if you are retrying"],
     ["401", "Key or signature wrong"],
     ["403", "That reference belongs to a different brand"],
-    ["422", "We could not match the reference. <b>Still send it</b> — it tells us something is being lost in step 1"],
+    ["422", "We could not match the reference. <b>Still send it</b>, it tells us something is being lost in step 1"],
     ["429", "Too fast. Retry after a short pause"],
 ], widths=[18 * mm, 142 * mm]))
 
@@ -278,7 +278,7 @@ p("If it didn't arrive, the cause is almost always one of three things: the "
 h2("What you get")
 gap(1)
 A(KeepTogether(bullets([
-    "Your own dashboard — shoppers sent, conversion rate, sales, and what you owe",
+    "Your own dashboard: shoppers sent, conversion rate, sales, and what you owe",
     "Which creators are actually driving your sales, not a monthly summary",
     "Commission on confirmed sales only. Never on clicks, never on impressions",
 ])))
@@ -292,7 +292,7 @@ doc = SimpleDocTemplate(
     OUT, pagesize=A4,
     leftMargin=25 * mm, rightMargin=25 * mm,
     topMargin=22 * mm, bottomMargin=20 * mm,
-    title="Pluggz — Brand onboarding pack", author="Pluggz",
+    title="Pluggz Brand onboarding pack", author="Pluggz",
 )
 doc.build(story, onFirstPage=header_footer("Pluggz · brand onboarding", DATE),
           onLaterPages=header_footer("Pluggz · brand onboarding", DATE))

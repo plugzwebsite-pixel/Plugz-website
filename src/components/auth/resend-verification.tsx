@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 /**
  * The button on the status page that actually sends a new verification link.
  *
- * It reports what happened in place rather than navigating away — someone who
+ * It reports what happened in place rather than navigating away. Someone who
  * is stuck waiting on an email needs to see that a new one has just gone out,
  * and to which address.
  */
@@ -39,7 +39,7 @@ export function ResendVerification({ email }: { email: string }) {
   if (state === "sent") {
     return (
       <p className="text-sm text-accent-green">
-        {`Sent — a new link is on its way to ${email}. It's valid for 24 hours, and any older link has stopped working.`}
+        {`Sent. A new link is on its way to ${email}. It's valid for 24 hours, and any older link has stopped working.`}
       </p>
     );
   }

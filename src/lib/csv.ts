@@ -3,7 +3,7 @@
  *
  * Written by hand rather than pulled from a package because the input is a
  * spreadsheet export Rachel produces, and the failure mode that matters is a
- * quoted field containing a comma — a creator bio, or "Manchester, UK" in the
+ * quoted field containing a comma: a creator bio, or "Manchester, UK" in the
  * city column. Splitting on commas alone silently shifts every later column,
  * which would import the wrong data without erroring.
  */
@@ -14,7 +14,7 @@ export function parseCsv(input: string): string[][] {
   let field = "";
   let inQuotes = false;
 
-  // Strip a UTF-8 BOM — Excel writes one and it corrupts the first header.
+  // Strip a UTF-8 BOM. Excel writes one and it corrupts the first header.
   const text = input.replace(/^﻿/, "");
 
   for (let i = 0; i < text.length; i++) {

@@ -36,7 +36,7 @@ export async function POST(req: Request) {
       handle: "This handle is already taken",
     });
 
-  // Random placeholder password — the creator sets their own via the invite.
+  // Random placeholder password. The creator sets their own via the invite.
   const tempHash = await hashPassword(randomBytes(24).toString("base64url"));
   const socials = input.socials
     .filter((s) => s.handle && s.handle.trim().length > 0)

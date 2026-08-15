@@ -8,7 +8,7 @@ import { sendBrandEnquiryReceipt } from "@/lib/email";
  * A brand asking to work with Pluggz.
  *
  * Public and unauthenticated, so it's rate limited and never reveals whether
- * an enquiry already exists — the same reasoning as the waitlist.
+ * an enquiry already exists, for the same reasoning as the waitlist.
  */
 export async function POST(req: Request) {
   const limit = await rateLimit(clientKey(req, "brandenquiry"), 5, 60_000);
@@ -25,7 +25,7 @@ export async function POST(req: Request) {
     select: { id: true },
   });
   if (existing) {
-    // Idempotent and friendly — a second submission isn't an error, and
+    // Idempotent and friendly. A second submission isn't an error, and
     // confirming the first one exists would leak who's already talking to us.
     return ok({ received: true, alreadySent: true });
   }

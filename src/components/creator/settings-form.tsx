@@ -83,7 +83,7 @@ export function SettingsForm({
 
       <Panel
         title="Connected platforms"
-        description="Where you post — used to verify your reach and drive traffic back to your storefront."
+        description="Where you post. Used to verify your reach and drive traffic back to your storefront."
       >
         <div className="space-y-3">
           {platforms.map((p) => (

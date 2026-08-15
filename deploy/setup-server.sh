@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Pluggz — one-time server provisioning for Ubuntu 24.04.
+# Pluggz: one-time server provisioning for Ubuntu 24.04.
 #
 # Run once as root on a fresh Contabo VPS:
 #   bash setup-server.sh
@@ -38,7 +38,7 @@ dpkg-reconfigure -f noninteractive unattended-upgrades
 # ---------------------------------------------------------------------------
 log "Firewall"
 # Deny everything inbound except SSH and the web. Postgres and Redis are
-# deliberately NOT opened — they are reached over localhost only.
+# deliberately NOT opened. They are reached over localhost only.
 ufw allow OpenSSH
 ufw allow 'Nginx Full'
 ufw --force enable
@@ -69,7 +69,7 @@ npm install -g pm2@latest >/dev/null
 
 # PM2's home must sit OUTSIDE the application directory. Pointing it at the app
 # user's home puts .pm2/ inside /srv/pluggz, and the bundler walks that tree at
-# build time — it tries to read pub.sock, which isn't a readable file, and the
+# build time. It tries to read pub.sock, which isn't a readable file, and the
 # build dies with an unrelated-looking CSS error.
 install -d -o "$APP_USER" -g "$APP_USER" "$PM2_HOME_DIR"
 echo "export PM2_HOME=$PM2_HOME_DIR" > /etc/profile.d/pluggz-pm2.sh
@@ -168,7 +168,7 @@ cat <<SUMMARY
   Server is ready. Next:
 
   1. Put the code in $APP_DIR (see deploy/README.md)
-  2. Write $APP_DIR/.env — the database URL is:
+  2. Write $APP_DIR/.env. The database URL is:
 
        DATABASE_URL="postgresql://$DB_USER:$DB_PASS@localhost:5432/$DB_NAME?schema=public"
 

@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 /**
  * The brand's checkout.
  *
- * No payment fields, deliberately — not even fake ones. A page that looks like
+ * No payment fields, deliberately, not even fake ones. A page that looks like
  * it takes card details is the wrong thing to put on the internet, however it
  * is labelled, and nothing here needs them to make the point.
  */
@@ -40,7 +40,7 @@ export default async function DemoCheckoutPage({
           <Section title="Delivery">
             <Row label="Name" value="A. Shopper" />
             <Row label="Address" value="14 Example Street, Manchester, M1 2AB" />
-            <Row label="Method" value="Standard, 2–4 working days · Free" />
+            <Row label="Method" value="Standard, 2-4 working days · Free" />
           </Section>
 
           <Section title="Payment">

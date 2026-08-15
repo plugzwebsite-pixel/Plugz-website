@@ -35,7 +35,7 @@ export function ArtPanel({
   label,
   className,
 }: {
-  /** Anything stable — a slug, a product name, a brand. Picks the palette. */
+  /** Anything stable: a slug, a product name, a brand. Picks the palette. */
   seed: string;
   /** Drawn very faintly across the panel as a graphic, not as readable copy. */
   label?: string;

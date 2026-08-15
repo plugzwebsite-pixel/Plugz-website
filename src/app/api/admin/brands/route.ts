@@ -9,12 +9,12 @@ import { z } from "zod";
  * Create a brand.
  *
  * The onboarding form has looked complete since the design phase and saved
- * nothing — it waited, then said "Brand onboarded". Anyone using it would have
+ * nothing. It waited, then said "Brand onboarded". Anyone using it would have
  * believed a brand existed when it did not, and then found no tracking keys to
  * issue and nothing for products to attach to.
  *
- * The numeric fields are typed the way a person writes them — "11%", "14 days",
- * "30 days after verified" — so they are read leniently rather than rejected.
+ * The numeric fields are typed the way a person writes them: "11%", "14 days",
+ * "30 days after verified", so they are read leniently rather than rejected.
  */
 
 /** "11%" → 11 · "14 days" → 14 · "30 days after verified" → 30 */
@@ -25,7 +25,7 @@ function firstNumber(value: string | undefined, fallback: number): number {
 }
 
 /**
- * "Sam Carter · Head of Growth · sam@brand.com" — in any order, with whatever
+ * "Sam Carter · Head of Growth · sam@brand.com", in any order, with whatever
  * separator the person typing happened to use.
  *
  * The address is lifted out by pattern rather than by splitting first, because
@@ -41,7 +41,7 @@ function splitContact(value: string | undefined) {
 
   const rest = (email ? text.replace(match![0], " ") : text)
     .split(/[·•|,;\n]|\s{2,}| - /)
-    .map((p) => p.trim().replace(/^[-–—<]\s*|\s*[-–—<>]$/g, "").trim())
+    .map((p) => p.trim().replace(/^[-\u2013\u2014<]\s*|\s*[-\u2013\u2014<>]$/g, "").trim())
     .filter(Boolean);
 
   return { name: rest[0] ?? null, role: rest[1] ?? null, email };
@@ -95,7 +95,7 @@ export async function POST(req: Request) {
       name: input.name.trim(),
       slug,
       websiteUrl: website || null,
-      // Live from the moment it is created — an inactive brand's postbacks are
+      // Live from the moment it is created. An inactive brand's postbacks are
       // rejected, and the point of onboarding one is to start tracking.
       status: "ACTIVE",
       hasAffiliateProgramme: input.hasAffiliateProgramme,
@@ -116,7 +116,7 @@ export async function POST(req: Request) {
       networkName: input.networkName?.trim() || null,
       publisherId: input.publisherId?.trim() || null,
       deepLinkPattern: input.deepLinkPattern?.trim() || null,
-      // A real commercial relationship, not part of the demo catalogue — so it
+      // A real commercial relationship, not part of the demo catalogue, so it
       // survives the query that clears the seeded brands.
       seeded: false,
     },
@@ -131,7 +131,7 @@ export async function POST(req: Request) {
   // Brand.commissionRate is what the brand pays us. The creator/Pluggz split is
   // a separate thing, read from a CommissionOverride and falling back to the
   // platform default. Without this, a brand onboarded at 12% would be invoiced
-  // 12% while the engine paid out the default 8 + 5 = 13% — a loss on every
+  // 12% while the engine paid out the default 8 + 5 = 13%, a loss on every
   // sale, and a discrepancy the brand can see on their own dashboard.
   const defaults = await platformDefaultRates();
   const total = defaults.creatorRate + defaults.pluggzRate;

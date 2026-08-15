@@ -8,7 +8,7 @@ import { rateLimit, clientKey } from "@/lib/rate-limit";
  * Issue the credentials a brand signs its sale postbacks with.
  *
  * The postback endpoint has always verified an HMAC against these, but there
- * was no way to create a pair — so a brand could be onboarded and still have
+ * was no way to create a pair, so a brand could be onboarded and still have
  * nothing to integrate with.
  *
  * The secret is returned **once**, here, and never again: it is what proves a

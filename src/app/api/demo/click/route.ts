@@ -5,8 +5,8 @@ import { requireAdmin } from "@/lib/auth/access";
 /**
  * Follows a real tracking link and reports where it landed.
  *
- * The walkthrough can't read the redirect itself — the browser follows it
- * straight out to the brand — so this makes the same request server-side and
+ * The walkthrough can't read the redirect itself, because the browser follows
+ * it straight out to the brand, so this makes the same request server-side and
  * hands back the reference that was attached, which is what the brand's page
  * would see in its own URL.
  */

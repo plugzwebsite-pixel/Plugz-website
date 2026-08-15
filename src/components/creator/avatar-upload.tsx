@@ -10,7 +10,7 @@ import { useToast } from "@/components/ui/toast";
  * Portrait control for a creator's own profile.
  *
  * The preview is drawn from the chosen file before anything is uploaded, so
- * the crop is visible immediately — a portrait is square and centre-weighted on
+ * the crop is visible immediately. A portrait is square and centre-weighted on
  * the server, and people want to see that happen rather than read about it.
  */
 export function AvatarUpload({

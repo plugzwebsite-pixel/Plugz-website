@@ -19,7 +19,7 @@ export const maxDuration = 60;
 
 type Row = Record<string, string>;
 
-/** Split a CSV honouring quoted fields — order references contain commas. */
+/** Split a CSV honouring quoted fields: order references contain commas. */
 function parseCsv(src: string): Row[] {
   const rows: string[][] = [];
   let row: string[] = [], cell = "", quoted = false;
@@ -94,7 +94,7 @@ export async function POST(req: Request) {
     const pence = toPence(row.value || row.amount || row.total || row.ordervalue || "");
 
     if (pence === null) {
-      results.push({ line, order, value: "-", outcome: "Skipped — no usable order value" });
+      results.push({ line, order, value: "-", outcome: "Skipped, no usable order value" });
       continue;
     }
 
@@ -110,7 +110,7 @@ export async function POST(req: Request) {
         line,
         order,
         value: `£${(pence / 100).toFixed(2)}`,
-        outcome: "Skipped — couldn't match this to a creator's listing",
+        outcome: "Skipped, couldn't match this to a creator's listing",
       });
       continue;
     }

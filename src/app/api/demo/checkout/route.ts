@@ -62,7 +62,7 @@ export async function POST(req: Request) {
   const brand = click?.trackingLink.creatorProduct.product.brand;
   if (!brand?.trackingKey || !brand.trackingSecret) {
     return fail(
-      "This brand has no tracking credentials yet — issue them from Admin → Brands first.",
+      "This brand has no tracking credentials yet. Issue them from Admin → Brands first.",
       400
     );
   }

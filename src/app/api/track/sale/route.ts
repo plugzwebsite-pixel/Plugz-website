@@ -7,8 +7,8 @@ import { rateLimit, clientKey } from "@/lib/rate-limit";
  * The endpoint a brand's own server calls when an order completes.
  *
  * This is the piece that turns reporting from a spreadsheet into something
- * automatic. We can never see a sale happen on someone else's website — no
- * affiliate platform can — so the brand has to tell us. This is how they do it
+ * automatic. We can never see a sale happen on someone else's website, and no
+ * affiliate platform can, so the brand has to tell us. This is how they do it
  * without a human involved.
  *
  * The contract is the one published in docs/brand-integration-guide.md and
@@ -90,7 +90,7 @@ export async function POST(req: Request) {
   }
 
   // Which listing earned it. A reference we don't recognise is still worth a
-  // clear answer — it usually means the brand dropped it somewhere in checkout.
+  // clear answer. It usually means the brand dropped it somewhere in checkout.
   const click = await db.click.findUnique({
     where: { id: pz },
     select: {

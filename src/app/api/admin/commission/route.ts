@@ -6,9 +6,9 @@ import { z } from "zod";
 /**
  * Commission rates.
  *
- * The creator floor of 8% is contractual, not a UI preference — the schema
+ * The creator floor of 8% is contractual, not a UI preference. The schema
  * allows anything, so the floor is enforced here where it can't be bypassed by
- * editing the page. Total take is held to the 11–15% band the commercial terms
+ * editing the page. Total take is held to the 11-15% band the commercial terms
  * describe.
  */
 const CREATOR_FLOOR = 8;
@@ -62,7 +62,7 @@ export async function POST(req: Request) {
         defaultPluggzRate: input.pluggzRate,
       },
     });
-    // Existing sales keep the rates they were written with — this only
+    // Existing sales keep the rates they were written with. This only
     // affects sales recorded from now on.
     return ok({
       creatorRate: Number(setting.defaultCreatorRate),

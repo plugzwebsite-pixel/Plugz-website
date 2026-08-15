@@ -50,7 +50,7 @@ export function brandNameFromUrl(raw: string): string {
 }
 
 /**
- * `siteName` is the brand's own og:site_name where they publish one — always a
+ * `siteName` is the brand's own og:site_name where they publish one, always a
  * better name than anything we can infer from the hostname.
  */
 export async function findOrCreateBrand(sourceUrl: string, siteName?: string | null) {
@@ -61,7 +61,7 @@ export async function findOrCreateBrand(sourceUrl: string, siteName?: string | n
 
   // Match the host before the name. A brand onboarded by hand carries agreed
   // terms and its tracking key, and the name typed on the form rarely matches
-  // what a hostname or an og:site_name produces — matching on name alone would
+  // what a hostname or an og:site_name produces. Matching on name alone would
   // quietly create a second, DRAFT copy with no key, attach the product to it,
   // and leave every postback failing with "Unknown key".
   const hostMatch = {
@@ -81,7 +81,7 @@ export async function findOrCreateBrand(sourceUrl: string, siteName?: string | n
   if (existing) return existing;
 
   return db.brand.create({
-    // A brand auto-created from a pasted link starts as DRAFT — Lisa or Rachel
+    // A brand auto-created from a pasted link starts as DRAFT, so Lisa or Rachel
     // still has to work through the onboarding checklist and agree terms
     // before it counts as a live commercial relationship.
     data: { name, slug, websiteUrl, status: "DRAFT" },

@@ -9,12 +9,12 @@ import { rateLimit, clientKey } from "@/lib/rate-limit";
  * Issue a fresh email-verification link.
  *
  * The status page has always offered "Resend verification email" but there was
- * nothing behind it — the button pointed at the page that *consumes* a token.
+ * nothing behind it: the button pointed at the page that *consumes* a token.
  * A creator whose link expired after its 24 hours, or who never received the
  * first one, had no way forward at all.
  *
  * It works off the session rather than an emailed address, so this can only
- * ever send to the account already signed in — there is no way to use it to
+ * ever send to the account already signed in. There is no way to use it to
  * probe which addresses are registered, or to post mail at someone else.
  */
 export async function POST(req: Request) {
@@ -32,7 +32,7 @@ export async function POST(req: Request) {
   });
   if (!user) return fail("Sign in first.", 401);
 
-  // Already done — say so plainly rather than sending a link that does nothing.
+  // Already done, so say so plainly rather than sending a link that does nothing.
   if (user.emailVerified) return ok({ alreadyVerified: true });
 
   // Supersede any outstanding links so an old one can't be used later.

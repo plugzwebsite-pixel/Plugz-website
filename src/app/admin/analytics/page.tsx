@@ -22,7 +22,7 @@ export default async function AdminAnalyticsPage() {
   return (
     <div className="space-y-6">
       <p className="text-text-muted">
-        Business health across the platform — traffic, engagement and what&apos;s
+        Business health across the platform: traffic, engagement and what&apos;s
         driving sales. Every figure here is counted from the tracking engine.
       </p>
 
@@ -40,7 +40,7 @@ export default async function AdminAnalyticsPage() {
           icon={MousePointerClick}
         />
         <StatCard
-          value={stats.repeatRate === null ? "—" : `${stats.repeatRate.toFixed(0)}%`}
+          value={stats.repeatRate === null ? "Not yet" : `${stats.repeatRate.toFixed(0)}%`}
           label="Repeat shoppers"
           sub="returned on another day"
           icon={Repeat}
@@ -114,7 +114,7 @@ export default async function AdminAnalyticsPage() {
                     </p>
                   </div>
                   <span className="font-display text-sm font-semibold text-text">
-                    {c.salesPence > 0 ? gbpFromPence(c.salesPence) : "—"}
+                    {c.salesPence > 0 ? gbpFromPence(c.salesPence) : "None yet"}
                   </span>
                 </Link>
               ))}
@@ -159,7 +159,7 @@ export default async function AdminAnalyticsPage() {
       </div>
 
       <p className="text-xs text-text-faint">
-        Time-on-site and navigation paths aren&apos;t tracked yet — they need the
+        Time-on-site and navigation paths aren&apos;t tracked yet. They need the
         analytics script (PostHog) wiring in, which is separate from the affiliate
         engine.
       </p>

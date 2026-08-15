@@ -68,7 +68,7 @@ export async function creatorDashboard(profileId: string) {
   const clicks = listings._sum.clickCount ?? 0;
   const salesCount = salesAgg._count;
 
-  // Ranking is by clicks earned — the only performance signal every creator has
+  // Ranking is by clicks earned, the only performance signal every creator has
   // from day one, before any sales have cleared.
   //
   // Done in SQL rather than by loading every creator with every product and
@@ -194,8 +194,8 @@ export async function adminAnalytics() {
 
 /**
  * Aggregated and ordered in the database, returning only the rows the page
- * shows. The alternative — pulling every creator with every product and every
- * sale and reducing in memory — grows with the whole platform to render five
+ * shows. The alternative (pulling every creator with every product and every
+ * sale and reducing in memory) grows with the whole platform to render five
  * rows.
  */
 export async function topCreators(take = 5) {
@@ -283,8 +283,8 @@ export async function topProducts(take = 5) {
 /**
  * Everything the brand dashboard shows, for one brand.
  *
- * `brandId` always comes from the signed-in user's own record — never from a
- * parameter — and every query below is filtered by it. A brand seeing another
+ * `brandId` always comes from the signed-in user's own record, never from a
+ * parameter, and every query below is filtered by it. A brand seeing another
  * brand's revenue would be the worst possible failure on this platform, so
  * there is deliberately no code path here that takes a brand id from a caller.
  */

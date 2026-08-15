@@ -9,7 +9,7 @@ import { getSession, type SessionUser } from "./session";
  *
  * The role is re-read from the database rather than trusted from the token.
  * Sessions last a week, so a token alone would keep an admin who has since been
- * demoted — or a creator who has since been suspended — working for days. The
+ * demoted (or a creator who has since been suspended) working for days. The
  * page layouts already check this way; the API has to match, or it becomes the
  * weaker door into the same rooms.
  */

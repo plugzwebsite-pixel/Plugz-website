@@ -8,14 +8,14 @@ import {
 } from "@/lib/commission";
 
 /**
- * Recording a sale — the only way anything ever enters the commission engine.
+ * Recording a sale: the only way anything ever enters the commission engine.
  *
  * Everything downstream of this was built and had no input: the pipeline, the
  * payout runs, the brand invoices and every earnings figure on a creator's
  * dashboard all read from Sale rows, and nothing could create one. Until a
  * brand can call a postback or a store integration exists, sales arrive the way
- * the client said they would — a report from the brand, or a discount code
- * reconciled by hand — so both land here.
+ * the client said they would: a report from the brand, or a discount code
+ * reconciled by hand. Both land here.
  *
  * Rates and the return window are resolved and snapshotted at the moment of
  * sale. Changing the global rate later must never rewrite what a creator has

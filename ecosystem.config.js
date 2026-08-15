@@ -2,7 +2,7 @@
  * PM2 process definition for the production server.
  *
  * NODE_OPTIONS pins DNS resolution to IPv4. The server has both an IPv4 and an
- * IPv6 address, and Node was preferring IPv6 for outbound calls — which meant
+ * IPv6 address, and Node was preferring IPv6 for outbound calls, which meant
  * the mail provider saw an address that wasn't on its allow-list and rejected
  * every send. Email failures are non-fatal by design, so this failed silently.
  *
@@ -25,7 +25,7 @@ module.exports = {
       instances: 4,
       exec_mode: "cluster",
       // In cluster mode PM2 forks workers from its own daemon, and NODE_OPTIONS
-      // set here never reached them — which silently killed outbound email.
+      // set here never reached them, which silently killed outbound email.
       // node_args is applied to the interpreter itself, so it survives the fork.
       // src/instrumentation.ts sets the same thing in-process as the real
       // guarantee; this is here so the flag is visible to anyone reading the

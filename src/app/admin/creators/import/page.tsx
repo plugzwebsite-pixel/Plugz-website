@@ -12,7 +12,7 @@ export default function ImportCreatorsPage() {
         <p className="max-w-2xl text-text-muted">
           Add a batch of creators from a spreadsheet. Each one is checked before
           anything is written, then invited to set their own password and release
-          their profile — nothing about them is public until they do.
+          their profile, and nothing about them is public until they do.
         </p>
         <Link
           href="/admin/creators/new"

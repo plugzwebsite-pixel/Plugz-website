@@ -10,7 +10,7 @@ import {
 } from "@/lib/tracking";
 
 /**
- * The Pluggz affiliate redirect — the single route the whole business runs on.
+ * The Pluggz affiliate redirect: the single route the whole business runs on.
  *
  * A creator publishes pluggz.com/go/<code> to social. Every hit is recorded as
  * a Click, stamped with an attribution session, and bounced on to the brand.
@@ -25,7 +25,7 @@ export const dynamic = "force-dynamic";
  * Where to send someone whose link has died.
  *
  * `new URL(req.url).origin` is the address nginx dialled, not the one the
- * shopper typed — behind the proxy it reads localhost:3000, so a dead link sent
+ * shopper typed. Behind the proxy it reads localhost:3000, so a dead link sent
  * them nowhere at all. Prefer the configured public origin, then the host nginx
  * forwarded, and only then whatever the request claims.
  */
@@ -94,7 +94,7 @@ export async function GET(
   const userAgent = req.headers.get("user-agent");
   const bot = isBot(userAgent);
 
-  // Bots get redirected but never counted — a crawler must not inflate a
+  // Bots get redirected but never counted. A crawler must not inflate a
   // creator's click numbers or their ranking.
   let clickRef = sessionId;
   if (!bot) {

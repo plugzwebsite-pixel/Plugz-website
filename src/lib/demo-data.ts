@@ -1,7 +1,7 @@
 /**
  * The lifestyle categories the shopper-facing pages are organised around.
  *
- * Everything else on the site — creators, products, prices, click counts — is
+ * Everything else on the site (creators, products, prices, click counts) is
  * read from the database. This file used to carry stand-in arrays of all of
  * that from before the tracking engine existed; they were still referencing
  * brands that have since been deleted, so they have gone.
@@ -14,7 +14,7 @@ export type Category = {
   /**
    * Cover photograph. These are the brands' own product shots, taken from
    * listings already live on the site, so the tile shows something real rather
-   * than an approximation of it — and they arrive at 1600x2000 or better, which
+   * than an approximation of it, and they arrive at 1600x2000 or better, which
    * is the size this tile actually renders at. Unset falls back to drawn
    * artwork.
    *

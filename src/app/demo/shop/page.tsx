@@ -80,7 +80,7 @@ export default async function DemoShopPage({
             </p>
             <p className="mt-1 text-sm text-[#3f6f52]">
               This shopper came from a creator&apos;s link. The reference below is
-              in the page URL — the brand keeps it through checkout and sends it
+              in the page URL. The brand keeps it through checkout and sends it
               back with the order.
             </p>
             <code className="mt-2 block break-all rounded-sm bg-white px-2 py-1.5 font-mono text-xs text-[#2f6b45]">
@@ -92,7 +92,7 @@ export default async function DemoShopPage({
             <p className="font-medium">No Pluggz reference on this visit.</p>
             <p className="mt-1">
               You&apos;ve opened the shop directly. Start from a creator&apos;s
-              product page instead and the reference will be attached — that is
+              product page instead and the reference will be attached, which is
               what makes the sale attributable.
             </p>
           </div>

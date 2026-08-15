@@ -48,7 +48,7 @@ export async function resolveRates(
 }
 
 /**
- * Split a sale. Pence in, pence out — the creator's share is rounded down and
+ * Split a sale. Pence in, pence out. The creator's share is rounded down and
  * Pluggz absorbs the remainder, so the two parts can never sum to more than
  * the commission actually collected from the brand.
  */
@@ -80,7 +80,7 @@ export function addDays(date: Date, days: number): Date {
 }
 
 /**
- * Next twice-monthly payout run on or after `from` — the 1st or the 15th.
+ * Next twice-monthly payout run on or after `from`: the 1st or the 15th.
  * Confirmed cadence, matching how Awin pays its own publishers.
  */
 export function nextPayoutRun(from: Date = new Date()): Date {

@@ -10,7 +10,7 @@ import { WaitlistForm } from "./waitlist-form";
 export const metadata: Metadata = {
   title: "Join the waitlist",
   description:
-    "Be first on Pluggz — register your interest as a creator or shopper.",
+    "Be first on Pluggz: register your interest as a creator or shopper.",
 };
 
 export default function WaitlistPage() {

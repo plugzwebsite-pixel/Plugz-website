@@ -119,7 +119,7 @@ export function CreatorSignupForm() {
           Application submitted
         </h2>
         <p className="mx-auto mt-3 max-w-sm text-[0.95rem] leading-relaxed text-text-muted">
-          Thanks — your application is now{" "}
+          Thanks, your application is now{" "}
           <span className="font-semibold text-text">pending review</span>. We&apos;ve
           sent a verification link to{" "}
           <span className="font-semibold text-text">{submitted}</span>. Verify

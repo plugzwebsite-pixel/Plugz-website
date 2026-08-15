@@ -24,7 +24,7 @@ def build(path):
         path, pagesize=A4,
         leftMargin=22 * mm, rightMargin=22 * mm,
         topMargin=24 * mm, bottomMargin=20 * mm,
-        title="Pluggz — Tracking a sale to the checkout",
+        title="Pluggz: Tracking a sale to the checkout",
         author="Pluggz development",
     )
     s = []
@@ -37,7 +37,7 @@ def build(path):
     s.append(panel([
         Paragraph("The short answer", S["h3"]),
         Paragraph(
-            "<b>Yes &mdash; and most of it is already built and running.</b> Every Pluggz link "
+            "<b>Yes, and most of it is already built and running.</b> Every Pluggz link "
             "already carries a reference that is unique to the individual click, and that "
             "reference is already arriving at the brand's website on every visit we send them. "
             "The commission engine, return windows, payout pipeline and dashboards are all built "
@@ -58,7 +58,7 @@ def build(path):
     s.append(datatable([
         ["", ""],
         ["A click is recorded",
-         "Time, creator, product and link &mdash; and bots are excluded, so nobody's numbers can be inflated"],
+         "Time, creator, product and link. Bots are excluded, so nobody's numbers can be inflated"],
         ["A 30-day cookie is set",
          "So a shopper who comes back a fortnight later still belongs to the creator who sent them"],
         ["The shopper reaches the brand",
@@ -68,7 +68,7 @@ def build(path):
     s.append(Spacer(1, 8))
     s.append(Paragraph(
         "That <b>pz</b> value is the whole mechanism. It is unique to that single click by that "
-        "single shopper on that creator's link &mdash; and it is already being handed to every "
+        "single shopper on that creator's link, and it is already being handed to every "
         "brand we send traffic to, and has been since launch.", S["body"]))
 
     s.append(Paragraph("Everything after the sale is built and waiting", S["h3"]))
@@ -78,7 +78,7 @@ def build(path):
         "change can never rewrite what a creator has already earned",
         "Each brand's own return window, so a sale only becomes payable once their refund period "
         "has passed",
-        "The payout pipeline &mdash; Pending, Verified, Paid to Pluggz, Paid to Creator &mdash; "
+        "The payout pipeline (Pending, Verified, Paid to Pluggz, Paid to Creator) "
         "and the 1st and 15th payout runs",
         "Creator dashboards, admin analytics and brand invoices, all reading from those records",
     ]))
@@ -91,13 +91,13 @@ def build(path):
     s.append(Paragraph(
         "Once a shopper leaves pluggzofficial.co.uk and lands on the brand's website, Pluggz has "
         "no code running on that website. We cannot see their basket, their checkout or their "
-        "order confirmation &mdash; for the same reason no website can see inside another one. "
+        "order confirmation, for the same reason no website can see inside another one. "
         "The browser does not allow it, and no amount of clever link building changes that.",
         S["body"]))
     s.append(Paragraph(
         "<b>This is not a Pluggz limitation. It is how every affiliate network works.</b> Awin, "
-        "Impact, CJ and Rakuten &mdash; and the creator platforms built on top of them, LTK and "
-        "ShopMy &mdash; all do exactly two things: redirect the shopper with a unique reference "
+        "Impact, CJ and Rakuten, and the creator platforms built on top of them, LTK and "
+        "ShopMy, all do exactly two things: redirect the shopper with a unique reference "
         "attached, and read a message sent back by tracking the advertiser installed on their own "
         "order-confirmation page. When Awin tells a publisher they made a sale, that data came "
         "from the advertiser's website calling Awin. There is no other way for them to know it, "
@@ -107,7 +107,7 @@ def build(path):
             "The difference between &ldquo;a spreadsheet from the brand&rdquo; and "
             "&ldquo;automatic&rdquo; is not a different kind of link. It is a one-time job on the "
             "brand's website that then reports every order for ever, with no human involved "
-            "&mdash; and it is a normal ask. Any brand that has run an affiliate programme has "
+            "and it is a normal ask. Any brand that has run an affiliate programme has "
             "done it before.", S["body"]),
     ]))
 
@@ -121,19 +121,19 @@ def build(path):
         ["", "What the brand does", "What we build", "Best for"],
         ["<b>A. Pluggz postback</b>",
          "Adds a short call to their order-confirmation page, once",
-         "1&ndash;2 days",
-         "Direct deals &mdash; every brand we have today"],
+         "1-2 days",
+         "Direct deals, every brand we have today"],
         ["<b>B. Shopify / WooCommerce app</b>",
          "Installs our app. No developer needed",
-         "1&ndash;2 weeks, plus Shopify's review",
+         "1-2 weeks, plus Shopify's review",
          "Smaller brands with no dev team"],
         ["<b>C. Their existing network</b>",
-         "Nothing &mdash; it is already installed",
+         "Nothing, it is already installed",
          "Integration with the network's API",
          "Brands already on Awin, Impact or CJ"],
     ], [36 * mm, 48 * mm, 34 * mm, 47 * mm]))
 
-    s.append(Paragraph("A &middot; The Pluggz postback &mdash; the one to build first", S["h3"]))
+    s.append(Paragraph("A &middot; The Pluggz postback: the one to build first", S["h3"]))
     s.append(Paragraph(
         "When an order completes, the brand's server sends us one message: our reference, their "
         "order number and the order value. We match the reference to the click, the click to the "
@@ -150,12 +150,12 @@ def build(path):
     s.append(Paragraph("C &middot; Their existing affiliate network", S["h3"]))
     s.append(Paragraph(
         "If a brand already runs a programme on Awin, Impact or CJ, the tracking is already on "
-        "their site and nobody needs to touch it &mdash; we join as a publisher and pull the "
+        "their site and nobody needs to touch it. We join as a publisher and pull the "
         "sales from the network. <b>The blocker here is commercial, not technical:</b> Pluggz has "
         "applied and has not yet been accepted, because the networks want to see traffic volume "
         "first. Worth pursuing in parallel, but no developer can unblock it.", S["body"]))
 
-    s.append(Paragraph("Discount codes &mdash; what they are actually for", S["h3"]))
+    s.append(Paragraph("Discount codes: what they are actually for", S["h3"]))
     s.append(Paragraph(
         "A per-creator discount code stays in the system as the fallback for a brand that will do "
         "none of the above. It needs no integration at all, and it is exactly as reliable as that "
@@ -164,16 +164,16 @@ def build(path):
 
     # ------------------------------------------------------------- asks
     s.append(Paragraph("What we need from a brand, every time", S["h2"]))
-    s.append(Paragraph("Commercial &mdash; agreed with you", S["h3"]))
+    s.append(Paragraph("Commercial: agreed with you", S["h3"]))
     s.extend(bullets([
         "Commission rate Pluggz earns",
-        "Return / refund window in days &mdash; this is what decides when a creator can be paid",
-        "Settlement terms &mdash; how long after a sale is verified the brand pays us",
-        "<b>What counts as commissionable</b> &mdash; order value net of VAT, delivery and "
+        "Return / refund window in days. This is what decides when a creator can be paid",
+        "Settlement terms: how long after a sale is verified the brand pays us",
+        "<b>What counts as commissionable</b>: order value net of VAT, delivery and "
         "returns, or something else. It needs saying out loud, because it decides every invoice",
         "Currency, GBP unless agreed otherwise",
     ]))
-    s.append(Paragraph("Technical &mdash; needed once, from their developer", S["h3"]))
+    s.append(Paragraph("Technical: needed once, from their developer", S["h3"]))
     s.extend(bullets([
         "<b>A technical contact.</b> A name and an email. This is the single thing that most "
         "often stalls an integration",
@@ -181,7 +181,7 @@ def build(path):
         "For a network: the network name, their advertiser ID, and approval of Pluggz as a "
         "publisher on their programme",
         "For a postback: confirmation they can add a call on their order-confirmation page, and "
-        "that our reference survives their own redirects &mdash; some sites strip it on the way "
+        "that our reference survives their own redirects, because some sites strip it on the way "
         "to a login or a country selector, and we adjust for that",
         "<b>One test order</b>, on staging or for a token amount, so the chain is proven before "
         "their first real sale",
@@ -198,10 +198,10 @@ def build(path):
         ["Sale records, commission split, return windows, payouts, dashboards",
          f'<font color="{GREEN.hexval()}"><b>Built</b></font>, waiting for an input'],
         ["Sales arriving by brand report or discount-code reconciliation",
-         f'<font color="{GREEN.hexval()}"><b>Live</b></font> &mdash; the admin sales import'],
+         f'<font color="{GREEN.hexval()}"><b>Live</b></font>, the admin sales import'],
         ["<b>The endpoint a brand's website calls when an order completes</b>",
-         "<b>To build &mdash; 1&ndash;2 days</b>"],
-        ["Shopify / WooCommerce app", "To build &mdash; 1&ndash;2 weeks plus review"],
+         "<b>To build, 1-2 days</b>"],
+        ["Shopify / WooCommerce app", "To build, 1-2 weeks plus review"],
         ["Network integration", "Blocked commercially, not technically"],
     ], [110 * mm, 55 * mm], head=False))
 
@@ -210,7 +210,7 @@ def build(path):
         "If a brand installs nothing at all, no affiliate platform in the world can say whether a "
         "shopper bought. Pluggz can already prove they clicked, what they clicked and that we "
         "delivered them to the product page. Whether they paid is only knowable from the brand "
-        "&mdash; which is why the integration belongs in the brand conversation from the start, "
+        "which is why the integration belongs in the brand conversation from the start, "
         "alongside the commission rate.", S["foot"]))
 
     # ------------------------------------------------------- brand page
@@ -237,7 +237,7 @@ def build(path):
     s.append(Paragraph(
         "<b>pz</b> is unique to that click. Store it in a first-party cookie and keep it for 30 "
         "days, or whatever attribution window we agree. If you already store a click ID for "
-        "another affiliate network, put ours in the same place &mdash; it is the same job.",
+        "another affiliate network, put ours in the same place. It is the same job.",
         S["body"]))
 
     s.append(Paragraph("Step 2 &middot; Tell us when the order completes", S["h3"]))
@@ -253,33 +253,33 @@ def build(path):
         '  "value": 4499, "currency": "GBP", "soldAt": "2026-08-11T09:32:04Z" }',
     ))
     s.append(Paragraph(
-        "<b>value</b> is the commissionable amount <b>in pence, as an integer</b> &mdash; 4499 "
+        "<b>value</b> is the commissionable amount <b>in pence, as an integer</b>: 4499 "
         "means &pound;44.99. By default that is the order total net of VAT, delivery and any "
         "discount. If your figure means something different, tell us once and we will agree it "
         "rather than guess per order.", S["body"]))
     s.append(Paragraph(
         "We reply <b>200</b> with a sale id. <b>401</b> means the key or signature is wrong; "
-        "<b>422</b> means we could not match the reference &mdash; send it anyway, it tells us "
+        "<b>422</b> means we could not match the reference. Send it anyway, it tells us "
         "something is being lost at step 1. <b>Retries are safe:</b> the same order reference "
         "twice is recorded once, so a double-fired checkout cannot double-count. Refunds are the "
         "same call with a cancelled status, and in most cases the creator has not been paid yet "
         "anyway, because the return window has not passed.", S["body"]))
     s.append(Paragraph(
         "We need no customer data. Please do not send names, emails, addresses or payment details "
-        "&mdash; we have no use for them and will discard them.", S["muted"]))
+        "We have no use for them and will discard them.", S["muted"]))
 
     s.append(Paragraph("If server work is not possible", S["h3"]))
     s.append(Paragraph(
         "A one-pixel image tag on the order-confirmation page will do it, reading the cookie from "
         "step 1 itself. <b>We recommend the server call instead:</b> a pixel is blocked by ad "
-        "blockers, does not fire if the shopper closes the tab, and cannot be signed &mdash; so "
+        "blockers, does not fire if the shopper closes the tab, and cannot be signed, so "
         "it under-reports, and your numbers and ours will disagree. Use it only as a stop-gap.",
         S["body"]))
 
     s.append(Paragraph("Step 3 &middot; Test it, once", S["h3"]))
     s.extend(bullets([
         "Ask us for a test link. Open it and check the pz parameter arrives and is stored",
-        "Place an order &mdash; staging, or a live one for a token amount",
+        "Place an order, either on staging or a live one for a token amount",
         "Confirm you get a 200 with a sale id back",
         "We confirm at our end that it shows against the right creator, with the right value",
     ]))
@@ -287,7 +287,7 @@ def build(path):
     s.extend(rule(8, 6))
     s.append(Paragraph(
         "In return you get a Pluggz dashboard showing the traffic and sales we have sent you, the "
-        "commission owed and your invoices &mdash; instead of a monthly reconciliation by email. "
+        "commission owed and your invoices, instead of a monthly reconciliation by email. "
         "Questions to hello@pluggzofficial.co.uk.", S["foot"]))
 
     draw = header_footer("PLUGGZ · Sales tracking", DATE)

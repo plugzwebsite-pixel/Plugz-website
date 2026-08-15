@@ -41,7 +41,7 @@ export function CreatorCard({ creator }: { creator: CreatorCardData }) {
 export function ProductCard({ product }: { product: ProductCardData }) {
   return (
     <Link
-      // Straight to the Pluggz product page, never the brand — the shopper
+      // Straight to the Pluggz product page, never the brand. The shopper
       // reads the creator's review here first and only then clicks Buy Now.
       href={`/@${product.creatorHandle}/${product.slug}`}
       className="group flex flex-col overflow-hidden rounded-md border border-border bg-surface transition-[transform,border-color,box-shadow] duration-300 ease-out-quart hover:-translate-y-1 hover:border-border-strong hover:shadow-[0_20px_44px_-26px_rgba(0,0,0,0.6)]"
@@ -78,9 +78,15 @@ export function ProductCard({ product }: { product: ProductCardData }) {
           {product.name}
         </h3>
         <div className="mt-3 flex items-center justify-between">
-          <span className="font-display text-lg font-semibold text-text-strong">
-            {product.pricePence === null ? "—" : gbpFromPence(product.pricePence)}
-          </span>
+          {product.pricePence === null ? (
+            // No price on the brand's page for this one. Say so, rather than
+            // leaving a gap where a number should be.
+            <span className="text-sm text-text-faint">Price at brand</span>
+          ) : (
+            <span className="font-display text-lg font-semibold text-text-strong">
+              {gbpFromPence(product.pricePence)}
+            </span>
+          )}
           <span className="rounded-pill bg-grad-brand px-3 py-1 text-xs font-semibold text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100">
             See the review
           </span>

@@ -33,7 +33,7 @@ export async function POST(req: Request) {
       data: { emailVerified: new Date() },
     });
   }
-  // One-time use — consume all outstanding tokens for this user.
+  // One-time use: consume all outstanding tokens for this user.
   await db.emailVerificationToken.deleteMany({
     where: { userId: record.userId },
   });

@@ -13,7 +13,7 @@ export const revalidate = 3600;
  * pages are the whole point of the platform being discoverable, so they belong
  * here rather than only the handful of static marketing routes.
  *
- * Only creators who have released their profile appear — the same consent rule
+ * Only creators who have released their profile appear, the same consent rule
  * the rest of the site follows. Listing an unreleased profile would publish it
  * to Google before the creator agreed to it.
  */
@@ -66,7 +66,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       })),
     ];
   } catch {
-    // A database blip must not take the sitemap down entirely — serve the
+    // A database blip must not take the sitemap down entirely, so serve the
     // static routes rather than a 500.
     return staticRoutes;
   }

@@ -9,7 +9,7 @@ const MAX_BYTES = 8 * 1024 * 1024;
 /**
  * Portrait picker on the creator application.
  *
- * Optional on purpose — an application shouldn't be blocked on finding a good
+ * Optional on purpose: an application shouldn't be blocked on finding a good
  * photo, and it can be added from settings later. But the wall of creators on
  * the homepage is the first thing a shopper sees, so asking here is what makes
  * it fill up.
@@ -82,7 +82,7 @@ export function SignupPhotoPicker({
             {preview ? "Choose a different photo" : "Add your photo"}
           </button>
           <p className="mt-2 text-xs text-text-faint">
-            Optional, and you can add one later. Square works best — JPG, PNG or
+            Optional, and you can add one later. Square works best, in JPG, PNG or
             WebP, up to 8MB.
           </p>
           {error && <p className="mt-1 text-xs text-red-400">{error}</p>}

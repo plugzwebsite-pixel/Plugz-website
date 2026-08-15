@@ -51,7 +51,7 @@ export async function PATCH(
  *
  * This deletes the listing and its tracking link, which means any link the
  * creator already published to social stops resolving to this product. The
- * shared master product record is left alone — other creators may be plugging
+ * shared master product record is left alone, because other creators may be
  * the same item.
  */
 export async function DELETE(

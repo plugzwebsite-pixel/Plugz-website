@@ -59,7 +59,7 @@ export default async function CreatorStatusPage() {
       icon: MailWarning,
       tone: "text-accent-cyan",
       title: "Confirm your email to continue",
-      body: `You're approved — we just need to know ${account.email} reaches you before your storefront goes live. Check your inbox for the verification link; if it isn't there, or it has expired, send yourself a fresh one.`,
+      body: `You're approved. We just need to know ${account.email} reaches you before your storefront goes live. Check your inbox for the verification link; if it isn't there, or it has expired, send yourself a fresh one.`,
       resendTo: account.email,
     };
   } else {

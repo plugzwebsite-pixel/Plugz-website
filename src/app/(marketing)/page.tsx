@@ -23,7 +23,7 @@ import { compact, gbpFromPence } from "@/lib/utils";
 /**
  * The homepage was fully dynamic, so every visitor waited on the trending
  * products, the creator wall, the platform counters and the featured brand
- * being queried again from scratch — about two seconds before anything
+ * being queried again from scratch, about two seconds before anything
  * rendered. None of it changes minute to minute; a minute of cache is honest
  * for counters that only move when a shopper clicks.
  */
@@ -42,7 +42,7 @@ export default async function HomePage() {
     ]);
   const trendingCreators = featured.slice(0, 7);
 
-  // Counted from the database — no invented figures on a page that is
+  // Counted from the database. No invented figures on a page that is
   // recruiting real creators.
   const heroStats = [
     { value: String(stats.creators), label: "UK creators live" },
@@ -56,11 +56,13 @@ export default async function HomePage() {
     {
       value: stats.creatorCommissionPence
         ? gbpFromPence(stats.creatorCommissionPence)
-        : "—",
+        : "Not yet",
       label: "creator commission earned",
     },
     {
-      value: stats.averageRating ? `${stats.averageRating.toFixed(1)}★` : "—",
+      value: stats.averageRating
+        ? `${stats.averageRating.toFixed(1)}★`
+        : "Not yet",
       label: "average creator rating",
     },
   ];
@@ -73,7 +75,7 @@ export default async function HomePage() {
         creatorCount={stats.creators}
       />
 
-      {/* Trending now — moved high up so shoppers hit the hot picks fast */}
+      {/* Trending now, moved high up so shoppers hit the hot picks fast */}
       <Container className="py-14">
         <Reveal>
           <SectionHeading
@@ -91,7 +93,7 @@ export default async function HomePage() {
         </div>
       </Container>
 
-      {/* Shop by lifestyle — Instagram-style hover-to-play video tiles */}
+      {/* Shop by lifestyle: Instagram-style hover-to-play video tiles */}
       <Container className="py-10">
         <Reveal>
           <SectionHeading eyebrow="Curated" title="Shop by lifestyle" />
@@ -105,7 +107,7 @@ export default async function HomePage() {
         </div>
       </Container>
 
-      {/* Featured partner — the brand, the product and the picture all come
+      {/* Featured partner: the brand, the product and the picture all come
           from the catalogue, so the panel can't outlive what it advertises. */}
       {featuredBrand && (
       <Container className="py-14">
@@ -126,7 +128,7 @@ export default async function HomePage() {
                 <p className="mt-1 text-lg text-text">
                   {featuredBrand.productName}
                   {featuredBrand.pricePence !== null &&
-                    ` — ${gbpFromPence(featuredBrand.pricePence)}`}
+                    `, ${gbpFromPence(featuredBrand.pricePence)}`}
                 </p>
                 <p className="mt-4 max-w-md leading-relaxed text-text-muted">
                   {featuredBrand.productCount > 1
@@ -215,7 +217,7 @@ export default async function HomePage() {
                 Find your next favourite.
               </h2>
               <p className="mx-auto mt-5 max-w-xl text-lg leading-relaxed text-white/90">
-                Browse the creators redefining UK style — and shop the exact pieces
+                Browse the creators redefining UK style, and shop the exact pieces
                 they plug, straight from the brand.
               </p>
               <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">

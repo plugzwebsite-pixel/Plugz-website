@@ -15,17 +15,17 @@ You need no special tools. A browser and about twenty minutes.
 
 **1. `curl` is treated as a bot, and so is anything with no user agent.**
 Bots get redirected but are never counted, and never get a cookie. This is
-deliberate — a crawler must not inflate a creator's numbers or their ranking.
+deliberate. A crawler must not inflate a creator's numbers or their ranking.
 So if you test from a terminal and the click count doesn't move, the engine is
 working correctly. **Test in a real browser.** The bot filter also catches
 anything whose user agent contains `bot`, `crawl`, `spider`, `whatsapp`,
-`telegram`, `preview`, `monitor`, `headless`, `wget` or `lighthouse` — which
+`telegram`, `preview`, `monitor`, `headless`, `wget` or `lighthouse`, which
 means link previews in messaging apps don't count either, exactly as they
 shouldn't.
 
 **2. Codes are lower case and deliberately never contain `0`, `1`, `l`, `i` or
 `o`.** They're meant to be read aloud and typed by hand, so the ambiguous
-characters are gone. Lookup is exact — `RPQQ32FH` is not `rpqq32fh`.
+characters are gone. Lookup is exact: `RPQQ32FH` is not `rpqq32fh`.
 
 ---
 
@@ -35,7 +35,7 @@ characters are gone. Lookup is exact — `RPQQ32FH` is not `rpqq32fh`.
 
 1. Sign in at `/login`, go to **Storefront**.
 2. Every live product lists its link as `/go/<code>` with a **Copy** button.
-3. Press Copy. You should see *"Link copied — paste it into your bio, story or
+3. Press Copy. You should see *"Link copied. Paste it into your bio, story or
    caption."*, and your clipboard holds the full
    `https://pluggzofficial.co.uk/go/<code>`.
 
@@ -53,7 +53,7 @@ characters are gone. Lookup is exact — `RPQQ32FH` is not `rpqq32fh`.
 3. You land on the brand's own product page.
 4. **Look at the address bar.** It ends with `?ref=pluggz&pz=<long-token>`.
 
-`ref=pluggz` says the visit came from us. `pz` is the click reference — the
+`ref=pluggz` says the visit came from us. `pz` is the click reference, the
 specific click, not the creator and not the product. That is the value a brand
 quotes back when they report a sale, and it's what ties the money to the right
 creator.
@@ -74,7 +74,7 @@ creator.
 
 **Expected:** the count went up by exactly one.
 
-Do it a second time from the same private window and it goes up again — repeat
+Do it a second time from the same private window and it goes up again. Repeat
 clicks are all recorded. Pluggz counts clicks, and separately keeps the session
 so a later sale can be matched back.
 
@@ -101,7 +101,7 @@ bot filter caught. See the note at the top.
 | `SameSite` | `Lax` | Survives the click from Instagram |
 | `Expires` | ~30 days out | The brand's agreed attribution window |
 
-The expiry is per brand, not global — it's the `attributionWindowDays` on that
+The expiry is per brand, not global. It's the `attributionWindowDays` on that
 brand's record. Change it in Admin → Brands and a new click gets the new window.
 
 **Then click a second, different creator's link.** The cookie value should
@@ -119,7 +119,7 @@ curl -s -o /dev/null -D - -A "Googlebot/2.1" https://pluggzofficial.co.uk/go/<co
 ```
 
 **Expected:** `HTTP/1.1 302`, a `location:` pointing at the brand, and **no
-`Set-Cookie` header at all.** Check the creator's dashboard — the count has not
+`Set-Cookie` header at all.** Check the creator's dashboard. The count has not
 moved.
 
 **What this proves:** crawler traffic can't inflate a creator's numbers, and
@@ -131,13 +131,13 @@ therefore can't inflate what a brand is invoiced.
 
 **Who:** anyone, in a browser.
 
-Visit `pluggzofficial.co.uk/go/zzzzzzzz` — a code that doesn't exist.
+Visit `pluggzofficial.co.uk/go/zzzzzzzz` , a code that doesn't exist.
 
 **Expected:** you land on the Pluggz homepage. Not a 404, not an error page.
 
 The reasoning: an old post is still a real post from a real creator. The
 shopper who tapped it should get somewhere useful rather than a dead end. The
-same happens if a creator unpublishes a product — the link stops selling but
+same happens if a creator unpublishes a product. The link stops selling but
 never breaks.
 
 To test that second case: as a creator, unpublish a product on **Storefront**,
@@ -156,7 +156,7 @@ be demonstrated.
 
 The short code is permanent. The destination is a separate, editable field. When
 a brand deal lands and the real affiliate URL arrives, only the destination
-changes — every link already printed in a bio, a caption or a story keeps
+changes, so every link already printed in a bio, a caption or a story keeps
 working and **keeps its accumulated clicks**.
 
 **Expected:** same `/go/<code>`, new landing page, click history unbroken.
@@ -175,7 +175,7 @@ the numbers agree with each other.
 | **Brand → Performance** | Shoppers sent to *that brand only*, conversion rate, what they keep |
 
 **The brand dashboard is read-only by design.** A brand contact can see their
-own numbers and change nothing — no editable controls anywhere on any of their
+own numbers and change nothing. There are no editable controls anywhere on any of their
 three pages. Worth confirming, because it's the first thing a cautious brand
 asks about.
 
@@ -186,7 +186,7 @@ contact**; they set their own password by email.
 
 ## What is *not* wired up yet, and why
 
-Be straight about this when demoing — it's a commercial gap, not a broken
+Be straight about this when demoing. It's a commercial gap, not a broken
 feature.
 
 **Sales don't arrive automatically.** Clicks are tracked end to end and in real
@@ -194,16 +194,16 @@ time. A *sale* reaches Pluggz one of two ways: the brand sends a report, or it's
 reconciled against a per-creator discount code. There is no live sales feed from
 a shop, because that needs either a Shopify/Woo integration built against a real
 brand's credentials, or acceptance into an affiliate network. **Awin and Sovrn
-have both declined pending traffic volume** — that is an external blocker, not
+have both declined pending traffic volume**, which is an external blocker, not
 an outstanding development task.
 
 **So on the dashboards today:** click figures are real and live. Sales,
-commission and payouts will read zero or `—` until the first sale is entered.
+commission and payouts will read zero or "None yet" until the first sale is entered.
 That is honest, not broken.
 
 **Discount codes.** The per-creator code panel is built and appears the moment a
 brand supplies a code. None of the current demo products have one, deliberately
-— a made-up code on a real Oliver Bonas listing would fail at their checkout.
+A made-up code on a real Oliver Bonas listing would fail at their checkout.
 
 **The current catalogue is demo content.** The 22 products are genuine listings
 from Oliver Bonas and Sweaty Betty with genuine photography and working links,

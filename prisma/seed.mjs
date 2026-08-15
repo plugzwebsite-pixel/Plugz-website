@@ -17,7 +17,7 @@ async function main() {
   const adminPassword = process.env.SEED_ADMIN_PASSWORD;
   if (!adminPassword) {
     throw new Error(
-      "SEED_ADMIN_PASSWORD is not set. Set it in .env before seeding — the " +
+      "SEED_ADMIN_PASSWORD is not set. Set it in .env before seeding. The " +
         "admin account must never be created with a password from source control."
     );
   }
@@ -303,7 +303,7 @@ async function seedCatalogue() {
         trackingLink: {
           create: {
             code: shortCode(),
-            // Placeholder until the brand deal is agreed — the code stays the
+            // Placeholder until the brand deal is agreed. The code stays the
             // same when the real affiliate URL replaces this.
             destinationUrl: sourceUrl,
             isPlaceholder: true,

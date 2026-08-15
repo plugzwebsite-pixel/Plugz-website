@@ -70,7 +70,7 @@ export default async function CreatorDashboardPage() {
       <p className="text-text-muted">
         Welcome back,{" "}
         <span className="font-semibold text-text-strong">{firstName}</span>
-        {" — here's how your storefront is performing."}
+        {". Here's how your storefront is performing."}
       </p>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -89,7 +89,7 @@ export default async function CreatorDashboardPage() {
         <StatCard
           value={
             stats.conversionRate === null
-              ? "—"
+              ? "Not yet"
               : `${stats.conversionRate.toFixed(1)}%`
           }
           label="Conversion rate"
@@ -116,7 +116,7 @@ export default async function CreatorDashboardPage() {
             <span className="text-sm font-medium">Your ranking</span>
           </div>
           <p className="mt-3 font-display text-4xl font-semibold text-text-strong">
-            {stats.rank ? `#${stats.rank}` : "—"}
+            {stats.rank ? `#${stats.rank}` : "Unranked"}
           </p>
           <p className="mt-1 text-xs text-text-faint">
             {stats.rank
@@ -178,7 +178,7 @@ export default async function CreatorDashboardPage() {
           <div className="px-6 py-14 text-center">
             <p className="mx-auto max-w-md text-sm text-text-muted">
               No sales tracked yet. Every click on your links is already being
-              recorded — sales appear here once brands report them back.
+              recorded. Sales appear here once brands report them back.
             </p>
             <Link href="/creator/storefront" className="mt-5 inline-block">
               <Button variant="secondary" size="sm">

@@ -21,7 +21,7 @@ export default async function AdminSalesPage() {
       <p className="max-w-2xl text-text-muted">
         Sales reach Pluggz as a report from the brand, or by reconciling a
         creator&apos;s discount code. Load either here and the commission engine
-        does the rest — rates are taken as they stand today and fixed against
+        does the rest. Rates are taken as they stand today and fixed against
         each sale, so changing a rate later never rewrites what someone has
         already earned.
       </p>
@@ -65,7 +65,7 @@ export default async function AdminSalesPage() {
                 {recent.map((s) => (
                   <tr key={s.id} className="border-t border-border">
                     <td className="px-6 py-3 font-mono text-xs text-text-muted">
-                      {s.orderRef ?? "—"}
+                      {s.orderRef ?? "Not given"}
                     </td>
                     <td className="px-6 py-3 text-text-strong">@{s.handle}</td>
                     <td className="px-6 py-3 text-text-muted">{s.brand}</td>

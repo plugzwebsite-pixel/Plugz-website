@@ -14,7 +14,7 @@ export async function POST(req: Request) {
   const email = parsed.data.email.toLowerCase();
   const existing = await db.waitlistEntry.findUnique({ where: { email } });
   if (existing) {
-    return ok({ alreadyJoined: true }); // idempotent — feels friendly, no leak
+    return ok({ alreadyJoined: true }); // idempotent, feels friendly, no leak
   }
 
   await db.waitlistEntry.create({

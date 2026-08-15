@@ -182,7 +182,7 @@ export function StorefrontManager({ handle }: { handle: string }) {
           Add a product by URL
         </label>
         <p className="mt-1 text-xs text-text-faint">
-          Paste any brand product page — we&apos;ll pull the title, image and
+          Paste any brand product page and we&apos;ll pull the title, image and
           price, build the page and generate your tracking link.
         </p>
         <div className="mt-3 flex flex-col gap-2.5 sm:flex-row">
@@ -215,7 +215,7 @@ export function StorefrontManager({ handle }: { handle: string }) {
               <Badge tone="brand">{available.length}</Badge>
             </div>
             <p className="mt-1 text-xs text-text-muted">
-              Already in the Pluggz catalogue — add one and you get your own page
+              Already in the Pluggz catalogue. Add one and you get your own page
               and link for it.
             </p>
             <div className="mt-4 space-y-2.5">

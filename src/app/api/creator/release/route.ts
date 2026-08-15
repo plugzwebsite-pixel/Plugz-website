@@ -17,7 +17,7 @@ const schema = z.object({
  * An admin can set a creator up on their behalf, but only the creator can put
  * that profile live. This records their acceptance of the Creator Terms &
  * Membership Agreement with a timestamp and version, then releases the
- * profile — which is what makes it visible to shoppers.
+ * profile, which is what makes it visible to shoppers.
  */
 export async function POST(req: Request) {
   const user = await getSession();

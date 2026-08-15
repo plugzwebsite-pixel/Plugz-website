@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 
 /**
- * Soft, drifting gradient blobs — the ambient "aurora" behind heroes and the
+ * Soft, drifting gradient blobs: the ambient "aurora" behind heroes and the
  * auth panel. Pure CSS animation so it's cheap and respects reduced-motion.
  */
 export function Aurora({

@@ -12,7 +12,7 @@ import { rateLimit, clientKey } from "@/lib/rate-limit";
  * endpoint. Twelve lines, and it is the entire ask.
  *
  * It signs only for the one fictional demo brand. It cannot be used to report
- * a sale against a real brand — the lookup is pinned to that slug.
+ * a sale against a real brand, so the lookup is pinned to that slug.
  */
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -41,7 +41,7 @@ export async function POST(req: Request) {
   const orderRef = `AA-${Date.now().toString(36).toUpperCase()}`;
   const value = Number.isInteger(body.valuePence) ? Number(body.valuePence) : 18500;
 
-  // An order with no reference still completes — the shopper bought something.
+  // An order with no reference still completes. The shopper bought something.
   // It simply cannot be attributed, which is the point worth showing.
   if (!body.pz) return ok({ orderRef, attributed: false });
 

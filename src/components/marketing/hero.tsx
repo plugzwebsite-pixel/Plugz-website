@@ -40,7 +40,7 @@ export function Hero({
     <section className="relative overflow-hidden pb-8">
       <Aurora intensity="soft" className="opacity-80" />
 
-      {/* The wall of creators leads the page — the opening hook */}
+      {/* The wall of creators leads the page: the opening hook */}
       <div className="relative pt-8 sm:pt-10">
         <CreatorCarousel creators={creators} />
       </div>
@@ -78,7 +78,7 @@ export function Hero({
             className="mx-auto mt-4 max-w-2xl text-lg leading-relaxed text-text-muted"
           >
             Discover trusted recommendations, watch authentic reviews and shop
-            directly from the brands&mdash;all in one seamless experience.
+            directly from the brands, all in one seamless experience.
           </motion.p>
 
           <motion.div variants={item} className="mx-auto mt-8 max-w-2xl">

@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
  * The order confirmation, and the payoff of the whole walkthrough.
  *
  * By the time this renders the sale has already been recorded, so it can show
- * what Pluggz worked out from it — which is the number a brand and a creator
+ * what Pluggz worked out from it, which is the number a brand and a creator
  * each care about, arrived at without anybody sending a spreadsheet.
  */
 export default async function DemoCompletePage({

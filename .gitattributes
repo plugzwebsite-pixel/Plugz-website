@@ -5,7 +5,7 @@
 # guesses wrong: docs/Pluggz-Deployment-Status.pdf came back out of a checkout
 # 117 bytes larger than it went in, because every 0x0A inside it had been
 # rewritten as 0x0D 0x0A. That shifts every byte offset in the file's own
-# cross-reference table — the client-facing documents were being quietly
+# cross-reference table. The client-facing documents were being quietly
 # damaged by cloning the repository.
 #
 # Images survive the same guess only because they happen to contain a null

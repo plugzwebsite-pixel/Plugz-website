@@ -1,4 +1,4 @@
-# Bringing a brand onto Pluggz — the admin's workflow
+# Bringing a brand onto Pluggz: the admin's workflow
 
 Everything below is a real screen in the admin area. Sign in at
 **pluggzofficial.co.uk/login** and the platform takes you to the admin console.
@@ -49,7 +49,7 @@ If they came in on the network path, you'll also fill in **network / platform**,
 **publisher / affiliate ID** and **link / deep-link structure**.
 
 > **On the return window:** this is per brand for a reason. Nadine Merabi's is
-> 14 days, most are 30. Set it to what the brand actually agreed — a creator
+> 14 days, most are 30. Set it to what the brand actually agreed. A creator
 > gets paid once it passes, so getting it wrong either pays too early or makes
 > people wait for no reason.
 
@@ -69,7 +69,7 @@ Shoppers sent, conversion rate, what they keep, and which creators are driving
 their sales.
 
 **What they cannot do:** anything. There is not one editable control on any of
-their three pages, and they can only ever see their own brand — that is checked
+their three pages, and they can only ever see their own brand, and that is checked
 against their account in the database, never against anything in the URL.
 
 Brands don't add products either. That is deliberate and it is in the
@@ -78,7 +78,7 @@ title, image and price come across automatically.
 
 ---
 
-## 4 · Products and clicks — nothing to do
+## 4 · Products and clicks: nothing to do
 
 Creators add the brand's products themselves. Each one gets a permanent Pluggz
 link, and every click is recorded from that moment.
@@ -101,10 +101,10 @@ human, because sales arrive from the brand rather than from us.
 Upload the brand's CSV report. Columns are matched by name, so their own export
 usually works untouched:
 
-- **Order value** — required. `value`, `amount`, `total` or `order value`
-- **Who earned it** — one of: our `pz` reference, the creator's discount code,
+- **Order value**: required. `value`, `amount`, `total` or `order value`
+- **Who earned it**: one of: our `pz` reference, the creator's discount code,
   or creator + product
-- **Order reference** and **date** — optional
+- **Order reference** and **date**: optional
 
 **It previews first, always.** Nothing is written until you press record. Read
 the preview: a row matched to the wrong listing pays the wrong creator, and
@@ -127,7 +127,7 @@ Each sale moves through four stages:
 
 **Pending** → **Verified** → **Paid to Pluggz** → **Paid to creator**
 
-- A sale becomes **Verified** once its return window passes — the refund risk is
+- A sale becomes **Verified** once its return window passes, because the refund risk is
   over.
 - **Paid to Pluggz** is when the brand settles their invoice.
 - **Paid to creator** happens on a payout run: **the 1st and the 15th** of each
@@ -141,7 +141,7 @@ about the same numbers on both sides.
 ## The two questions people ask
 
 **"Can a brand set their own commission rate?"**
-No, and that was decided deliberately — it's marked *Decided out* in the
+No, and that was decided deliberately. It's marked *Decided out* in the
 requirements tracker. Rates, campaigns and creator contact stay with Lisa and
 Rachel.
 

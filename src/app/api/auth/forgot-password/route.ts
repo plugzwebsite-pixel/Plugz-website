@@ -15,7 +15,7 @@ export async function POST(req: Request) {
   const email = parsed.data.email.toLowerCase();
   const user = await db.user.findUnique({ where: { email } });
 
-  // Only actually send if the account exists — but always return success so we
+  // Only actually send if the account exists, but always return success so we
   // never disclose which emails are registered.
   if (user) {
     const { raw, hash } = generateToken();

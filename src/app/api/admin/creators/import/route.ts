@@ -13,7 +13,7 @@ import { z } from "zod";
  * Where a creator's photo lives.
  *
  * Rachel's sheet may carry a full URL, a bare filename for images dropped onto
- * the server, or nothing at all — in which case we look for a file named after
+ * the server, or nothing at all, in which case we look for a file named after
  * the handle. Anything unusable returns null and the avatar falls back to
  * initials rather than rendering a broken image.
  */
@@ -59,7 +59,7 @@ type RowResult = {
  * written and before thirty invite emails go out. Only `commit: true` writes.
  *
  * Every creator created here goes down the same dual-consent path as the
- * single-add form — approved by the admin, but invisible and locked out of the
+ * single-add form: approved by the admin, but invisible and locked out of the
  * dashboard until the creator logs in and releases their own profile.
  */
 export async function POST(req: Request) {
@@ -80,7 +80,7 @@ export async function POST(req: Request) {
     return fail("No rows found. Check the file has a header row.", 422);
   }
   if (records.length > MAX_ROWS) {
-    return fail(`That's ${records.length} rows — import up to ${MAX_ROWS} at a time.`, 422);
+    return fail(`That's ${records.length} rows. Import up to ${MAX_ROWS} at a time.`, 422);
   }
 
   // Existing rows, fetched once rather than per row.
@@ -116,7 +116,7 @@ export async function POST(req: Request) {
       youtube: parseFollowers(field(rec, "youtubefollowers", "ytfollowers", "youtube")),
     };
 
-    // Match the category loosely — a sheet will say "beauty", not the exact
+    // Match the category loosely. A sheet will say "beauty", not the exact
     // platform label.
     const category =
       CATEGORIES.find(

@@ -16,7 +16,7 @@ const csp = [
   "default-src 'self'",
   // Cloudflare injects its own analytics beacon into every proxied page. It is
   // cookieless and sends only page timings, but our own policy was blocking it,
-  // which left a CSP violation in the console of every visit — the first thing
+  // which left a CSP violation in the console of every visit. The first thing
   // anyone technical sees when they open dev tools.
   "script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com" +
     (isProd ? "" : " 'unsafe-eval'"),
@@ -37,13 +37,13 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
 
   // Required at runtime rather than bundled. ioredis resolves its own
-  // dependencies dynamically, which the bundler can't follow — bundling it
+  // dependencies dynamically, which the bundler can't follow, so bundling it
   // leaves a client that throws on construction, and the rate limiter then
   // quietly falls back to in-memory counters.
   serverExternalPackages: ["ioredis"],
 
   images: {
-    // Named hosts only — see src/lib/image-hosts.ts for why this isn't a
+    // Named hosts only. See src/lib/image-hosts.ts for why this isn't a
     // wildcard. A brand's own photography runs to a megabyte an image, which
     // is fine to fetch once and resize, and ruinous to serve to shoppers whole.
     remotePatterns: OPTIMISED_IMAGE_HOSTS.map((hostname) => ({

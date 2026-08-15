@@ -35,7 +35,7 @@ export const revalidate = 120;
  * Prerender the storefronts that exist so they are served from the cache.
  *
  * A dynamic segment with no generateStaticParams is treated as fully dynamic
- * whatever `revalidate` says — Next was sending these pages as
+ * whatever `revalidate` says. Next was sending these pages as
  * `private, no-store`, so neither the browser nor the CDN could ever hold one.
  * These are the pages a shopper lands on from Instagram, so that was the worst
  * possible route to leave uncacheable. Handles added later still render on
@@ -58,7 +58,7 @@ export async function generateMetadata({
   const creator = await getCreatorByHandle(cleanHandle(handle));
 
   // Any unmatched top-level path lands here before falling through to the 404,
-  // so the metadata has to describe that outcome — otherwise every mistyped URL
+  // so the metadata has to describe that outcome, or every mistyped URL
   // is titled "Storefront", in the browser tab and in search results.
   if (!creator) {
     return { title: "Page not found", robots: { index: false, follow: false } };

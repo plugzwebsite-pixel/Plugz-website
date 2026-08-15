@@ -68,7 +68,7 @@ export function Avatar({
       <span className="absolute">{initials(name)}</span>
       {src && (
         // A portrait can be self-hosted or, in future, a creator's own uploaded
-        // photo on another host — SmartImage handles both without opening the
+        // photo on another host. SmartImage handles both without opening the
         // image optimiser to arbitrary remote URLs.
         <SmartImage
           src={src}

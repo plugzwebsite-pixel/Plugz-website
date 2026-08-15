@@ -9,11 +9,11 @@ import { clientIpFrom } from "@/lib/rate-limit";
  * The short code is generated once and is permanent. Creators publish
  * pluggz.com/go/<code> to Instagram and TikTok straight away, pointing at a
  * placeholder while the brand deal is still being agreed. When the real
- * affiliate URL arrives we swap only `destinationUrl` — every link already out
+ * affiliate URL arrives we swap only `destinationUrl`, so every link already out
  * in the world keeps working and keeps its click history.
  */
 
-// No 0/1/l/i/o — codes get read aloud and typed by hand.
+// No 0/1/l/i/o, because codes get read aloud and typed by hand.
 const ALPHABET = "23456789abcdefghjkmnpqrstuvwxyz";
 const CODE_LENGTH = 8;
 
@@ -37,12 +37,12 @@ export async function allocateCode(): Promise<string> {
     });
     if (!taken) return code;
   }
-  // Widen rather than fail — 10 chars makes a further collision implausible.
+  // Widen rather than fail. 10 chars makes a further collision implausible.
   return generateCode(CODE_LENGTH + 2);
 }
 
 /**
- * IPs are hashed with a server secret before storage — we need to count unique
+ * IPs are hashed with a server secret before storage. We need to count unique
  * visitors, not to be able to identify them.
  */
 export function hashIp(ip: string): string {

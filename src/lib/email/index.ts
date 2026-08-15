@@ -20,7 +20,7 @@ async function sendEmail({ to, subject, heading, body, cta }: SendArgs) {
   // Email delivery must never break the action that triggered it (sign-up,
   // password reset, etc.). Any failure here is logged, not thrown.
   try {
-    // Brevo — send to any recipient with just a single verified sender email
+    // Brevo sends to any recipient with just a single verified sender email
     // (no domain verification required). Free tier: 300 emails/day.
     if (provider === "brevo" && process.env.BREVO_API_KEY) {
       const sender = parseFrom(from);
@@ -49,7 +49,7 @@ async function sendEmail({ to, subject, heading, body, cta }: SendArgs) {
     }
 
     if (provider === "resend" && process.env.RESEND_API_KEY) {
-      // Alternative provider — Resend.
+      // Alternative provider: Resend.
       const { Resend } = await import("resend");
       const resend = new Resend(process.env.RESEND_API_KEY);
       const result = await resend.emails.send({ from, to, subject, html });
@@ -57,7 +57,7 @@ async function sendEmail({ to, subject, heading, body, cta }: SendArgs) {
       return;
     }
 
-    // Dev path — log the link and capture it in the on-screen dev mailbox.
+    // Dev path: log the link and capture it in the on-screen dev mailbox.
     if (cta?.url) {
       console.log(`\n📧 [dev email] ${subject} → ${to}\n   ${cta.url}\n`);
     }

@@ -20,7 +20,7 @@ export async function AuthShell({
 }) {
   // Counted live. This panel is what a creator reads while deciding whether to
   // apply, so it can't carry numbers the platform hasn't actually done. The
-  // commission floor is the one fixed figure — it's contractual, not a metric.
+  // commission floor is the one fixed figure: it's contractual, not a metric.
   const platform = await getPlatformStats();
   const stats = [
     { value: String(platform.creators), label: "UK creators live" },
@@ -52,7 +52,7 @@ export async function AuthShell({
           <Reveal index={1}>
             <p className="mt-5 text-lg leading-relaxed text-text-muted">
               The UK&apos;s curated directory of creators and the products they
-              actually plug. Turn recommendations into income — we handle the
+              actually plug. Turn recommendations into income, and we handle the
               links, tracking and payouts.
             </p>
           </Reveal>

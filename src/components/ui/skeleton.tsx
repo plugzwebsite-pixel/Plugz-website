@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
  *
  * These exist so a click is acknowledged immediately. Without a loading state
  * the App Router holds the previous screen, unchanged, until the whole payload
- * for the next one arrives — so a page that takes a second to build reads as a
+ * for the next one arrives, so a page that takes a second to build reads as a
  * dead button, and people click it again.
  */
 export function Skeleton({ className }: { className?: string }) {

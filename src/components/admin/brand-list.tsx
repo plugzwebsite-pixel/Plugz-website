@@ -42,7 +42,7 @@ export function BrandList({ initial }: { initial: BrandRow[] }) {
   /**
    * Issue the key and secret a brand signs its sale postbacks with.
    *
-   * The secret comes back once and is shown once — after this screen it exists
+   * The secret comes back once and is shown once. After this screen it exists
    * only as the stored copy used to verify their signatures.
    */
   async function issueCredentials(brandId: string, brandName: string) {
@@ -72,7 +72,7 @@ export function BrandList({ initial }: { initial: BrandRow[] }) {
     setCreds({ brandId, ...res.data! });
     toast.success(
       res.data!.rolled ? "Credentials rolled" : "Credentials issued",
-      "Copy the secret now — it isn't shown again."
+      "Copy the secret now. It isn't shown again."
     );
   }
 
@@ -178,12 +178,12 @@ export function BrandList({ initial }: { initial: BrandRow[] }) {
             >
               <p className="text-sm font-medium text-text-strong">
                 {creds.rolled
-                  ? "New credentials — the previous pair has stopped working"
+                  ? "New credentials. The previous pair has stopped working"
                   : "Credentials issued"}
               </p>
               <p className="mt-1 text-sm text-text-muted">
                 {`Send these to ${b.name} with the integration guide. The signing
-                secret is not stored anywhere you can read it again — if it is
+                secret is not stored anywhere you can read it again. If it is
                 lost, issue a new pair.`}
               </p>
 
@@ -222,7 +222,7 @@ export function BrandList({ initial }: { initial: BrandRow[] }) {
                 className="mt-3"
                 onClick={() => setCreds(null)}
               >
-                Done — I&apos;ve copied them
+                Done, I&apos;ve copied them
               </Button>
             </motion.div>
           )}
@@ -236,7 +236,7 @@ export function BrandList({ initial }: { initial: BrandRow[] }) {
               <p className="text-sm text-text-muted">
                 They&apos;ll get a link to set a password, then see{" "}
                 <span className="font-medium text-text-strong">{b.name}</span>
-                &apos;s own clicks, sales and commission. Read-only — rates and
+                &apos;s own clicks, sales and commission. Read-only: rates and
                 campaigns stay with you.
               </p>
               <div className="mt-3 flex flex-col gap-2.5 sm:flex-row">

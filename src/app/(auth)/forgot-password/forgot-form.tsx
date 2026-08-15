@@ -24,7 +24,7 @@ export function ForgotPasswordForm() {
 
   async function onSubmit(values: ForgotPasswordInput) {
     await postJson("/api/auth/forgot-password", values);
-    setSentTo(values.email); // always show success — never reveal account existence
+    setSentTo(values.email); // always show success, never reveal account existence
   }
 
   if (sentTo) {

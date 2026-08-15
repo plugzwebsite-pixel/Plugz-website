@@ -200,7 +200,7 @@ export function ApprovalQueue({ initial }: { initial: Applicant[] }) {
                     <div className="flex items-center gap-2">
                       {/* Approving gives a creator their storefront. Featuring
                           puts them on the homepage wall, which is a separate
-                          decision — otherwise a test sign-up appears beside the
+                          decision, or a test sign-up appears beside the
                           headline names the moment it is let through. */}
                       {a.status === "APPROVED" && (
                         <Button
@@ -211,7 +211,7 @@ export function ApprovalQueue({ initial }: { initial: Applicant[] }) {
                           title={
                             a.featured
                               ? "Showing on the homepage creator wall"
-                              : "Not on the homepage — their storefront is still live"
+                              : "Not on the homepage, but their storefront is still live"
                           }
                         >
                           <Star

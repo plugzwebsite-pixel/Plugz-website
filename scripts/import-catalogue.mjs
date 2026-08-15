@@ -9,7 +9,7 @@
  *   node --env-file=.env scripts/import-catalogue.mjs --csv <url|path> --dry-run
  *   node --env-file=.env scripts/import-catalogue.mjs --csv <url|path>
  *
- * A sheet row that has no product URL is skipped — those are the lines Lisa is
+ * A sheet row that has no product URL is skipped. Those are the lines Lisa is
  * still filling in.
  *
  * Prices come only from a page that states GBP. Several of these shops price by
@@ -209,7 +209,7 @@ function readSheet(text) {
       `\nThe sheet has ${unknown.size} section(s) this importer doesn't know:\n` +
         [...unknown].map((s) => `  · ${s}`).join("\n") +
         "\n\nAdd each one to CATEGORY here and to CATEGORY_NAV in src/lib/demo-data.ts" +
-        " — a category with no tile has no page for its products to appear on.\n"
+        ". A category with no tile has no page for its products to appear on.\n"
     );
     process.exit(1);
   }
@@ -419,7 +419,7 @@ async function main() {
       select: { id: true, name: true },
     });
     if (existing) {
-      skipped.push(`${existing.name} — already in the catalogue`);
+      skipped.push(`${existing.name}: already in the catalogue`);
       continue;
     }
 
@@ -427,7 +427,7 @@ async function main() {
     const page = record.name ? record : await readProductPage(record.url);
     const name = (record.name ?? page.title ?? record.description ?? "").trim();
     if (!name) {
-      incomplete.push(`${record.url} — no name on the page and none in the sheet`);
+      incomplete.push(`${record.url}: no name on the page and none in the sheet`);
       continue;
     }
 
@@ -440,7 +440,7 @@ async function main() {
       added.push(`${name} → ${category} → @${creator.handle} (${brand.name})`);
       if (!page.pricePence || !page.imageUrl) {
         incomplete.push(
-          `${name} — ${[!page.pricePence && "no GBP price", !page.imageUrl && "no photograph"]
+          `${name}: ${[!page.pricePence && "no GBP price", !page.imageUrl && "no photograph"]
             .filter(Boolean)
             .join(", ")}`
         );
@@ -501,7 +501,7 @@ async function main() {
     added.push(`${name} → ${category} → @${creator.handle} (${brand.name})`);
     if (!product.pricePence || !product.imageUrl) {
       incomplete.push(
-        `@${creator.handle}/${listingSlug} — ${[
+        `@${creator.handle}/${listingSlug}: ${[
           !product.pricePence && "no GBP price",
           !product.imageUrl && "no photograph",
         ]
@@ -514,11 +514,11 @@ async function main() {
   console.log(`\n${dryRun ? "Would add" : "Added"} ${added.length} listing(s):`);
   for (const line of added) console.log(`  · ${line}`);
   if (skipped.length) {
-    console.log(`\nAlready live, left alone — ${skipped.length}:`);
+    console.log(`\nAlready live, left alone (${skipped.length}):`);
     for (const line of skipped) console.log(`  · ${line}`);
   }
   if (incomplete.length) {
-    console.log(`\nNeeds a price or a photograph adding by hand — ${incomplete.length}:`);
+    console.log(`\nNeeds a price or a photograph adding by hand (${incomplete.length}):`);
     for (const line of incomplete) console.log(`  · ${line}`);
   }
 }

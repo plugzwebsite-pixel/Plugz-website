@@ -56,7 +56,7 @@ export default async function AdminBrandsPage() {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <p className="max-w-2xl text-text-muted">
           Every brand on Pluggz. Invite a contact to give them a read-only
-          dashboard of their own performance — useful when pitching, and it saves
+          dashboard of their own performance, useful when pitching, and it saves
           answering &ldquo;how are we doing?&rdquo; by email.
         </p>
         <Link

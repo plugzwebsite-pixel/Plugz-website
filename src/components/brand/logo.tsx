@@ -15,7 +15,7 @@ const sizes = {
 };
 
 /**
- * The Pluggz wordmark, set in the Bodoni Moda display serif — a single,
+ * The Pluggz wordmark, set in the Bodoni Moda display serif: a single,
  * consistent colour across every letter.
  */
 export function Logo({ href = "/", className, size = "md" }: LogoProps) {

@@ -118,7 +118,7 @@ export async function POST(req: Request) {
   let brand;
 
   if (input.productId) {
-    // Claiming an existing catalogue entry — no outbound fetch needed.
+    // Claiming an existing catalogue entry, so no outbound fetch needed.
     const existingProduct = await db.product.findUnique({
       where: { id: input.productId },
       include: { brand: true },

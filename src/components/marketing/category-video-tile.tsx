@@ -12,7 +12,7 @@ import type { Category } from "@/lib/demo-data";
  * clip on hover.
  *
  * The tile renders at roughly 350x435, which is 700x870 on a retina screen, so
- * it only shows a photograph when one is actually supplied at that size —
+ * it only shows a photograph when one is actually supplied at that size, so
  * `cover` stays unset until real category photography lands. Blowing a small
  * image up to fill this box was what made the grid look amateur, and cropping a
  * square one into 4:5 cut the subject off at both edges.
@@ -90,8 +90,8 @@ export function CategoryVideoTile({
       />
 
       {/* Only where there is something to play. Every tile used to carry this,
-          which advertised a clip on thirteen tiles that had none between them —
-          hovering did nothing at all. */}
+          which advertised a clip on thirteen tiles that had none between them,
+          so hovering did nothing at all. */}
       {category.video && (
         <span className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-black/40 text-white backdrop-blur transition-colors group-hover:bg-brand-pink">
           <Play size={14} className="translate-x-[1px]" fill="currentColor" />

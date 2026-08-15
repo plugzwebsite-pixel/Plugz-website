@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 /**
  * The stand-in for a brand's own website.
  *
- * Deliberately styled nothing like Pluggz — light, plain, its own typography —
+ * Deliberately styled nothing like Pluggz (light, plain, its own typography)
  * because the point of the walkthrough is that the shopper has *left* us. The
  * banner is not decoration: anyone landing here has to know within a second
  * that this is a demonstration and not a shop that will take their money.

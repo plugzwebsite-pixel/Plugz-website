@@ -12,7 +12,7 @@ export type DevMail = {
   sentAt: string;
 };
 
-// Use the OS temp dir — writable everywhere, including serverless hosts whose
+// Use the OS temp dir. It is writable everywhere, including serverless hosts
 // project filesystem is read-only.
 const FILE = path.join(os.tmpdir(), "pluggz-dev-mail.json");
 const MAX = 50;

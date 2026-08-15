@@ -46,7 +46,7 @@ type Step = {
  * Every step here is the real thing: a real tracking link, a real click, the
  * real public endpoint a brand posts to, and the real commission engine. The
  * one part that is simulated is the brand's own shop, because we don't have a
- * partner store to buy from — and that is called out on screen rather than
+ * partner store to buy from, and that is called out on screen rather than
  * glossed over, since the whole point is to show a brand what their side has
  * to do.
  */
@@ -158,7 +158,7 @@ export function TrackingDemo() {
         </p>
       )}
 
-      {/* 1 — the creator's listing */}
+      {/* 1. The creator's listing */}
       <Panel n={1} title="A creator plugs a product" done>
         <div className="flex flex-wrap items-center gap-4">
           {state.product.imageUrl && (
@@ -193,7 +193,7 @@ export function TrackingDemo() {
         </p>
       </Panel>
 
-      {/* 2 — the click */}
+      {/* 2. The click */}
       <Panel n={2} title="A shopper taps it" done={steps.click?.done}>
         <p className="text-sm text-text-muted">
           Pluggz records the click, then sends them to {state.product.brand} carrying a
@@ -216,7 +216,7 @@ export function TrackingDemo() {
         )}
       </Panel>
 
-      {/* 3 — the brand's side */}
+      {/* 3. The brand's side */}
       <Panel n={3} title="The shopper buys, on the brand's own site" done={steps.order?.done}>
         <p className="rounded-md border border-border bg-surface-2/60 p-3 text-sm text-text-muted">
           <strong className="text-text">This is the only simulated step.</strong> We have no
@@ -248,7 +248,7 @@ export function TrackingDemo() {
         )}
       </Panel>
 
-      {/* 4 — the result */}
+      {/* 4. The result */}
       <Panel n={4} title="It appears on the dashboards" done={Boolean(latest)}>
         {latest ? (
           <div className="space-y-3">
@@ -272,7 +272,7 @@ export function TrackingDemo() {
             </div>
             <p className="text-sm text-text-muted">
               {latest.clickId
-                ? "Tied back to the exact click that earned it — so the right creator is paid."
+                ? "Tied back to the exact click that earned it, so the right creator is paid."
                 : "Recorded, but not tied to a click."}
             </p>
           </div>

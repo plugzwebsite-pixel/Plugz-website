@@ -1,6 +1,6 @@
 # Pluggz
 
-The UK's curated directory of creators and the products they actually plug — discover it here, buy it at the brand. Pluggz combines affiliate tracking, creator storefronts, product collections and video-style discovery into one platform.
+The UK's curated directory of creators and the products they actually plug. Discover it here, buy it at the brand. Pluggz combines affiliate tracking, creator storefronts, product collections and video-style discovery into one platform.
 
 This repository contains the web application: the shopper-facing marketplace, the creator dashboard, and the admin console, together with a full authentication flow.
 

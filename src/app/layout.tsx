@@ -27,7 +27,7 @@ const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://pluggzofficial.co.uk
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Pluggz — Shop what the UK's tastemakers actually plug",
+    default: "Pluggz | Shop what the UK's tastemakers actually plug",
     template: "%s · Pluggz",
   },
   description:
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     "shop the look",
   ],
   openGraph: {
-    title: "Pluggz — Shop what the UK's tastemakers actually plug",
+    title: "Pluggz | Shop what the UK's tastemakers actually plug",
     description:
       "The curated directory of UK creators and the products they actually plug.",
     type: "website",

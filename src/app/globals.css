@@ -3,7 +3,7 @@
 /*
   Pluggz design system
   ------------------------------------------------------------------
-  Two themes: "night" (default, near-black — the brand's edgier LTK
+  Two themes: "night" (default, near-black, the brand's edgier LTK
   alternative) and "day" (warm cream). Semantic tokens flip per theme;
   brand tokens stay constant. Derived from the client-approved demo.
 */
@@ -59,7 +59,7 @@
   --hero-veil: linear-gradient(120deg, rgba(246, 242, 236, 0.5), rgba(246, 242, 236, 0));
 }
 
-/* Brand tokens — constant across themes */
+/* Brand tokens: constant across themes */
 :root {
   --brand-pink: #ff2d9b;
   --brand-purple: #a438ff;
@@ -204,7 +204,7 @@
     -webkit-backdrop-filter: blur(18px) saturate(140%);
   }
 
-  /* Gradient border via mask — reusable ring for cards/inputs */
+  /* Gradient border via mask: reusable ring for cards/inputs */
   .grad-ring {
     position: relative;
   }

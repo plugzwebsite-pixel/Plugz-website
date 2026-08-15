@@ -28,7 +28,7 @@ export default async function BrandProductsPage() {
         {products.length === 0 ? (
           <p className="px-6 py-16 text-center text-sm text-text-muted">
             No creators have added your products yet. The Pluggz team is working
-            through creator matching — this fills up as they do.
+            through creator matching, and this fills up as they do.
           </p>
         ) : (
           <div className="overflow-x-auto">
@@ -68,11 +68,11 @@ export default async function BrandProductsPage() {
                       <span className="block text-xs text-text-faint">@{p.handle}</span>
                     </td>
                     <td className="px-6 py-3.5 text-text">
-                      {p.pricePence === null ? "—" : gbpFromPence(p.pricePence)}
+                      {p.pricePence === null ? "Not listed" : gbpFromPence(p.pricePence)}
                     </td>
                     <td className="px-6 py-3.5 text-text">{compact(p.clicks)}</td>
                     <td className="px-6 py-3.5 font-medium text-text-strong">
-                      {p.salesPence > 0 ? gbpFromPence(p.salesPence) : "—"}
+                      {p.salesPence > 0 ? gbpFromPence(p.salesPence) : "None yet"}
                     </td>
                     <td className="px-6 py-3.5 text-right">
                       <Link

@@ -13,7 +13,7 @@ export default async function TrackingDemoPage() {
     <div className="space-y-6">
       <p className="max-w-2xl text-text-muted">
         A sale, followed from a creator&apos;s link to the money landing on both
-        dashboards. Everything here runs against the live system — the real link,
+        dashboards. Everything here runs against the live system: the real link,
         the real click, the real endpoint a brand posts to, and the real
         commission engine. Only the brand&apos;s own shop is stood in for, and
         that step says so.

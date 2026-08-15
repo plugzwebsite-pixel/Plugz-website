@@ -111,7 +111,7 @@ export function ImportCreators() {
         <p className="mx-auto mt-3 max-w-md text-text-muted">
           {done.invited} invite{done.invited === 1 ? "" : "s"} sent. Each creator
           sets their own password and releases their profile before it goes
-          live — nothing is public until they do.
+          live, and nothing is public until they do.
         </p>
         <Button
           className="mt-6"
@@ -239,7 +239,7 @@ export function ImportCreators() {
                       <td className="px-6 py-3">
                         <div className="flex items-center gap-2.5">
                           {/* Shows whether the photo actually resolved, before
-                              anything is created — a broken thumbnail here is
+                              anything is created. A broken thumbnail here is
                               cheaper to fix than thirty wrong profiles. */}
                           <Avatar
                             name={r.name || "?"}
@@ -248,22 +248,22 @@ export function ImportCreators() {
                           />
                           <div className="min-w-0">
                             <p className="truncate font-medium text-text-strong">
-                              {r.name || "—"}
+                              {r.name || "Missing"}
                             </p>
                             <p className="truncate text-xs text-text-faint">
-                              {r.email || "—"}
+                              {r.email || "Missing"}
                             </p>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-3 text-text-muted">
-                        {r.handle ? `@${r.handle}` : "—"}
+                        {r.handle ? `@${r.handle}` : "Missing"}
                       </td>
                       <td className="px-6 py-3 text-text-muted">
-                        {r.category || "—"}
+                        {r.category || "Missing"}
                       </td>
                       <td className="px-6 py-3 text-text-muted">
-                        {total > 0 ? compact(total) : "—"}
+                        {total > 0 ? compact(total) : "Not given"}
                       </td>
                       <td className="px-6 py-3">
                         {r.status === "ready" ? (
@@ -291,7 +291,7 @@ export function ImportCreators() {
             <p className="text-sm text-text-muted">
               {preview.ready > 0
                 ? `${preview.ready} creator${preview.ready === 1 ? "" : "s"} will be added and sent an invite email.`
-                : "Nothing to import — fix the rows above and check again."}
+                : "Nothing to import. Fix the rows above and check again."}
             </p>
             <Button onClick={commit} loading={importing} disabled={!preview.ready}>
               Add {preview.ready} creator{preview.ready === 1 ? "" : "s"} &amp; send invites

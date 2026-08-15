@@ -17,7 +17,7 @@ const schema = z.object({
  *
  * The account is created against one brand and can only ever read that brand's
  * figures. It is deliberately read-only: per the requirements, brands don't
- * self-manage campaigns, commission rates or creator contact — those stay with
+ * self-manage campaigns, commission rates or creator contact. Those stay with
  * Lisa and Rachel.
  */
 export async function POST(
@@ -77,7 +77,7 @@ export async function POST(
           name: parsed.data.name,
           role: "BRAND",
           brandId: brand.id,
-          // Placeholder only — they set their own via the invite link.
+          // Placeholder only. They set their own via the invite link.
           passwordHash: await hashPassword(randomBytes(24).toString("base64url")),
         },
         select: { id: true },

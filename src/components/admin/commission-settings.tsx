@@ -65,7 +65,7 @@ export function CommissionSettings({
     }
     toast.success(
       "Default rate saved",
-      `${creator}% creator · ${pluggz}% Pluggz — applies to new sales`
+      `${creator}% creator · ${pluggz}% Pluggz · applies to new sales`
     );
     router.refresh();
   }

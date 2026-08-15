@@ -9,7 +9,7 @@ import { getPlatformStats } from "@/lib/queries";
 export const metadata: Metadata = {
   title: "Partner with Pluggz",
   description:
-    "Get your products in front of UK creators and their audiences. Commission on sales only — never on clicks or impressions.",
+    "Get your products in front of UK creators and their audiences. Commission on sales only, never on clicks or impressions.",
 };
 
 export const revalidate = 3600;
@@ -18,7 +18,7 @@ const points = [
   {
     icon: Users,
     title: "Creators who actually use it",
-    body: "Your product gets a page of its own with a named creator's review, rating and photos — not a thumbnail in a feed.",
+    body: "Your product gets a page of its own with a named creator's review, rating and photos, not a thumbnail in a feed.",
   },
   {
     icon: MousePointerClick,
@@ -33,7 +33,7 @@ const points = [
   {
     icon: ShieldCheck,
     title: "Your own dashboard",
-    body: "See shoppers sent, sales, commission and what you keep — updated as it happens.",
+    body: "See shoppers sent, sales, commission and what you keep, updated as it happens.",
   },
 ];
 
@@ -106,7 +106,7 @@ export default async function BrandsPage() {
                 Tell us about your brand
               </h2>
               <p className="mt-2 text-text-muted">
-                One question decides how we set you up — the rest takes a minute.
+                One question decides how we set you up. The rest takes a minute.
               </p>
               <div className="mt-5">
                 <BrandEnquiryForm />

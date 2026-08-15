@@ -35,7 +35,7 @@ export default async function BrandDashboardPage() {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <p className="max-w-2xl text-text-muted">
           How {access.brandName} is performing on Pluggz. Every figure is counted
-          from real shopper activity — clicks are recorded the moment someone
+          from real shopper activity. Clicks are recorded the moment someone
           follows a creator&apos;s link to your site.
         </p>
         {stats.brand && (
@@ -65,7 +65,7 @@ export default async function BrandDashboardPage() {
         <StatCard
           value={
             stats.conversionRate === null
-              ? "—"
+              ? "Not yet"
               : `${stats.conversionRate.toFixed(1)}%`
           }
           label="Conversion rate"
@@ -130,7 +130,7 @@ export default async function BrandDashboardPage() {
             )}
           </div>
           <p className="mt-5 border-t border-border pt-4 text-xs text-text-faint">
-            Commission is charged on confirmed sales only — never on clicks or
+            Commission is charged on confirmed sales only, never on clicks or
             impressions. Returns inside your {stats.brand?.returnWindowDays ?? 30}-day
             window are removed automatically.
           </p>
@@ -167,7 +167,7 @@ export default async function BrandDashboardPage() {
                   </p>
                 </div>
                 <span className="font-display text-sm font-semibold text-text">
-                  {c.salesPence > 0 ? gbpFromPence(c.salesPence) : "—"}
+                  {c.salesPence > 0 ? gbpFromPence(c.salesPence) : "None yet"}
                 </span>
               </Link>
             ))}
@@ -177,7 +177,7 @@ export default async function BrandDashboardPage() {
 
       <p className="text-xs text-text-faint">
         Commission rates, campaigns and creator relationships are managed by the
-        Pluggz team — get in touch and we&apos;ll sort it.
+        Pluggz team. Get in touch and we&apos;ll sort it.
       </p>
     </div>
   );

@@ -1,6 +1,6 @@
 import "server-only";
 
-/** Minimal branded HTML email — inline styles for client compatibility. */
+/** Minimal branded HTML email, with inline styles for client compatibility. */
 export function renderEmail({
   heading,
   body,

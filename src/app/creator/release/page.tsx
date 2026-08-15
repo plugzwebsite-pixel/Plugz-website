@@ -64,7 +64,7 @@ export default async function ReleaseProfilePage() {
           </h1>
           <p className="mt-4 leading-relaxed text-text-muted">
             The Pluggz team set this up from your public profiles. Nothing here
-            is visible to shoppers yet — check it reads right, then release it.
+            is visible to shoppers yet, so check it reads right, then release it.
           </p>
 
           <div className="mt-8 rounded-lg border border-border bg-surface p-6">
@@ -117,7 +117,7 @@ export default async function ReleaseProfilePage() {
             </dl>
 
             <p className="mt-6 border-t border-border pt-5 text-sm text-text-faint">
-              Something wrong? Don&apos;t release it — reply to the invite email
+              Something wrong? Don&apos;t release it. Reply to the invite email
               and the team will correct it first. You can change these details
               yourself once you&apos;re in.
             </p>

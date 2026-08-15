@@ -35,7 +35,7 @@ export function SmartImage({
   /**
    * Called when the file will not load. Brand CDNs drop photographs without
    * warning, so anything rendering someone else's image wants a way to notice.
-   * Client components only — passing it from a server component will not build.
+   * Client components only. Passing it from a server component will not build.
    */
   onError?: () => void;
   /**
@@ -46,7 +46,7 @@ export function SmartImage({
   imgRef?: (el: HTMLImageElement | null) => void;
 }) {
   // Creator uploads are written after the build, so the optimiser can't read
-  // them — Next indexes public/ at build time. They arrive already square,
+  // them, because Next indexes public/ at build time. They arrive already square,
   // already re-encoded and around 40KB, and nginx serves them straight from
   // disk, so there is nothing for the optimiser to add.
   const isUpload = src.startsWith("/uploads/");

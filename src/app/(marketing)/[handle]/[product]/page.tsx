@@ -17,7 +17,7 @@ import { compact, gbpFromPence } from "@/lib/utils";
  * The Pluggz product page.
  *
  * This is the page a shopper lands on when they follow a creator's link from
- * Instagram or TikTok — deliberately not the brand's site. They read the
+ * Instagram or TikTok, deliberately not the brand's site. They read the
  * creator's review here first, and only Buy Now sends them out, through the
  * tracked /go redirect.
  */
@@ -55,11 +55,11 @@ export async function generateMetadata({
     return { title: "Page not found", robots: { index: false, follow: false } };
   }
   return {
-    title: `${row.product.name} — ${row.creator.name}`,
+    title: `${row.product.name} by ${row.creator.name}`,
     description:
       row.review ?? row.product.description ?? `${row.product.name} by ${row.product.brand.name}`,
     openGraph: {
-      title: `${row.product.name} — plugged by ${row.creator.name}`,
+      title: `${row.product.name}, plugged by ${row.creator.name}`,
       images: row.product.imageUrl ? [row.product.imageUrl] : undefined,
     },
   };
@@ -95,7 +95,7 @@ export default async function ProductPage({
                 // shouldn't wait its turn behind lazy images.
                 priority
                 // Whatever shape the brand shot is, show all of it. This is the
-                // image the shopper decides on — cropping it to a square is how
+                // image the shopper decides on, and cropping it to a square is how
                 // you cut the product in half.
                 className="aspect-square w-full object-contain p-6"
                 seed={`${product.brand.slug}-${slug}`}
@@ -122,9 +122,18 @@ export default async function ProductPage({
               </h1>
 
               <div className="mt-4 flex flex-wrap items-center gap-3">
-                <span className="font-display text-3xl font-semibold text-text-strong">
-                  {product.pricePence === null ? "—" : gbpFromPence(product.pricePence)}
-                </span>
+                {product.pricePence === null ? (
+                  // Some brand pages defeat an automated price read. Sending the
+                  // shopper to the brand for it is honest; a blank slot where a
+                  // price belongs just reads as broken.
+                  <span className="text-base text-text-muted">
+                    Price shown at the brand
+                  </span>
+                ) : (
+                  <span className="font-display text-3xl font-semibold text-text-strong">
+                    {gbpFromPence(product.pricePence)}
+                  </span>
+                )}
                 <Badge tone="neutral">{product.category}</Badge>
                 {trackingLink && trackingLink.clickCount > 0 && (
                   <span className="text-sm text-text-faint">
@@ -139,7 +148,7 @@ export default async function ProductPage({
                 </p>
               )}
 
-              {/* Creator's review — the reason this page exists */}
+              {/* Creator's review: the reason this page exists */}
               <div className="mt-7 rounded-md border border-border bg-surface p-5">
                 <Link
                   href={`/@${creator.handle}`}

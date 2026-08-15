@@ -3,7 +3,7 @@ import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 
 /**
- * Read side of the public catalogue — everything the shopper-facing pages
+ * Read side of the public catalogue: everything the shopper-facing pages
  * render. Kept in one place so the visibility rule below can't drift between
  * the homepage, a storefront and search.
  */
@@ -104,7 +104,7 @@ function toProductCard(row: ProductRow): ProductCardData {
 /**
  * The demonstration shop is excluded everywhere a shopper can see. It is a real
  * brand row driving real tracking, so the walkthrough proves the pipeline
- * rather than mocking it — but the label is invented and its listing hangs off
+ * rather than mocking it, but the label is invented and its listing hangs off
  * a real influencer's storefront, which is not something to leave in the
  * catalogue.
  */
@@ -126,7 +126,7 @@ export async function getCreatorByHandle(handle: string) {
   return row ? { ...toCreatorCard(row), socials: row.socials } : null;
 }
 
-/** Ordered by reach — the wall of faces that opens the homepage. */
+/** Ordered by reach: the wall of faces that opens the homepage. */
 /**
  * The creators on the homepage wall.
  *
@@ -149,12 +149,12 @@ export async function getFeaturedCreators(limit = 12): Promise<CreatorCardData[]
 
 // --- products ---------------------------------------------------------------
 
-/** Most-clicked first — what shoppers are actually going through to. */
+/** Most-clicked first: what shoppers are actually going through to. */
 /**
  * One product, one card.
  *
  * A product is a single record that several creators can plug, each with their
- * own review — that is the point of the shared catalogue. But a browse grid is
+ * own review, which is the point of the shared catalogue. But a browse grid is
  * a list of *products*, so the same bag appearing twice because two people
  * plugged it reads as a duplicate, not as a feature. The rule the client set is
  * plain: one product equals one page, shown once in any grid, with every
@@ -240,7 +240,7 @@ export async function getCreatorProduct(handle: string, slug: string) {
   });
   if (!row) return null;
 
-  // Other creators who plugged the same product — the payoff of keeping one
+  // Other creators who plugged the same product: the payoff of keeping one
   // master product record instead of duplicating it per creator.
   const alsoPluggedBy = await db.creatorProduct.findMany({
     where: {
@@ -289,7 +289,7 @@ export async function searchCatalogue(query: string) {
     db.creatorProfile.findMany({
       // AND, not a spread. `publiclyVisibleCreator` carries its own OR for the
       // dual-consent check, and spreading it alongside a second OR would let
-      // the later key silently replace it — publishing creators who have not
+      // the later key silently replace it, publishing creators who have not
       // released their profile yet.
       where: {
         AND: [
@@ -392,7 +392,7 @@ export async function getCategoryCounts() {
  *
  * Read from the catalogue rather than written into the page. The panel used to
  * name a brand and quote a delivery offer in hard-coded copy, and when that
- * brand was deleted the homepage carried on advertising it — with a promotion
+ * brand was deleted the homepage carried on advertising it, with a promotion
  * nobody had agreed to. Anything claimed here now has to be true of a brand
  * that actually exists, and the picture is one of its own product shots.
  */
@@ -404,8 +404,8 @@ export async function getFeaturedBrand() {
   //
   // The panel's whole pitch is the creator's review, so a listing that carries
   // one wins even over a more expensive piece that doesn't. Not every product
-  // has been written up — the catalogue is loaded from the client's list well
-  // before the creators get to it — and the panel must not send a shopper to
+  // has been written up, because the catalogue is loaded from the client's list
+  // well before the creators get to it, and the panel must not send a shopper to
   // read a review that was never written.
   const select = {
     name: true,

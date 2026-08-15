@@ -2,7 +2,7 @@
  * Leave a signed-in session the only way that is actually safe: a full page load.
  *
  * Next keeps rendered payloads for visited routes in a client-side Router Cache.
- * `router.refresh()` only invalidates the route you are currently on — it does
+ * `router.refresh()` only invalidates the route you are currently on. It does
  * not throw away what it holds for every *other* route you visited. So signing
  * out of one account and into another could be served the previous account's
  * cached dashboard, with freshly rendered fragments showing the new user's
