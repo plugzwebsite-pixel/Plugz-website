@@ -28,6 +28,7 @@ export default async function ShopperSignupPage({
 
   return (
     <AuthShell
+      audience="shopper"
       eyebrow="Shop with Pluggz"
       title="Create your account"
       subtitle="Free, takes a minute. Follow the creators you like and be first to hear what they're plugging."
