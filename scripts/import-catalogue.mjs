@@ -229,6 +229,18 @@ const BROWSER_HEADERS = {
   "upgrade-insecure-requests": "1",
 };
 
+/**
+ * The sheet and the shops both contain em and en dashes, and whatever comes in
+ * here ends up on a Pluggz page. The client reads a dash as a sign the words
+ * were not written by a person, so it is normalised on the way in. A dash
+ * between digits is a range and keeps a hyphen; anywhere else it was standing
+ * in for a comma.
+ */
+function plainDashes(s) {
+  if (!s) return s;
+  return s.replace(/(\d)\s*[—–]\s*(\d)/g, "$1-$2").replace(/\s*[—–]\s*/g, ", ");
+}
+
 function decodeEntities(s) {
   return s
     .replace(/&amp;/g, "&")
@@ -425,7 +437,7 @@ async function main() {
 
     // --json arrives already read; a sheet row has to be looked up.
     const page = record.name ? record : await readProductPage(record.url);
-    const name = (record.name ?? page.title ?? record.description ?? "").trim();
+    const name = plainDashes((record.name ?? page.title ?? record.description ?? "").trim());
     if (!name) {
       incomplete.push(`${record.url}: no name on the page and none in the sheet`);
       continue;
@@ -462,7 +474,7 @@ async function main() {
         brandId: brand.id,
         name,
         slug: productSlug,
-        description: record.description ?? page.description ?? null,
+        description: plainDashes(record.description ?? page.description ?? null),
         imageUrl: record.imageUrl ?? page.imageUrl ?? null,
         pricePence: record.pricePence ?? page.pricePence ?? null,
         currency: "GBP",

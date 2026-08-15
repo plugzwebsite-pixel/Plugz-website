@@ -165,6 +165,22 @@ function meta(html: string, ...names: string[]): string | null {
   return null;
 }
 
+/**
+ * Shops write em and en dashes into their own titles and copy, and whatever we
+ * read lands on a Pluggz page under our name. The client reads a dash as a sign
+ * the words were not written by a person, so it is normalised on the way in
+ * rather than left for someone to find on a product page later.
+ *
+ * A dash between two words is always standing in for punctuation we can write
+ * properly; a dash between two digits is a range, and a hyphen keeps that
+ * readable.
+ */
+function plainDashes(s: string): string {
+  return s
+    .replace(/(\d)\s*[—–]\s*(\d)/g, "$1-$2")
+    .replace(/\s*[—–]\s*/g, ", ");
+}
+
 function decodeEntities(s: string): string {
   return s
     .replace(/&amp;/g, "&")
@@ -255,15 +271,18 @@ export async function scrapeProduct(rawUrl: string): Promise<ScrapedProduct> {
     meta(html, "product:price:currency", "og:price:currency") ??
     "GBP";
 
+  const description =
+    ld.description ?? meta(html, "og:description", "description", "twitter:description");
+  const siteName = meta(html, "og:site_name");
+
   return {
     url: finalUrl,
-    title: title || null,
-    description:
-      ld.description ?? meta(html, "og:description", "description", "twitter:description"),
+    title: title ? plainDashes(title) : null,
+    description: description ? plainDashes(description) : null,
     // Resolve relative image paths against the page they came from.
     imageUrl: image ? new URL(image, finalUrl).toString() : null,
     pricePence: parsePence(price),
     currency: currency.toUpperCase().slice(0, 3),
-    siteName: meta(html, "og:site_name"),
+    siteName: siteName ? plainDashes(siteName) : null,
   };
 }
