@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { publicBrand } from "@/lib/queries";
 import { ok, fail, parseBody } from "@/lib/http";
@@ -27,6 +28,19 @@ const addSchema = z
     message: "Paste the product's link",
     path: ["url"],
   });
+
+/**
+ * What a creator is allowed to put on their storefront.
+ *
+ * The list below and the claim handler further down MUST agree. They did not:
+ * the list filtered on this while the claim looked the product up by id alone,
+ * so posting the id of a product the list would never offer - the demonstration
+ * shop's, or a brand still in draft - minted a real tracking link for it.
+ */
+const pluggable = {
+  status: "ACTIVE",
+  ...publicBrand,
+} satisfies Prisma.BrandWhereInput;
 
 /** The creator's own storefront listings. */
 export async function GET() {
@@ -68,9 +82,7 @@ export async function GET() {
   // down a URL for something another creator has already added.
   const available = await db.product.findMany({
     where: {
-      // publicBrand keeps the demonstration shop out: a creator offered it here
-      // would put a fictional label on their own storefront.
-      brand: { status: "ACTIVE", ...publicBrand },
+      brand: pluggable,
       creatorProducts: { none: { profileId: access.profileId } },
     },
     orderBy: { createdAt: "desc" },
@@ -118,12 +130,16 @@ export async function POST(req: Request) {
   let brand;
 
   if (input.productId) {
-    // Claiming an existing catalogue entry, so no outbound fetch needed.
-    const existingProduct = await db.product.findUnique({
-      where: { id: input.productId },
+    // Claiming an existing catalogue entry, so no outbound fetch needed. The
+    // brand clause is what makes this the same set the list offers; without it
+    // any product id in the database is claimable.
+    const existingProduct = await db.product.findFirst({
+      where: { id: input.productId, brand: pluggable },
       include: { brand: true },
     });
-    if (!existingProduct) return fail("That product no longer exists.", 404);
+    if (!existingProduct) {
+      return fail("That product is not available to add.", 404);
+    }
     product = existingProduct;
     brand = existingProduct.brand;
   } else {
