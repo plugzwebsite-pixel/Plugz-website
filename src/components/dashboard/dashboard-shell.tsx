@@ -23,6 +23,7 @@ import {
   Receipt,
   Route,
   Inbox,
+  Users,
   type LucideIcon,
 } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
@@ -35,8 +36,8 @@ type NavItem = { label: string; href: string; icon: LucideIcon };
 
 export type DashboardVariant = "creator" | "admin" | "brand";
 
-// Nav lives here (in the client component) — icon components are functions and
-// can't be passed across the server/client boundary as props.
+// Nav lives here, in the client component, because icon components are
+// functions and can't be passed across the server/client boundary as props.
 const NAVS: Record<DashboardVariant, NavItem[]> = {
   creator: [
     { label: "Dashboard", href: "/creator/dashboard", icon: LayoutDashboard },
@@ -47,6 +48,7 @@ const NAVS: Record<DashboardVariant, NavItem[]> = {
     { label: "Approvals", href: "/admin/approvals", icon: ClipboardList },
     { label: "Add creator", href: "/admin/creators/new", icon: UserPlus },
     { label: "Import creators", href: "/admin/creators/import", icon: Upload },
+    { label: "Shoppers", href: "/admin/shoppers", icon: Users },
     { label: "Brands", href: "/admin/brands", icon: Store },
     { label: "Brand enquiries", href: "/admin/enquiries", icon: Inbox },
     { label: "Analytics", href: "/admin/analytics", icon: BarChart3 },

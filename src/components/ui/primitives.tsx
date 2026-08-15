@@ -58,6 +58,10 @@ export function Pill({
 }: React.HTMLAttributes<HTMLElement> & {
   active?: boolean;
   as?: React.ElementType;
+  // Rendering as a <button> is what makes a pill a filter or a toggle rather
+  // than a label, and a button inside a form needs its type declaring or it
+  // submits.
+  type?: "button" | "submit" | "reset";
 }) {
   return (
     <As

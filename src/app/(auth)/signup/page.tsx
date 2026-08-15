@@ -6,7 +6,7 @@ import { CreatorSignupForm } from "./signup-form";
 export const metadata: Metadata = {
   title: "Apply to become a creator",
   description:
-    "Apply to join Pluggz — turn the products you already recommend into commission.",
+    "Apply to join Pluggz and turn the products you already recommend into commission.",
 };
 
 export default function SignupPage() {
@@ -21,6 +21,15 @@ export default function SignupPage() {
         Already have an account?{" "}
         <Link href="/login" className="font-semibold text-brand-pink hover:underline">
           Sign in
+        </Link>
+      </p>
+      <p className="mt-2 text-center text-sm text-text-faint">
+        Just here to shop?{" "}
+        <Link
+          href="/signup/shopper"
+          className="text-text-muted hover:text-brand-pink"
+        >
+          Create a shopper account instead
         </Link>
       </p>
     </AuthShell>

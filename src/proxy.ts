@@ -9,7 +9,7 @@ const UNSAFE_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
  * The session cookie is SameSite=lax, which already stops a browser sending it
  * on a cross-site POST. This is the second layer: a forged request comes *from*
  * a browser, and browsers always attach Origin to a cross-origin state-changing
- * request — so a mismatched Origin is proof of forgery.
+ * request, so a mismatched Origin is proof of forgery.
  *
  * A missing Origin and Referer is left alone rather than blocked: that's a
  * non-browser client (curl, a server-to-server call), which can't be tricked
@@ -55,7 +55,7 @@ export async function proxy(req: NextRequest) {
     );
   }
 
-  // API routes answer for themselves — each one guards its own access and
+  // API routes answer for themselves. Each one guards its own access and
   // returns JSON. Redirecting them to the login page would hand callers an
   // HTML document where they expect an error object.
   if (pathname.startsWith("/api/")) {
@@ -69,7 +69,7 @@ export async function proxy(req: NextRequest) {
     const url = req.nextUrl.clone();
     url.pathname = "/login";
     url.search = "";
-    // Only ever a path on this site — never a caller-supplied absolute URL,
+    // Only ever a path on this site, never a caller-supplied absolute URL,
     // which would turn the login page into an open redirect.
     url.searchParams.set("next", pathname);
     return NextResponse.redirect(url);
@@ -88,6 +88,11 @@ export async function proxy(req: NextRequest) {
   if (pathname.startsWith("/brand") && session.role !== "BRAND") {
     return NextResponse.redirect(new URL(homeForRole(session.role), req.url));
   }
+  // Everyone else already has an area of their own, and none of them have a
+  // shopper profile for this page to read.
+  if (pathname.startsWith("/account") && session.role !== "SHOPPER") {
+    return NextResponse.redirect(new URL(homeForRole(session.role), req.url));
+  }
 
   return NextResponse.next();
 }
@@ -97,6 +102,7 @@ export const config = {
     "/creator/:path*",
     "/admin/:path*",
     "/brand/:path*",
+    "/account/:path*",
     "/api/:path*",
   ],
 };

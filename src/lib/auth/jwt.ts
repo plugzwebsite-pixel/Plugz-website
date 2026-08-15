@@ -58,9 +58,9 @@ export function homeForRole(role: Role): string {
       return "/creator/dashboard";
     case "BRAND":
       return "/brand/dashboard";
+    case "SHOPPER":
+      return "/account";
     default:
-      // Shoppers have no account area — there is no checkout on Pluggz, so
-      // there is nothing for them to sign in to.
       return "/";
   }
 }

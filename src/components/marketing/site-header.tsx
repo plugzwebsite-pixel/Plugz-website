@@ -139,14 +139,23 @@ export function SiteHeader() {
                 </Link>
               ))}
               {!user && (
-                <div className="flex gap-2 pt-3">
-                  <Link href="/login" className="flex-1" onClick={() => setMenuOpen(false)}>
-                    <Button variant="secondary" className="w-full">
-                      Sign in
-                    </Button>
-                  </Link>
-                  <Link href="/signup" className="flex-1" onClick={() => setMenuOpen(false)}>
-                    <Button className="w-full">Join</Button>
+                <div className="space-y-2 pt-3">
+                  <div className="flex gap-2">
+                    <Link href="/login" className="flex-1" onClick={() => setMenuOpen(false)}>
+                      <Button variant="secondary" className="w-full">
+                        Sign in
+                      </Button>
+                    </Link>
+                    <Link href="/signup" className="flex-1" onClick={() => setMenuOpen(false)}>
+                      <Button className="w-full">Join</Button>
+                    </Link>
+                  </div>
+                  <Link
+                    href="/signup/shopper"
+                    onClick={() => setMenuOpen(false)}
+                    className="block px-3 py-2 text-center text-sm text-text-muted hover:text-brand-pink"
+                  >
+                    Shopping? Create a free account
                   </Link>
                 </div>
               )}

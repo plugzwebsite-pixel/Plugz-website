@@ -8,10 +8,20 @@ import { LayoutDashboard, Settings, LogOut, ChevronDown } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import type { SessionUser } from "@/lib/auth/jwt";
 
+// Every role, including BRAND. A brand contact whose menu sent them back to
+// the homepage had no way into their own dashboard from here.
 const roleHome: Record<string, string> = {
   ADMIN: "/admin/approvals",
   CREATOR: "/creator/dashboard",
-  SHOPPER: "/",
+  BRAND: "/brand/dashboard",
+  SHOPPER: "/account",
+};
+
+const roleHomeLabel: Record<string, string> = {
+  ADMIN: "Dashboard",
+  CREATOR: "Dashboard",
+  BRAND: "Dashboard",
+  SHOPPER: "Your account",
 };
 
 export function UserMenu({ user }: { user: SessionUser }) {
@@ -66,7 +76,8 @@ export function UserMenu({ user }: { user: SessionUser }) {
               onClick={() => setOpen(false)}
               className="flex items-center gap-2.5 rounded-sm px-3 py-2 text-sm text-text-muted transition-colors hover:bg-surface-2 hover:text-text-strong"
             >
-              <LayoutDashboard size={16} /> Dashboard
+              <LayoutDashboard size={16} />{" "}
+              {roleHomeLabel[user.role] ?? "Dashboard"}
             </Link>
             {user.role === "CREATOR" && (
               <Link

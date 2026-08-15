@@ -6,7 +6,7 @@ import { LoginForm } from "./login-form";
 
 export const metadata: Metadata = {
   title: "Sign in",
-  description: "Sign in to Pluggz — creators, brands and the Pluggz team.",
+  description: "Sign in to Pluggz: creators, brands and the Pluggz team.",
 };
 
 // One sign-in serves all three roles and the platform routes you from there.
@@ -23,11 +23,17 @@ export default function LoginPage() {
         <LoginForm />
       </Suspense>
       <p className="mt-8 text-center text-sm text-text-muted">
-        New creator?{" "}
+        Shopping on Pluggz?{" "}
         <Link
-          href="/signup"
+          href="/signup/shopper"
           className="font-semibold text-brand-pink hover:underline"
         >
+          Create a free account
+        </Link>
+      </p>
+      <p className="mt-2 text-center text-sm text-text-faint">
+        New creator?{" "}
+        <Link href="/signup" className="text-text-muted hover:text-brand-pink">
           Apply to join
         </Link>
       </p>

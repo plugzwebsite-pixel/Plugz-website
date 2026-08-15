@@ -13,6 +13,7 @@ const columns = [
       { label: "Beauty & Skincare", href: "/category/beauty-skincare" },
       { label: "Shoes & Accessories", href: "/category/shoes-accessories" },
       { label: "Travel / Holiday", href: "/category/travel-holiday" },
+      { label: "Create an account", href: "/signup/shopper" },
     ],
   },
   {

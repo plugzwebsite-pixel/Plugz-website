@@ -1,4 +1,4 @@
-// Pluggz — data model (auth + roles for the MVP frontend phase).
+// Pluggz data model (auth + roles for the MVP frontend phase).
 // Datastore: self-hosted PostgreSQL (see infrastructure proposal).
 
 generator client {
@@ -26,7 +26,7 @@ enum CreatorStatus {
   SUSPENDED // temporarily disabled
 }
 
-// How the creator record was created — drives the dual-consent flow.
+// How the creator record was created. Drives the dual-consent flow.
 enum ApplicationSource {
   SELF_SERVE // creator applied themselves
   ADMIN_ADDED // admin created on their behalf; creator must still confirm
@@ -48,10 +48,11 @@ model User {
   updatedAt     DateTime  @updatedAt
 
   creatorProfile      CreatorProfile?
+  shopperProfile      ShopperProfile?
   emailTokens         EmailVerificationToken[]
   passwordResetTokens PasswordResetToken[]
 
-  // Set only for BRAND accounts — the brand whose figures this person may see.
+  // Set only for BRAND accounts: the brand whose figures this person may see.
   // A brand can have several contacts; each one is tied to exactly one brand,
   // which is what scopes every query on the brand dashboard.
   brandId String?
@@ -77,7 +78,7 @@ model CreatorProfile {
 
   // Approving somebody and putting them on the front page are two different
   // decisions. Every approved creator gets a storefront; only the ones the team
-  // chooses appear on the homepage wall — otherwise a test account or a very
+  // chooses appear on the homepage wall. Otherwise a test account or a very
   // small creator lands next to the headline names the moment they sign up.
   featured Boolean @default(false)
 
@@ -98,6 +99,51 @@ model CreatorProfile {
   commissionOverride CommissionOverride?
 
   @@index([status])
+}
+
+/**
+ * A shopper's account.
+ *
+ * Shoppers browse and buy without ever signing in, because there is no checkout
+ * on Pluggz, so an account exists for one reason: the shopper chooses to be
+ * known to us. That makes consent the whole point of this record rather than a
+ * footnote, which is why the marketing opt-in is stored with the timestamp and
+ * the wording version it was given against. A name and an email with no
+ * evidence of how they were obtained is not a list anyone can lawfully send to.
+ */
+model ShopperProfile {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  city String?
+
+  // Categories the shopper picked at sign-up. Kept so the team can send the
+  // beauty edit to the people who asked for beauty, rather than everyone.
+  interests String[]
+
+  // Opt-in, never assumed. Unticked at sign-up and unticked here by default:
+  // a pre-ticked box is not consent under UK GDPR / PECR.
+  marketingOptIn    Boolean   @default(false)
+  marketingOptInAt  DateTime?
+  marketingOptOutAt DateTime?
+
+  // The terms wording in force when they joined, timestamped the same way the
+  // creator agreement is.
+  termsVersion    String?
+  termsAcceptedAt DateTime?
+
+  // Free text, e.g. "web" or a creator handle, so the team can see which
+  // storefront actually brought a shopper in.
+  signupSource String?
+
+  lastSeenAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([marketingOptIn])
+  @@index([createdAt])
 }
 
 model SocialHandle {
@@ -124,7 +170,7 @@ enum EnquiryStatus {
  * A brand asking to work with Pluggz.
  * Deliberately not a signup. Brands can't self-serve an account because the
  * commission rate, return window and settlement terms are negotiated before
- * there is anything to show them — so this captures the lead, and the first
+ * there is anything to show them, so this captures the lead, and the first
  * question from the Brand Onboarding Checklist, and lands in the admin queue.
  */
 model BrandEnquiry {
@@ -141,7 +187,7 @@ model BrandEnquiry {
   hasAffiliateProgramme Boolean @default(false)
   networkName           String?
 
-  categories String? // free text — what they sell
+  categories String? // free text: what they sell
   message    String?
 
   status EnquiryStatus @default(NEW)
@@ -194,10 +240,10 @@ model PasswordResetToken {
 
 // How a sale gets attributed back to Pluggz for a given brand.
 enum TrackingMethod {
-  PLUGGZ_DIRECT // Pluggz's own link, direct brand deal — the launch default
+  PLUGGZ_DIRECT // Pluggz's own link, direct brand deal, the launch default
   DISCOUNT_CODE // unique code per creator; for brands with no technical setup
   PIXEL // pixel/JS snippet on the brand's order confirmation page
-  NETWORK // third-party network deep link — infrastructure only for now
+  NETWORK // third-party network deep link, infrastructure only for now
 }
 
 enum BrandStatus {
@@ -214,7 +260,7 @@ model Brand {
   logoUrl    String?
   status     BrandStatus @default(DRAFT)
 
-  // The first onboarding question — decides which field set below applies.
+  // The first onboarding question. Decides which field set below applies.
   hasAffiliateProgramme Boolean        @default(false)
   trackingMethod        TrackingMethod @default(DISCOUNT_CODE)
 
@@ -224,7 +270,7 @@ model Brand {
   publisherId     String?
   deepLinkPattern String? // {DEST} and {CLICKREF} are substituted at redirect time
 
-  // Direct-deal path — the real launch path today.
+  // Direct-deal path: the real launch path today.
   attributionWindowDays Int     @default(30)
   invoicingDetails      String?
 
@@ -249,8 +295,8 @@ model Brand {
   seeded Boolean @default(false)
 
   // The demonstration shop. It is a genuine brand row with genuine credentials,
-  // because the walkthrough has to drive the same code a real integration does
-  // — but it is a fictional label, and its listing sits on a real influencer's
+  // because the walkthrough has to drive the same code a real integration does.
+  // But it is a fictional label, and its listing sits on a real influencer's
   // storefront. It must never reach the catalogue a shopper browses.
   demo Boolean @default(false)
 
@@ -299,7 +345,7 @@ model Product {
   currency    String  @default("GBP")
   category    String
 
-  // Canonical brand URL — the dedupe key that makes shared records work.
+  // Canonical brand URL: the dedupe key that makes shared records work.
   sourceUrl String @unique
 
   creatorProducts CreatorProduct[]

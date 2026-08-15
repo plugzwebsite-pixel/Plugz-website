@@ -4,7 +4,7 @@ export const PLATFORMS = ["instagram", "tiktok", "youtube"] as const;
 
 /**
  * Public profile URL for a platform handle. Stored at sign-up so the admin
- * approval queue can link straight to the profile — follower counts are
+ * approval queue can link straight to the profile. Follower counts are
  * self-reported and have to be spot-checked by hand before approval.
  */
 export function profileUrl(platform: string, handle: string): string | null {
@@ -67,7 +67,7 @@ export const creatorSignupSchema = z
     email,
     password,
     handle,
-    // No creator-level category — categorisation happens per product at upload.
+    // No creator-level category; categorisation happens per product at upload.
     city: z.string().trim().max(80).optional().or(z.literal("")),
     socials: z.array(social).min(1),
     acceptTerms: z
@@ -79,6 +79,43 @@ export const creatorSignupSchema = z
     { message: "Add at least one platform handle", path: ["socials"] }
   );
 export type CreatorSignupInput = z.infer<typeof creatorSignupSchema>;
+
+/**
+ * Shopper sign-up.
+ *
+ * Deliberately short. A shopper gets nothing gated in return, so every extra
+ * field is a reason to abandon the form. Name, email and password are the
+ * whole requirement; city and interests are optional and only exist because
+ * they make a mailing list worth having.
+ *
+ * `marketing` is a plain boolean with no `.refine()`: consent has to be
+ * refusable or it isn't consent, and someone who declines still gets an
+ * account.
+ */
+export const shopperSignupSchema = z.object({
+  name: z.string().trim().min(2, "Enter your name").max(80),
+  email,
+  password,
+  city: z.string().trim().max(80).optional().or(z.literal("")),
+  interests: z.array(z.enum(CATEGORIES)).max(CATEGORIES.length).default([]),
+  marketing: z.boolean().default(false),
+  acceptTerms: z
+    .boolean()
+    .refine((v) => v === true, "Please accept the terms to create an account"),
+  // Which storefront or page sent them, when it's known. Never shown to the
+  // shopper and never required.
+  source: z.string().trim().max(60).optional(),
+});
+export type ShopperSignupInput = z.infer<typeof shopperSignupSchema>;
+
+/** What a shopper may change about themselves from their account page. */
+export const shopperProfileSchema = z.object({
+  name: z.string().trim().min(2, "Enter your name").max(80),
+  city: z.string().trim().max(80).optional().or(z.literal("")),
+  interests: z.array(z.enum(CATEGORIES)).max(CATEGORIES.length).default([]),
+  marketing: z.boolean().default(false),
+});
+export type ShopperProfileInput = z.infer<typeof shopperProfileSchema>;
 
 export const waitlistSchema = z.object({
   name: z.string().trim().min(2, "Enter your name").max(80),
@@ -94,7 +131,7 @@ export const brandEnquirySchema = z.object({
   contactName: z.string().trim().min(2, "Enter your name").max(80),
   contactEmail: email,
   contactRole: z.string().trim().max(80).optional().or(z.literal("")),
-  // The Brand Onboarding Checklist's opening question — it decides whether
+  // The Brand Onboarding Checklist's opening question. It decides whether
   // this is a network partnership or a direct deal, so it's asked up front
   // rather than discovered on a call.
   hasAffiliateProgramme: z.boolean().default(false),
