@@ -61,11 +61,16 @@ export function SiteHeader() {
         <Logo />
 
         <nav className="ml-4 hidden items-center gap-1 lg:flex">
-          {CATEGORY_NAV.slice(0, 4).map((c) => (
+          {CATEGORY_NAV.slice(0, 3).map((c, i) => (
             <Link
               key={c.slug}
               href={`/category/${c.slug}`}
-              className="rounded-pill px-3 py-2 text-sm text-text-muted transition-colors hover:bg-surface-2 hover:text-text-strong"
+              className={cn(
+                "rounded-pill px-3 py-2 text-sm text-text-muted transition-colors hover:bg-surface-2 hover:text-text-strong",
+                // Between 1024 and 1280 the bar has to carry search and both
+                // sign-up routes as well. The third category is what gives.
+                i === 2 && "hidden xl:block"
+              )}
             >
               {c.name}
             </Link>
@@ -104,6 +109,11 @@ export function SiteHeader() {
                   Sign in
                 </Button>
               </Link>
+              <Link href="/signup/shopper" className="hidden lg:block">
+                <Button variant="secondary" size="sm">
+                  Sign up to shop
+                </Button>
+              </Link>
               <Link href="/signup" className="hidden sm:block">
                 <Button size="sm">Join as Creator</Button>
               </Link>
@@ -139,7 +149,14 @@ export function SiteHeader() {
                 </Link>
               ))}
               {!user && (
-                <div className="space-y-2 pt-3">
+                <div className="space-y-2 border-t border-border pt-3">
+                  <Link
+                    href="/signup/shopper"
+                    className="block"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    <Button className="w-full">Sign up to shop</Button>
+                  </Link>
                   <div className="flex gap-2">
                     <Link href="/login" className="flex-1" onClick={() => setMenuOpen(false)}>
                       <Button variant="secondary" className="w-full">
@@ -147,16 +164,11 @@ export function SiteHeader() {
                       </Button>
                     </Link>
                     <Link href="/signup" className="flex-1" onClick={() => setMenuOpen(false)}>
-                      <Button className="w-full">Join</Button>
+                      <Button variant="secondary" className="w-full">
+                        Join as Creator
+                      </Button>
                     </Link>
                   </div>
-                  <Link
-                    href="/signup/shopper"
-                    onClick={() => setMenuOpen(false)}
-                    className="block px-3 py-2 text-center text-sm text-text-muted hover:text-brand-pink"
-                  >
-                    Shopping? Create a free account
-                  </Link>
                 </div>
               )}
             </div>
