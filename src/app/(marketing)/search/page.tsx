@@ -20,6 +20,14 @@ export default async function SearchPage({
 
   return (
     <Container className="py-12">
+      {/* Every other page names itself in a heading; this one had none at all,
+          which leaves anyone using a screen reader with no idea where they
+          have landed. Visually the search box already says it, so the heading
+          is read rather than shown. */}
+      <h1 className="sr-only">
+        {query ? `Search results for ${q}` : "Search Pluggz"}
+      </h1>
+
       <form action="/search" className="mx-auto max-w-2xl">
         <div className="relative">
           <SearchIcon
