@@ -21,9 +21,10 @@ export function ProductImage({
   sizes,
   priority,
   className,
-  seed,
-  label,
+  seed = "",
+  label = "",
   spacerClassName,
+  fallback,
 }: {
   src: string | null | undefined;
   alt: string;
@@ -33,30 +34,52 @@ export function ProductImage({
   priority?: boolean;
   className?: string;
   /** Keeps the stand-in artwork identical wherever this product appears. */
-  seed: string;
-  label: string;
+  seed?: string;
+  label?: string;
   /**
    * Sizes the gap the artwork fills. The panel is absolutely positioned, so a
    * container that took its height from the photograph collapses without one.
    */
   spacerClassName?: string;
+  /**
+   * Shown instead of the drawn panel. A labelled gradient is right for a card;
+   * a 40px thumbnail wants a plain icon.
+   */
+  fallback?: React.ReactNode;
 }) {
-  const [failed, setFailed] = useState(false);
-  const onError = useCallback(() => setFailed(true), []);
+  // Remember which photograph failed rather than that one did. The same
+  // component instance gets reused for a different product as a list reorders,
+  // and a plain boolean would carry the last one's failure onto it.
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
+  const failed = !!src && failedSrc === src;
+
+  const onError = useCallback(() => {
+    if (src) setFailedSrc(src);
+  }, [src]);
 
   // onError alone is not enough: a photograph that fails during the
   // server-rendered pass fires its error before React is listening, and the
   // page keeps the browser's own broken-image box. Check what loaded instead.
-  const check = useCallback((el: HTMLImageElement | null) => {
-    if (el?.complete && el.naturalWidth === 0) setFailed(true);
-  }, []);
+  //
+  // Not for SVG. One with no width and height of its own reports a natural
+  // size of zero even when it has drawn perfectly, and would be thrown away
+  // for no reason. onError still catches an SVG that genuinely failed.
+  const check = useCallback(
+    (el: HTMLImageElement | null) => {
+      if (!el || !src || /\.svgx?(\?|#|$)/i.test(src)) return;
+      if (el.complete && el.naturalWidth === 0) setFailedSrc(src);
+    },
+    [src]
+  );
 
   if (!src || failed) {
     return (
-      <>
-        {spacerClassName && <div className={spacerClassName} />}
-        <ArtPanel seed={seed} label={label} />
-      </>
+      fallback ?? (
+        <>
+          {spacerClassName && <div className={spacerClassName} />}
+          <ArtPanel seed={seed} label={label} />
+        </>
+      )
     );
   }
 

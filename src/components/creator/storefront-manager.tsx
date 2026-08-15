@@ -18,16 +18,19 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/primitives";
 import { useToast } from "@/components/ui/toast";
+import { ProductImage } from "@/components/ui/product-image";
 import { cn, compact, gbpFromPence } from "@/lib/utils";
 import { postJson } from "@/lib/client/api";
 
 /**
- * A product thumbnail that copes with the brand's own photography.
+ * A product thumbnail.
  *
  * These URLs point straight at the shop that sells the item, so some are
- * missing, some are a megabyte of full-resolution studio shot going into a
- * 40px box, and some simply stop resolving when the brand reorganises its CDN.
- * All three used to leave an empty grey square with no explanation.
+ * missing, some are a megabyte of studio photography going into a 40px box,
+ * and some stop resolving when the brand reorganises its CDN. ProductImage
+ * already answers all three: allowlisted hosts go through the optimiser, the
+ * rest are sent with no referrer so a brand cannot see where the request came
+ * from, and anything that fails falls back to what is passed here.
  */
 function ProductThumb({
   src,
@@ -38,39 +41,20 @@ function ProductThumb({
   size: number;
   className?: string;
 }) {
-  const [failed, setFailed] = useState(false);
-
-  // A photo that 404s during the server-rendered pass has already fired its
-  // error event by the time React attaches the handler, so onError alone leaves
-  // the broken ones as blank squares. Re-check whatever the browser managed to
-  // load as each image mounts.
-  const check = useCallback((el: HTMLImageElement | null) => {
-    if (el?.complete && el.naturalWidth === 0) setFailed(true);
-  }, []);
-
   return (
     <span className={cn("shrink-0 overflow-hidden bg-surface-2", className)}>
-      {src && !failed ? (
-        /* eslint-disable-next-line @next/next/no-img-element */
-        <img
-          ref={check}
-          src={src}
-          alt=""
-          width={size}
-          height={size}
-          loading="lazy"
-          decoding="async"
-          onError={() => setFailed(true)}
-          onLoad={(e) => {
-            if (e.currentTarget.naturalWidth === 0) setFailed(true);
-          }}
-          className="h-full w-full object-cover"
-        />
-      ) : (
-        <span className="grid h-full w-full place-items-center text-text-faint">
-          <ImageOff size={size > 44 ? 16 : 14} />
-        </span>
-      )}
+      <ProductImage
+        src={src}
+        alt=""
+        width={size}
+        height={size}
+        className="h-full w-full object-cover"
+        fallback={
+          <span className="grid h-full w-full place-items-center text-text-faint">
+            <ImageOff size={size > 44 ? 16 : 14} />
+          </span>
+        }
+      />
     </span>
   );
 }
