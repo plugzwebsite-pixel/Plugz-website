@@ -1,15 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { hardNavigate } from "@/lib/auth/navigate";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Menu,
   X,
-  LogOut,
-  ArrowLeft,
   LayoutDashboard,
   Store,
   Settings,
@@ -21,14 +18,13 @@ import {
   Wallet,
   Package,
   Receipt,
-  Route,
   Inbox,
   Users,
   type LucideIcon,
 } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
-import { Avatar } from "@/components/ui/avatar";
+import { DashboardUserMenu } from "./dashboard-user-menu";
 import type { SessionUser } from "@/lib/auth/jwt";
 import { cn } from "@/lib/utils";
 
@@ -54,7 +50,6 @@ const NAVS: Record<DashboardVariant, NavItem[]> = {
     { label: "Analytics", href: "/admin/analytics", icon: BarChart3 },
     { label: "Commission", href: "/admin/commission", icon: Percent },
     { label: "Record sales", href: "/admin/sales", icon: Receipt },
-    { label: "How tracking works", href: "/admin/tracking-demo", icon: Route },
     { label: "Payouts", href: "/admin/payouts", icon: Wallet },
   ],
   // Read-only by design. Brands see their own performance and what they owe;
@@ -93,11 +88,6 @@ export function DashboardShell({
       .find((n) => pathname === n.href || pathname.startsWith(n.href + "/"))
       ?.label ?? "";
 
-  async function logout() {
-    await fetch("/api/auth/logout", { method: "POST" });
-    hardNavigate("/");
-  }
-
   const sidebar = (
     <div className="flex h-full flex-col">
       <div className="flex items-center justify-between px-5 py-5">
@@ -116,7 +106,10 @@ export function DashboardShell({
         </button>
       </div>
 
-      <nav className="flex-1 space-y-1 px-3 py-2">
+      {/* min-h-0 lets this actually shrink. Without it a flex child refuses to
+          go below its content height, which is how eleven admin links pushed
+          the account block off the bottom of the screen. */}
+      <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto px-3 py-2">
         {nav.map((item) => {
           const active =
             pathname === item.href || pathname.startsWith(item.href + "/");
@@ -147,33 +140,6 @@ export function DashboardShell({
         })}
       </nav>
 
-      <div className="border-t border-border p-3">
-        <div className="flex items-center gap-3 rounded-md px-2 py-2">
-          <Avatar name={user.name} size="sm" />
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold text-text-strong">
-              {user.name}
-            </p>
-            <p className="truncate text-xs text-text-faint">
-              {user.handle ? `@${user.handle}` : user.email}
-            </p>
-          </div>
-        </div>
-        <div className="mt-1 flex items-center gap-1">
-          <Link
-            href="/"
-            className="flex flex-1 items-center gap-2 rounded-sm px-2.5 py-2 text-xs text-text-muted transition-colors hover:bg-surface-2 hover:text-text-strong"
-          >
-            <ArrowLeft size={14} /> Back to Pluggz
-          </Link>
-          <button
-            onClick={logout}
-            className="flex items-center gap-2 rounded-sm px-2.5 py-2 text-xs text-red-400 transition-colors hover:bg-red-500/10"
-          >
-            <LogOut size={14} /> Sign out
-          </button>
-        </div>
-      </div>
     </div>
   );
 
@@ -217,11 +183,12 @@ export function DashboardShell({
           >
             <Menu size={18} />
           </button>
-          <h1 className="font-display text-2xl font-semibold text-text-strong">
+          <h1 className="min-w-0 truncate font-display text-2xl font-semibold text-text-strong">
             {title}
           </h1>
-          <div className="ml-auto">
+          <div className="ml-auto flex shrink-0 items-center gap-2">
             <ThemeToggle />
+            <DashboardUserMenu user={user} />
           </div>
         </header>
         <main className="flex-1 px-5 py-7 sm:px-8">{children}</main>
