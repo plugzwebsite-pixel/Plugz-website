@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { db } from "@/lib/db";
+import { publicOrigin } from "@/lib/url";
 import {
   ATTRIBUTION_COOKIE,
   buildDestination,
@@ -20,26 +21,6 @@ import {
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-/**
- * Where to send someone whose link has died.
- *
- * `new URL(req.url).origin` is the address nginx dialled, not the one the
- * shopper typed. Behind the proxy it reads localhost:3000, so a dead link sent
- * them nowhere at all. Prefer the configured public origin, then the host nginx
- * forwarded, and only then whatever the request claims.
- */
-function publicOrigin(req: Request): string {
-  const configured = process.env.NEXT_PUBLIC_APP_URL;
-  if (configured) return configured.replace(/\/$/, "");
-
-  const host = req.headers.get("x-forwarded-host") ?? req.headers.get("host");
-  if (host) {
-    const proto = req.headers.get("x-forwarded-proto") ?? "https";
-    return `${proto}://${host}`;
-  }
-  return new URL(req.url).origin;
-}
 
 export async function GET(
   req: Request,
