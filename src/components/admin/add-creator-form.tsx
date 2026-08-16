@@ -27,7 +27,8 @@ const platforms = [
   { label: "YouTube", icon: YouTubeIcon },
 ] as const;
 
-export function AddCreatorForm() {
+export function AddCreatorForm({ categories }: { categories?: string[] }) {
+  const choices = categories?.length ? categories : [...CATEGORIES];
   const [invited, setInvited] = useState<string | null>(null);
   const {
     register,
@@ -122,7 +123,7 @@ export function AddCreatorForm() {
             <option value="" disabled>
               Choose a category
             </option>
-            {CATEGORIES.map((c) => (
+            {choices.map((c) => (
               <option key={c} value={c}>
                 {c}
               </option>

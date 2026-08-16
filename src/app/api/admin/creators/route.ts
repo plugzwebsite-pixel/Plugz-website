@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { ok, fail, parseBody } from "@/lib/http";
 import { adminAddCreatorSchema, profileUrl } from "@/lib/validation";
+import { isChoosableCategory } from "@/lib/categories";
 import { requireRole } from "@/lib/auth/guard";
 import { hashPassword } from "@/lib/auth/password";
 import { generateToken, expiryFromNow } from "@/lib/auth/tokens";
@@ -19,6 +20,12 @@ export async function POST(req: Request) {
   if (!parsed.success) return parsed.response;
   const input = parsed.data;
   const email = input.email.toLowerCase();
+
+  if (!(await isChoosableCategory(input.category))) {
+    return fail("That category no longer exists.", 422, {
+      category: "Choose a category",
+    });
+  }
 
   const [emailTaken, handleTaken] = await Promise.all([
     db.user.findUnique({ where: { email }, select: { id: true } }),

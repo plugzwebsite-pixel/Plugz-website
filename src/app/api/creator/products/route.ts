@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { publicBrand } from "@/lib/queries";
+import { isChoosableCategory } from "@/lib/categories";
 import { ok, fail, parseBody } from "@/lib/http";
 import { checkCreatorAccess } from "@/lib/auth/access";
 import { rateLimit, clientKey } from "@/lib/rate-limit";
@@ -11,7 +12,6 @@ import {
   addProductToCreator,
   canonicalUrl,
 } from "@/lib/catalogue";
-import { CATEGORIES } from "@/lib/validation";
 import { z } from "zod";
 
 const addSchema = z
@@ -20,7 +20,7 @@ const addSchema = z
     // catalogue that another creator has plugged.
     url: z.string().trim().min(8).optional(),
     productId: z.string().trim().min(1).optional(),
-    category: z.enum(CATEGORIES).optional(),
+    category: z.string().trim().min(2).max(48).optional(),
     review: z.string().trim().max(1000).optional(),
     rating: z.number().int().min(1).max(5).optional(),
   })
@@ -120,6 +120,12 @@ export async function POST(req: Request) {
   const parsed = await parseBody(req, addSchema);
   if (!parsed.success) return parsed.response;
   const input = parsed.data;
+
+  if (input.category && !(await isChoosableCategory(input.category))) {
+    return fail("That category no longer exists.", 422, {
+      category: "Choose a category",
+    });
+  }
 
   const profile = await db.creatorProfile.findUnique({
     where: { id: access.profileId },

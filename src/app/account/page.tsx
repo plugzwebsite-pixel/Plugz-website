@@ -8,6 +8,7 @@ import { SignOutButton } from "@/components/auth/sign-out-button";
 import { Container, Badge, Eyebrow } from "@/components/ui/primitives";
 import { Button } from "@/components/ui/button";
 import { AccountForm } from "./account-form";
+import { publicCategories } from "@/lib/categories";
 
 export const metadata: Metadata = {
   title: "Your account",
@@ -25,6 +26,7 @@ const dateFormat = new Intl.DateTimeFormat("en-GB", {
 
 export default async function AccountPage() {
   const access = await checkShopperAccess();
+  const names = (await publicCategories()).map((c) => c.name);
   if (!access.ok) redirect(access.redirectTo);
 
   const { account } = access;
@@ -101,6 +103,7 @@ export default async function AccountPage() {
 
         <div className="mt-6">
           <AccountForm
+            categories={names}
             defaults={{
               name: account.name,
               city: profile.city ?? "",

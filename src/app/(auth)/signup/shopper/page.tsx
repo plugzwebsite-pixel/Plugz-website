@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { ShopperSignupForm } from "./shopper-signup-form";
+import { publicCategories } from "@/lib/categories";
 
 export const metadata: Metadata = {
   title: "Create your account",
@@ -25,6 +26,7 @@ export default async function ShopperSignupPage({
   // Set when the link came off a creator's storefront, so the team can see
   // which creators actually bring shoppers in.
   const { from } = await searchParams;
+  const names = (await publicCategories()).map((c) => c.name);
 
   return (
     <AuthShell
@@ -33,7 +35,7 @@ export default async function ShopperSignupPage({
       title="Create your account"
       subtitle="Free, takes a minute. Follow the creators you like and be first to hear what they're plugging."
     >
-      <ShopperSignupForm source={from} />
+      <ShopperSignupForm source={from} categories={names} />
 
       <p className="mt-8 text-center text-sm text-text-muted">
         Already have an account?{" "}

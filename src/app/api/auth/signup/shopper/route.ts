@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { keepChoosableCategories } from "@/lib/categories";
 import { ok, fail, parseBody } from "@/lib/http";
 import { shopperSignupSchema } from "@/lib/validation";
 import { hashPassword } from "@/lib/auth/password";
@@ -38,6 +39,10 @@ export async function POST(req: Request) {
   if (!parsed.success) return parsed.response;
   const input = parsed.data;
 
+  // A category the team has since removed should not be kept against an
+  // account: it would be sent nothing and read as an interest they still hold.
+  const interests = await keepChoosableCategories(input.interests);
+
   const email = input.email.toLowerCase();
 
   const existing = await db.user.findUnique({
@@ -62,7 +67,7 @@ export async function POST(req: Request) {
       shopperProfile: {
         create: {
           city: input.city || null,
-          interests: input.interests,
+          interests,
           marketingOptIn: input.marketing,
           // Only stamped when they actually said yes, so the record can always
           // answer when consent was given and for which wording.

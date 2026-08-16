@@ -18,13 +18,17 @@ import { Button } from "@/components/ui/button";
 import { patchJson } from "@/lib/client/api";
 import { useToast } from "@/components/ui/toast";
 
-type Category = (typeof CATEGORIES)[number];
+type Category = string;
 
 export function AccountForm({
   defaults,
+  categories,
 }: {
   defaults: { name: string; city: string; interests: string[]; marketing: boolean };
+  /** The live list, falling back to the launch set. */
+  categories?: string[];
 }) {
+  const choices = categories?.length ? categories : [...CATEGORIES];
   const toast = useToast();
   const [saved, setSaved] = useState(false);
 
@@ -43,7 +47,7 @@ export function AccountForm({
       // Anything no longer offered as a category is dropped rather than kept
       // as a value the form can't display or clear.
       interests: defaults.interests.filter((i): i is Category =>
-        (CATEGORIES as readonly string[]).includes(i)
+        choices.includes(i)
       ),
       marketing: defaults.marketing,
     },
@@ -124,7 +128,7 @@ export function AccountForm({
           What you&apos;re shopping for
         </span>
         <div className="mt-3 flex flex-wrap gap-2">
-          {CATEGORIES.map((category) => (
+          {choices.map((category) => (
             <Pill
               key={category}
               as="button"

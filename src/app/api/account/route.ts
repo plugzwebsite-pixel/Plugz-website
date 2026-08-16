@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { keepChoosableCategories } from "@/lib/categories";
 import { ok, fail, parseBody } from "@/lib/http";
 import { shopperProfileSchema } from "@/lib/validation";
 import { requireRole } from "@/lib/auth/guard";
@@ -16,6 +17,10 @@ export async function PATCH(req: Request) {
   const parsed = await parseBody(req, shopperProfileSchema);
   if (!parsed.success) return parsed.response;
   const input = parsed.data;
+
+  // A category the team has since removed should not be kept against an
+  // account: it would be sent nothing and read as an interest they still hold.
+  const interests = await keepChoosableCategories(input.interests);
 
   const profile = await db.shopperProfile.findUnique({
     where: { userId: guard.user.id },
@@ -38,7 +43,7 @@ export async function PATCH(req: Request) {
       where: { id: profile.id },
       data: {
         city: input.city || null,
-        interests: input.interests,
+        interests,
         marketingOptIn: input.marketing,
         ...(changed
           ? input.marketing

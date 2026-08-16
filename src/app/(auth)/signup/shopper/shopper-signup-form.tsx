@@ -19,7 +19,7 @@ import { Button } from "@/components/ui/button";
 import { postJson } from "@/lib/client/api";
 import { hardNavigate } from "@/lib/auth/navigate";
 
-type Category = (typeof CATEGORIES)[number];
+type Category = string;
 
 /**
  * `source` is read from the query string by the page and handed down, rather
@@ -27,7 +27,15 @@ type Category = (typeof CATEGORIES)[number];
  * this whole form behind a Suspense boundary for the sake of one optional
  * string, and the server already has the value.
  */
-export function ShopperSignupForm({ source }: { source?: string }) {
+export function ShopperSignupForm({
+  source,
+  categories,
+}: {
+  source?: string;
+  /** The live list. Falls back to the launch set if it somehow arrives empty. */
+  categories?: string[];
+}) {
+  const choices = categories?.length ? categories : [...CATEGORIES];
   const {
     register,
     handleSubmit,
@@ -156,7 +164,7 @@ export function ShopperSignupForm({ source }: { source?: string }) {
           <span className="text-xs text-text-faint">Optional</span>
         </div>
         <div className="flex flex-wrap gap-2">
-          {CATEGORIES.map((category) => (
+          {choices.map((category) => (
             <Pill
               key={category}
               as="button"

@@ -22,6 +22,13 @@ export function profileUrl(platform: string, handle: string): string | null {
   }
 }
 
+/**
+ * The categories the platform launched with.
+ *
+ * Kept as the seed for the Category table and as a fallback for a form whose
+ * live list has not arrived. It is no longer what validation checks against:
+ * the team can add a category now, and a fixed list would refuse the new one.
+ */
 export const CATEGORIES = [
   "Women's Fashion",
   "Beauty & Skincare",
@@ -30,6 +37,17 @@ export const CATEGORIES = [
   "Fitness & Lifestyle",
   "Travel / Holiday",
 ] as const;
+
+/**
+ * A category by name. Checked against the Category table in the route rather
+ * than against a fixed list here, so one added by the team is accepted the
+ * moment it exists.
+ */
+const categoryName = z
+  .string()
+  .trim()
+  .min(2, "Choose a category")
+  .max(48, "That is not a category");
 
 const email = z.email({ message: "Enter a valid email address" });
 
@@ -97,7 +115,7 @@ export const shopperSignupSchema = z.object({
   email,
   password,
   city: z.string().trim().max(80).optional().or(z.literal("")),
-  interests: z.array(z.enum(CATEGORIES)).max(CATEGORIES.length).default([]),
+  interests: z.array(categoryName).max(40).default([]),
   marketing: z.boolean().default(false),
   acceptTerms: z
     .boolean()
@@ -112,7 +130,7 @@ export type ShopperSignupInput = z.infer<typeof shopperSignupSchema>;
 export const shopperProfileSchema = z.object({
   name: z.string().trim().min(2, "Enter your name").max(80),
   city: z.string().trim().max(80).optional().or(z.literal("")),
-  interests: z.array(z.enum(CATEGORIES)).max(CATEGORIES.length).default([]),
+  interests: z.array(categoryName).max(40).default([]),
   marketing: z.boolean().default(false),
 });
 export type ShopperProfileInput = z.infer<typeof shopperProfileSchema>;
@@ -154,7 +172,7 @@ export const adminAddCreatorSchema = z.object({
   name: z.string().trim().min(2, "Enter a name").max(80),
   email,
   handle,
-  category: z.enum(CATEGORIES, { message: "Choose a category" }),
+  category: categoryName,
   city: z.string().trim().max(80).optional().or(z.literal("")),
   socials: z.array(social).min(1),
 });
