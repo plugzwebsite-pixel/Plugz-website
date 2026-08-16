@@ -5,6 +5,7 @@ import { StatCard } from "@/components/dashboard/stat-card";
 import { Badge } from "@/components/ui/primitives";
 import { Button } from "@/components/ui/button";
 import { ProductImage } from "@/components/ui/product-image";
+import { DiscountCodeCell } from "@/components/admin/discount-code-cell";
 import { gbpFromPence } from "@/lib/utils";
 import {
   brandsWithListings,
@@ -193,7 +194,7 @@ export default async function AdminProductsPage({
       ) : (
         <div className="overflow-hidden rounded-md border border-border bg-surface">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[62rem] text-left text-sm">
+            <table className="w-full min-w-[72rem] text-left text-sm">
               <thead>
                 <tr className="border-b border-border text-xs uppercase tracking-wide text-text-faint">
                   <th className="px-5 py-3 font-semibold">Product</th>
@@ -201,6 +202,7 @@ export default async function AdminProductsPage({
                   <th className="px-5 py-3 font-semibold">Creator</th>
                   <th className="px-5 py-3 text-right font-semibold">Clicks</th>
                   <th className="px-5 py-3 text-right font-semibold">Sales</th>
+                  <th className="px-5 py-3 font-semibold">Discount code</th>
                   <th className="px-5 py-3 font-semibold">Added</th>
                   <th className="px-5 py-3 font-semibold">Status</th>
                   <th className="px-5 py-3" />
@@ -245,6 +247,17 @@ export default async function AdminProductsPage({
                     </td>
                     <td className="px-5 py-3 text-right tabular-nums text-text-muted">
                       {r.salesCount > 0 ? gbpFromPence(r.salesPence) : "None"}
+                    </td>
+                    <td className="px-5 py-3">
+                      {r.code ? (
+                        <DiscountCodeCell
+                          listingId={r.id}
+                          code={r.discountCode}
+                          product={r.product}
+                        />
+                      ) : (
+                        <span className="text-xs text-text-faint">No link</span>
+                      )}
                     </td>
                     <td className="px-5 py-3 whitespace-nowrap text-text-faint">
                       {dateFormat.format(r.addedAt)}
