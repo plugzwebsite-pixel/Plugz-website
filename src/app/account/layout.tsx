@@ -1,4 +1,5 @@
 import { SiteHeader } from "@/components/marketing/site-header";
+import { publicCategories } from "@/lib/categories";
 import { SiteFooter } from "@/components/marketing/site-footer";
 
 /**
@@ -10,14 +11,14 @@ import { SiteFooter } from "@/components/marketing/site-footer";
  * underneath read the session, and the marketing layout is deliberately kept
  * free of that so the whole shopper-facing site stays cacheable.
  */
-export default function AccountLayout({
+export default async function AccountLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
     <div className="flex min-h-dvh flex-col">
-      <SiteHeader />
+      <SiteHeader categories={await publicCategories()} />
       <div className="flex-1">{children}</div>
       <SiteFooter />
     </div>

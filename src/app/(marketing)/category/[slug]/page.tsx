@@ -5,7 +5,8 @@ import { ProductCard } from "@/components/marketing/cards";
 import { Reveal } from "@/components/ui/reveal";
 import { Aurora } from "@/components/marketing/aurora";
 import { Pill } from "@/components/ui/primitives";
-import { CATEGORY_NAV } from "@/lib/demo-data";
+import { SponsorBanner } from "@/components/marketing/sponsor-banner";
+import { categoryBySlug, publicCategories } from "@/lib/categories";
 import { getProductsByCategory } from "@/lib/queries";
 
 // Served from cache and refreshed in the background. Shoppers arriving from a
@@ -13,9 +14,13 @@ import { getProductsByCategory } from "@/lib/queries";
 // products appear within the window below.
 export const revalidate = 120;
 
-/** The six lifestyle categories are a fixed list, so prerender all of them. */
+/**
+ * Prerender the categories that exist at build time. A category added later
+ * still renders on demand and is picked up on the next revalidate, so the team
+ * never has to wait for a deploy to publish one.
+ */
 export async function generateStaticParams() {
-  return CATEGORY_NAV.map(({ slug }) => ({ slug }));
+  return (await publicCategories()).map(({ slug }) => ({ slug }));
 }
 
 export async function generateMetadata({
@@ -24,7 +29,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const cat = CATEGORY_NAV.find((c) => c.slug === slug);
+  const cat = await categoryBySlug(slug);
   return { title: cat ? cat.name : "Category" };
 }
 
@@ -36,7 +41,7 @@ export default async function CategoryPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const cat = CATEGORY_NAV.find((c) => c.slug === slug);
+  const cat = await categoryBySlug(slug);
   if (!cat) notFound();
 
   const products = await getProductsByCategory(cat.name);
@@ -60,6 +65,8 @@ export default async function CategoryPage({
           </Reveal>
         </Container>
       </section>
+
+      {cat.banner && <SponsorBanner banner={cat.banner} category={cat.name} />}
 
       <Container className="py-10">
         <div className="flex flex-wrap gap-2.5">

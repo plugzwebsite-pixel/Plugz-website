@@ -548,6 +548,45 @@ model PlatformSetting {
 
 // Negotiated rate for one creator or one brand. Exactly one of the two
 // targets is set; creator overrides win over brand overrides.
+/**
+ * A lifestyle category: the tiles on the homepage and the pages behind them.
+ *
+ * `name` is the join key, because Product.category is free text written by the
+ * scraper and the importer rather than a foreign key. Renaming a category has
+ * to rewrite every product that carries the old name, which the admin route
+ * does in one transaction; nothing else may change this column.
+ */
+model Category {
+  id    String @id @default(cuid())
+  name  String @unique
+  slug  String @unique
+  emoji String @default("")
+
+  /**
+   * The tile artwork. Left unset until there is a photograph tall enough for
+   * the 4:5 box, since the drawn panel beats a small image stretched to fit.
+   */
+  coverUrl String?
+  videoUrl String?
+
+  sortOrder Int     @default(0)
+  inNav     Boolean @default(false) // shown in the header, which has room for three
+  active    Boolean @default(true) // hidden everywhere public when false
+
+  // A slot the team can sell to a category sponsor, e.g. a travel brand on
+  // Travel. Managed here so a placement can be mocked up for a prospect and
+  // switched on the day it is signed.
+  bannerImageUrl String?
+  bannerHref     String?
+  bannerLabel    String?
+  bannerActive   Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([active, sortOrder])
+}
+
 enum DisputeReason {
   RETURNED_NOT_REPORTED // brand says returned, we were never told
   VALUE_WRONG // the amount reported does not match the order

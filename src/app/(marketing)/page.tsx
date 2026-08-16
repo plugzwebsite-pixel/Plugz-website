@@ -10,7 +10,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { SmartImage } from "@/components/ui/smart-image";
 import { Reveal } from "@/components/ui/reveal";
 import { Aurora } from "@/components/marketing/aurora";
-import { CATEGORY_NAV } from "@/lib/demo-data";
+import { publicCategories } from "@/lib/categories";
 import {
   getCategoryCounts,
   getFeaturedBrand,
@@ -30,7 +30,7 @@ import { compact, gbpFromPence } from "@/lib/utils";
 export const revalidate = 60;
 
 export default async function HomePage() {
-  const [trendProducts, featured, stats, featuredBrand, categoryCounts] =
+  const [trendProducts, featured, stats, featuredBrand, categoryCounts, categories] =
     await Promise.all([
       getTrendingProducts(8),
       // The hero wall wants every creator it can get: each row has to span the
@@ -39,6 +39,7 @@ export default async function HomePage() {
       getPlatformStats(),
       getFeaturedBrand(),
       getCategoryCounts(),
+      publicCategories(),
     ]);
   const trendingCreators = featured.slice(0, 7);
 
@@ -99,7 +100,7 @@ export default async function HomePage() {
           <SectionHeading eyebrow="Curated" title="Shop by lifestyle" />
         </Reveal>
         <div className="mt-9 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {CATEGORY_NAV.map((c, i) => (
+          {categories.map((c, i) => (
             <Reveal key={c.slug} index={i % 3}>
               <CategoryVideoTile category={c} count={categoryCounts.get(c.name) ?? 0} />
             </Reveal>

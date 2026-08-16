@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { db } from "@/lib/db";
 import { publicBrand, publiclyVisibleCreator } from "@/lib/queries";
-import { CATEGORY_NAV } from "@/lib/demo-data";
+import { publicCategories } from "@/lib/categories";
 
 const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://pluggzofficial.co.uk";
 
@@ -25,7 +25,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${siteUrl}/search`, lastModified: now, changeFrequency: "weekly", priority: 0.4 },
     { url: `${siteUrl}/waitlist`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },
     { url: `${siteUrl}/legal/creator-terms`, lastModified: now, changeFrequency: "yearly", priority: 0.2 },
-    ...CATEGORY_NAV.map((c) => ({
+    ...(await publicCategories()).map((c) => ({
       url: `${siteUrl}/category/${c.slug}`,
       lastModified: now,
       changeFrequency: "daily" as const,

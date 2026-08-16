@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Play } from "lucide-react";
 import { ArtPanel } from "@/components/ui/art-panel";
 import { SmartImage } from "@/components/ui/smart-image";
-import type { Category } from "@/lib/demo-data";
+import type { CategoryRecord } from "@/lib/categories";
 
 /**
  * Instagram-style category tile: a cover that plays a short, muted, looping
@@ -21,7 +21,7 @@ export function CategoryVideoTile({
   category,
   count,
 }: {
-  category: Category;
+  category: CategoryRecord;
   count: number;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -30,7 +30,7 @@ export function CategoryVideoTile({
   // a photograph that worked last week. A tile with a dead cover was rendering
   // as an empty box; the drawn artwork is a better answer than nothing.
   const [coverFailed, setCoverFailed] = useState(false);
-  const cover = coverFailed ? undefined : category.cover;
+  const cover = coverFailed ? null : category.cover;
 
   function play() {
     videoRef.current?.play().catch(() => {});
@@ -75,7 +75,7 @@ export function CategoryVideoTile({
         <video
           ref={videoRef}
           src={category.video}
-          poster={cover}
+          poster={cover ?? undefined}
           muted
           loop
           playsInline

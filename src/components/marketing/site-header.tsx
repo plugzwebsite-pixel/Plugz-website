@@ -9,11 +9,13 @@ import { Logo } from "@/components/brand/logo";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { UserMenu } from "./user-menu";
-import { CATEGORY_NAV } from "@/lib/demo-data";
+import type { CategoryRecord } from "@/lib/categories";
 import type { SessionUser } from "@/lib/auth/jwt";
 import { cn } from "@/lib/utils";
 
-export function SiteHeader() {
+export function SiteHeader({ categories }: { categories: CategoryRecord[] }) {
+  // The team chooses which of these belong in the bar; the sheet gets them all.
+  const navCategories = categories.filter((c) => c.inNav);
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   // Resolved on the client so the pages underneath stay cacheable. `undefined`
@@ -61,7 +63,7 @@ export function SiteHeader() {
         <Logo />
 
         <nav className="ml-4 hidden items-center gap-1 lg:flex">
-          {CATEGORY_NAV.slice(0, 3).map((c, i) => (
+          {navCategories.slice(0, 3).map((c, i) => (
             <Link
               key={c.slug}
               href={`/category/${c.slug}`}
@@ -138,7 +140,7 @@ export function SiteHeader() {
             className="overflow-hidden border-t border-border glass lg:hidden"
           >
             <div className="space-y-1 px-5 py-4">
-              {CATEGORY_NAV.map((c) => (
+              {categories.map((c) => (
                 <Link
                   key={c.slug}
                   href={`/category/${c.slug}`}

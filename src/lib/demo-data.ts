@@ -27,6 +27,14 @@ export type Category = {
   video?: string;
 };
 
+/**
+ * The seed for the Category table, and nothing else.
+ *
+ * Categories are managed in the admin now and read from the database by the
+ * homepage, the header, each category page and the sitemap. This list is what
+ * that table was first filled from, kept so a fresh environment can be seeded
+ * the same way. Editing it changes nothing on a running site.
+ */
 export const CATEGORY_NAV: Category[] = [
   { name: "Women's Fashion", slug: "womens-fashion", emoji: "👗", cover: "https://clubllondon.com/cdn/shop/files/CL13639600206_1.jpg?v=1770423231&width=2000" },
   { name: "Beauty & Skincare", slug: "beauty-skincare", emoji: "✨", cover: "https://images.beautybay.com/eoaaqxyywn6o/BFBB1136F_1.jpg_s3.lmb_g5vod/c7e8edd0170a6ba75bbef8c2cb8dc69b/BFBB1136F_1.jpg" },
