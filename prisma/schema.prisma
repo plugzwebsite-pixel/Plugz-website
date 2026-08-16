@@ -499,6 +499,8 @@ model Sale {
   payoutId String?
   payout   Payout? @relation(fields: [payoutId], references: [id], onDelete: SetNull)
 
+  disputes Dispute[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -546,6 +548,51 @@ model PlatformSetting {
 
 // Negotiated rate for one creator or one brand. Exactly one of the two
 // targets is set; creator overrides win over brand overrides.
+enum DisputeReason {
+  RETURNED_NOT_REPORTED // brand says returned, we were never told
+  VALUE_WRONG // the amount reported does not match the order
+  NOT_OUR_SALE // the brand says this did not come from Pluggz
+  DUPLICATE // reported twice under different references
+  CREATOR_QUERY // the creator says something is missing or wrong
+  OTHER
+}
+
+enum DisputeStatus {
+  OPEN
+  WITH_BRAND // waiting on the brand to come back
+  RESOLVED
+  WRITTEN_OFF // dropped, no money moves
+}
+
+/**
+ * A disagreement about one recorded sale.
+ *
+ * Every figure on this platform is computed, so when a brand or a creator says
+ * a number is wrong there was nowhere to record that, who is waiting on whom,
+ * or what was agreed in the end. Deliberately a note against the sale rather
+ * than a mechanism: nothing here changes the money. Settling a dispute means
+ * changing the sale itself, and that stays a separate, deliberate act.
+ */
+model Dispute {
+  id     String @id @default(cuid())
+  saleId String
+  sale   Sale   @relation(fields: [saleId], references: [id], onDelete: Cascade)
+
+  reason DisputeReason
+  status DisputeStatus @default(OPEN)
+
+  detail     String // what is being disputed, in plain words
+  raisedBy   String // who told us: a brand contact, a creator, or the team
+  resolution String? // what was agreed, written when it closes
+
+  openedAt   DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  resolvedAt DateTime?
+
+  @@index([status, openedAt])
+  @@index([saleId])
+}
+
 model CommissionOverride {
   id String @id @default(cuid())
 

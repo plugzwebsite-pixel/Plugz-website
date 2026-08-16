@@ -18,6 +18,7 @@ import {
   Wallet,
   Package,
   MousePointerClick,
+  ScrollText,
   Receipt,
   Inbox,
   Users,
@@ -50,9 +51,10 @@ const NAVS: Record<DashboardVariant, NavItem[]> = {
     { label: "Brand enquiries", href: "/admin/enquiries", icon: Inbox },
     { label: "Analytics", href: "/admin/analytics", icon: BarChart3 },
     { label: "Product clicks", href: "/admin/products", icon: MousePointerClick },
-    { label: "Commission", href: "/admin/commission", icon: Percent },
+    { label: "Rates & terms", href: "/admin/commission", icon: Percent },
     { label: "Record sales", href: "/admin/sales", icon: Receipt },
     { label: "Payouts", href: "/admin/payouts", icon: Wallet },
+    { label: "Disputes", href: "/admin/disputes", icon: ScrollText },
   ],
   // Read-only by design. Brands see their own performance and what they owe;
   // commission rates, campaigns and creator contact stay with Lisa and Rachel.
