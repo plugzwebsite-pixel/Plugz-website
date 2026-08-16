@@ -1,7 +1,7 @@
 import "server-only";
 import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
-import { publiclyVisibleCreator } from "@/lib/queries";
+import { publicBrand, publiclyVisibleCreator } from "@/lib/queries";
 
 /**
  * Dashboard figures, all counted from the tracking engine.
@@ -12,6 +12,32 @@ import { publiclyVisibleCreator } from "@/lib/queries";
  */
 
 export type DailyPoint = { day: string; count: number };
+
+/**
+ * Clicks that belong to the real business.
+ *
+ * The demonstration shop is our own fixture and every click on it is ours, so
+ * counting them inflates the figures the team reports. Every click number on
+ * the admin screens uses this, which is what lets the headline total and the
+ * per-product table add up to each other.
+ */
+const realClick = {
+  trackingLink: { creatorProduct: { product: { brand: publicBrand } } },
+} satisfies Prisma.ClickWhereInput;
+
+/**
+ * The same condition for raw SQL, which cannot take a Prisma where.
+ *
+ * Only for a query that joins nothing else. `dailyClicks` takes the whole
+ * fragment from its caller, and the creator and brand dashboards already join
+ * TrackingLink as `tl`, so adding this on top of theirs is a duplicate alias.
+ */
+const REAL_CLICK_SQL = Prisma.sql`
+  JOIN "TrackingLink" tl ON tl.id = c."trackingLinkId"
+  JOIN "CreatorProduct" cp ON cp.id = tl."creatorProductId"
+  JOIN "Product" p ON p.id = cp."productId"
+  JOIN "Brand" b ON b.id = p."brandId" AND b."demo" = false
+`;
 
 /** Clicks per day for the last `days` days, zero-filled so gaps show as gaps. */
 async function dailyClicks(
@@ -149,14 +175,20 @@ export async function creatorRecentSales(profileId: string, take = 8) {
 export async function adminAnalytics() {
   const [clicks, uniqueVisitors, creators, listings, brands, series, salesAgg] =
     await Promise.all([
-      db.click.count(),
+      db.click.count({ where: realClick }),
       db.click
-        .groupBy({ by: ["sessionId"] })
+        .groupBy({ by: ["sessionId"], where: realClick })
         .then((r) => r.length),
       db.creatorProfile.count({ where: publiclyVisibleCreator }),
-      db.creatorProduct.count({ where: { live: true } }),
-      db.brand.count({ where: { status: "ACTIVE" } }),
-      dailyClicks(14, Prisma.sql`WHERE c."clickedAt" >= now() - interval '14 days'`),
+      db.creatorProduct.count({
+        where: { live: true, product: { brand: publicBrand } },
+      }),
+      db.brand.count({ where: { status: "ACTIVE", ...publicBrand } }),
+      dailyClicks(
+        14,
+        Prisma.sql`${REAL_CLICK_SQL}
+                   WHERE c."clickedAt" >= now() - interval '14 days'`
+      ),
       db.sale.aggregate({
         where: { status: "APPROVED" },
         _sum: { valuePence: true, pluggzAmountPence: true },
@@ -170,8 +202,11 @@ export async function adminAnalytics() {
       COUNT(*) FILTER (WHERE days > 1)::bigint AS repeat,
       COUNT(*)::bigint                          AS total
     FROM (
-      SELECT "sessionId", COUNT(DISTINCT date_trunc('day', "clickedAt")) AS days
-      FROM "Click" GROUP BY "sessionId"
+      SELECT c."sessionId",
+             COUNT(DISTINCT date_trunc('day', c."clickedAt")) AS days
+      FROM "Click" c
+      ${REAL_CLICK_SQL}
+      GROUP BY c."sessionId"
     ) s
   `;
   const repeatTotal = Number(repeat[0]?.total ?? 0);
@@ -252,7 +287,13 @@ export async function topCreators(take = 5) {
 
 export async function topProducts(take = 5) {
   const rows = await db.creatorProduct.findMany({
-    where: { live: true, profile: publiclyVisibleCreator },
+    // The demonstration shop is ours, so its clicks are ours. Leaving them in
+    // put a fictional brand in the admin team's top five.
+    where: {
+      live: true,
+      profile: publiclyVisibleCreator,
+      product: { brand: publicBrand },
+    },
     orderBy: { trackingLink: { clickCount: "desc" } },
     take,
     select: {

@@ -1,10 +1,19 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Users, MousePointerClick, Repeat, Store, TrendingUp } from "lucide-react";
+import {
+  Users,
+  MousePointerClick,
+  Repeat,
+  Store,
+  TrendingUp,
+  ArrowRight,
+  Package,
+} from "lucide-react";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { AreaChart } from "@/components/dashboard/area-chart";
 import { Badge } from "@/components/ui/primitives";
 import { Avatar } from "@/components/ui/avatar";
+import { ProductImage } from "@/components/ui/product-image";
 import { adminAnalytics, topCreators, topProducts } from "@/lib/stats";
 import { compact, gbpFromPence } from "@/lib/utils";
 
@@ -123,9 +132,23 @@ export default async function AdminAnalyticsPage() {
         </div>
 
         <div className="rounded-md border border-border bg-surface p-6">
-          <h2 className="font-display text-lg font-semibold text-text-strong">
-            Most clicked products
-          </h2>
+          <div className="flex items-baseline justify-between gap-3">
+            <h2 className="font-display text-lg font-semibold text-text-strong">
+              Most clicked products
+            </h2>
+            {/* Named as a top five and given a way through to the rest. Read as
+                the whole list, it looks as though the clicks do not add up. */}
+            <Link
+              href="/admin/products"
+              className="flex items-center gap-1 whitespace-nowrap text-sm text-text-muted transition-colors hover:text-text-strong"
+            >
+              See all products <ArrowRight size={14} />
+            </Link>
+          </div>
+          <p className="mt-1 text-xs text-text-faint">
+            The busiest five. Every product and its clicks are on the Product
+            clicks screen.
+          </p>
           {products.length === 0 ? (
             <p className="mt-6 text-sm text-text-faint">Nothing plugged yet.</p>
           ) : (
@@ -137,10 +160,18 @@ export default async function AdminAnalyticsPage() {
                   className="flex items-center gap-3 rounded-sm px-2 py-2.5 hover:bg-surface-2"
                 >
                   <span className="h-10 w-10 shrink-0 overflow-hidden rounded-md bg-surface-2">
-                    {p.imageUrl && (
-                      /* eslint-disable-next-line @next/next/no-img-element */
-                      <img src={p.imageUrl} alt="" className="h-full w-full object-cover" />
-                    )}
+                    <ProductImage
+                      src={p.imageUrl}
+                      alt=""
+                      width={40}
+                      height={40}
+                      className="h-full w-full object-cover"
+                      fallback={
+                        <span className="grid h-full w-full place-items-center text-text-faint">
+                          <Package size={14} />
+                        </span>
+                      }
+                    />
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium text-text-strong">
