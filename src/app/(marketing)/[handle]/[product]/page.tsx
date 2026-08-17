@@ -8,6 +8,7 @@ import { Container, Badge, Eyebrow } from "@/components/ui/primitives";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ProductCard } from "@/components/marketing/cards";
+import { SaveButton } from "@/components/marketing/save-button";
 import { Reveal } from "@/components/ui/reveal";
 import { ProductImage } from "@/components/ui/product-image";
 import { getCreatorProduct, getSimilarProducts } from "@/lib/queries";
@@ -210,11 +211,14 @@ export default async function ProductPage({
               )}
 
               <div className="mt-7">
-                <a href={buyHref} rel="nofollow sponsored">
-                  <Button size="lg" className="w-full sm:w-auto">
-                    Buy at {product.brand.name} <ArrowUpRight size={17} />
-                  </Button>
-                </a>
+                <div className="flex flex-wrap items-center gap-3">
+                  <a href={buyHref} rel="nofollow sponsored">
+                    <Button size="lg" className="w-full sm:w-auto">
+                      Buy at {product.brand.name} <ArrowUpRight size={17} />
+                    </Button>
+                  </a>
+                  <SaveButton listingId={row.id} productName={product.name} />
+                </div>
                 <p className="mt-2.5 text-xs text-text-faint">
                   You&apos;ll finish your purchase on {product.brand.name}&apos;s own
                   site. Pluggz may earn a commission.

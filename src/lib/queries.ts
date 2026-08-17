@@ -32,6 +32,8 @@ export type CreatorCardData = {
 };
 
 export type ProductCardData = {
+  /** The listing, which is what a shopper saves. */
+  id: string;
   name: string;
   slug: string;
   brand: string;
@@ -53,6 +55,7 @@ const creatorSelect = {
 } satisfies Prisma.CreatorProfileSelect;
 
 const productSelect = {
+  id: true,
   slug: true,
   profile: { select: { handle: true } },
   product: {
@@ -90,6 +93,7 @@ function toCreatorCard(row: CreatorRow, trending = false): CreatorCardData {
 
 function toProductCard(row: ProductRow): ProductCardData {
   return {
+    id: row.id,
     name: row.product.name,
     slug: row.slug,
     brand: row.product.brand.name,

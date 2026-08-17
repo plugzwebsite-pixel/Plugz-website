@@ -3,6 +3,7 @@ import { ArrowUpRight, Flame } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/primitives";
 import { ProductImage } from "@/components/ui/product-image";
+import { SaveButton } from "./save-button";
 import { compact, gbpFromPence } from "@/lib/utils";
 import type { CreatorCardData, ProductCardData } from "@/lib/queries";
 
@@ -61,6 +62,13 @@ export function ProductCard({ product }: { product: ProductCardData }) {
           label={product.brand}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/25 to-transparent" />
+        {/* Sits above the card's own link, and stops the tap following it. */}
+        <SaveButton
+          listingId={product.id}
+          productName={product.name}
+          compact
+          className="absolute right-3 top-3 z-10"
+        />
         {product.clicks > 0 && (
           <Badge tone="amber" className="absolute left-3 top-3 backdrop-blur">
             <Flame size={11} /> {compact(product.clicks)}

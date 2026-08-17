@@ -2,12 +2,15 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { CheckCircle2, MailWarning, Compass } from "lucide-react";
+import { db } from "@/lib/db";
+import { publicBrand } from "@/lib/queries";
 import { checkShopperAccess } from "@/lib/auth/access";
 import { ResendVerification } from "@/components/auth/resend-verification";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { Container, Badge, Eyebrow } from "@/components/ui/primitives";
 import { Button } from "@/components/ui/button";
 import { AccountForm } from "./account-form";
+import { SavedItems, type SavedItem } from "@/components/account/saved-items";
 import { publicCategories } from "@/lib/categories";
 
 export const metadata: Metadata = {
@@ -27,11 +30,52 @@ const dateFormat = new Intl.DateTimeFormat("en-GB", {
 export default async function AccountPage() {
   const access = await checkShopperAccess();
   const names = (await publicCategories()).map((c) => c.name);
+
   if (!access.ok) redirect(access.redirectTo);
 
   const { account } = access;
   const profile = account.shopperProfile!;
   const firstName = account.name.split(" ")[0];
+
+  // Only what a shopper could still reach: a listing taken down, or one on the
+  // demonstration shop, should not sit in somebody's saved items.
+  const savedRows = await db.wishlistItem.findMany({
+    where: {
+      userId: account.id,
+      creatorProduct: { live: true, product: { brand: publicBrand } },
+    },
+    orderBy: { createdAt: "desc" },
+    select: {
+      createdAt: true,
+      creatorProduct: {
+        select: {
+          id: true,
+          slug: true,
+          profile: { select: { handle: true } },
+          product: {
+            select: {
+              name: true,
+              imageUrl: true,
+              pricePence: true,
+              brand: { select: { name: true } },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  const saved: SavedItem[] = savedRows.map((w) => ({
+    id: w.creatorProduct.id,
+    name: w.creatorProduct.product.name,
+    brand: w.creatorProduct.product.brand.name,
+    pricePence: w.creatorProduct.product.pricePence,
+    imageUrl: w.creatorProduct.product.imageUrl,
+    href: `/@${w.creatorProduct.profile.handle}/${w.creatorProduct.slug}`,
+    creatorHandle: w.creatorProduct.profile.handle,
+    savedAt: w.createdAt,
+  }));
+
 
   return (
     <Container size="narrow" className="py-12 sm:py-16">
@@ -113,6 +157,8 @@ export default async function AccountPage() {
           />
         </div>
       </section>
+
+      <SavedItems items={saved} />
 
       <section className="mt-6 rounded-md border border-border bg-surface p-6 sm:p-7">
         <div className="flex items-start gap-3">

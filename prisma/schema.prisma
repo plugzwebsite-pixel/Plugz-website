@@ -51,6 +51,7 @@ model User {
   shopperProfile      ShopperProfile?
   emailTokens         EmailVerificationToken[]
   passwordResetTokens PasswordResetToken[]
+  wishlist            WishlistItem[]
 
   // Set only for BRAND accounts: the brand whose figures this person may see.
   // A brand can have several contacts; each one is tied to exactly one brand,
@@ -379,6 +380,7 @@ model CreatorProduct {
 
   trackingLink TrackingLink?
   sales        Sale[]
+  savedBy      WishlistItem[]
 
   @@unique([profileId, productId]) // one page per creator per product
   @@unique([profileId, slug])
@@ -556,6 +558,33 @@ model PlatformSetting {
  * to rewrite every product that carries the old name, which the admin route
  * does in one transaction; nothing else may change this column.
  */
+/**
+ * A product a shopper saved to come back to.
+ *
+ * Saved as the creator's listing rather than the master product, because on
+ * Pluggz the recommendation is the thing: coming back to "the dress Katie
+ * plugged" is the point, and the same dress on another storefront is a
+ * different card with a different review. It also keeps the creator credited
+ * when the shopper eventually buys.
+ *
+ * Hung off User rather than ShopperProfile so anyone signed in can save,
+ * without a role gate turning a browsing creator away from their own site.
+ */
+model WishlistItem {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  creatorProductId String
+  creatorProduct   CreatorProduct @relation(fields: [creatorProductId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  // Saving the same card twice is the same save, not two.
+  @@unique([userId, creatorProductId])
+  @@index([userId, createdAt])
+}
+
 model Category {
   id    String @id @default(cuid())
   name  String @unique
