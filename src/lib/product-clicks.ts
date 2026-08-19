@@ -149,7 +149,14 @@ export async function productClickStats() {
       where: { creatorProduct: base },
       select: { clickCount: true },
     }),
-    db.brand.count({ where: { status: "ACTIVE", ...publicBrand } }),
+    // The card says "with a live listing", so count those rather than every
+    // active brand. Most brands in the catalogue have one, but not all.
+    db.creatorProduct
+      .findMany({
+        where: base,
+        select: { product: { select: { brandId: true } } },
+      })
+      .then((rows) => new Set(rows.map((r) => r.product.brandId)).size),
   ]);
 
   return {
@@ -176,7 +183,13 @@ export async function brandsWithListings() {
 }
 
 function cell(value: string): string {
-  return /[",\r\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
+  // Product names come off other people's websites, so a title beginning with
+  // =, +, - or @ would be run as a formula the moment somebody opened the
+  // export in Excel. An apostrophe in front is the standard guard: the sheet
+  // shows the text and never evaluates it, and the apostrophe itself is not
+  // displayed.
+  const safe = /^[=+\-@\t\r]/.test(value) ? `'${value}` : value;
+  return /[",\r\n]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;
 }
 
 export type ProductClickRow = Awaited<
