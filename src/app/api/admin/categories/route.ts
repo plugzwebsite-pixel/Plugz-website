@@ -157,7 +157,22 @@ export async function DELETE(req: Request) {
   });
   if (!category) return fail("That category no longer exists.", 404);
 
-  const inUse = await db.product.count({ where: { category: category.name } });
+  // Renaming moves products and creator profiles together, so deleting has to
+  // look at both. Checking only products left a creator pointing at a category
+  // name that no longer existed.
+  const [inUse, creators] = await Promise.all([
+    db.product.count({ where: { category: category.name } }),
+    db.creatorProfile.count({ where: { category: category.name } }),
+  ]);
+
+  if (creators > 0) {
+    return fail(
+      `${creators} creator${creators === 1 ? " has" : "s have"} ${category.name} as their category. Move them first, or hide it instead.`,
+      409,
+      { id: "Still in use" }
+    );
+  }
+
   if (inUse > 0) {
     // Deleting would leave those products pointing at a category page that
     // 404s. Hiding it takes it off the site and keeps them findable.

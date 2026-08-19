@@ -4,7 +4,8 @@ import { requireAdmin } from "@/lib/auth/access";
 import { hashPassword } from "@/lib/auth/password";
 import { generateToken, expiryFromNow } from "@/lib/auth/tokens";
 import { sendCreatorInviteEmail } from "@/lib/email";
-import { profileUrl, CATEGORIES } from "@/lib/validation";
+import { profileUrl } from "@/lib/validation";
+import { publicCategories } from "@/lib/categories";
 import { parseCsv, toRecords, field, parseFollowers, parseHandle } from "@/lib/csv";
 import { randomBytes } from "crypto";
 import { z } from "zod";
@@ -94,6 +95,12 @@ export async function POST(req: Request) {
   const results: RowResult[] = [];
   const seenInFile = { emails: new Set<string>(), handles: new Set<string>() };
 
+  // Read the categories the team actually has, not the list the platform
+  // launched with. Adding one through the admin screen and then bulk-importing
+  // a creator into it was rejected as unknown, while the same name worked in
+  // every other form.
+  const categories = (await publicCategories()).map((c) => c.name);
+
   for (const [i, rec] of records.entries()) {
     const line = i + 2; // +1 for zero-index, +1 for the header row
     const name = field(rec, "name", "creator", "fullname");
@@ -119,8 +126,8 @@ export async function POST(req: Request) {
     // Match the category loosely. A sheet will say "beauty", not the exact
     // platform label.
     const category =
-      CATEGORIES.find(
-        (c) =>
+      categories.find(
+        (c: string) =>
           c.toLowerCase() === rawCategory.toLowerCase() ||
           (rawCategory && c.toLowerCase().includes(rawCategory.toLowerCase()))
       ) ?? "";
