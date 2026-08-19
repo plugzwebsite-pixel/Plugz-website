@@ -20,9 +20,20 @@ export type DailyPoint = { day: string; count: number };
  * counting them inflates the figures the team reports. Every click number on
  * the admin screens uses this, which is what lets the headline total and the
  * per-product table add up to each other.
+ *
+ * That agreement is the whole point, so this has to match the filter on the
+ * product clicks screen exactly, creator visibility included. It did not: this
+ * dropped the demonstration shop but still counted listings belonging to a
+ * suspended or unreleased creator, while the other screen dropped both. Two
+ * screens, same platform, different totals the moment anybody is suspended.
  */
 const realClick = {
-  trackingLink: { creatorProduct: { product: { brand: publicBrand } } },
+  trackingLink: {
+    creatorProduct: {
+      profile: publiclyVisibleCreator,
+      product: { brand: publicBrand },
+    },
+  },
 } satisfies Prisma.ClickWhereInput;
 
 /**
@@ -37,6 +48,9 @@ const REAL_CLICK_SQL = Prisma.sql`
   JOIN "CreatorProduct" cp ON cp.id = tl."creatorProductId"
   JOIN "Product" p ON p.id = cp."productId"
   JOIN "Brand" b ON b.id = p."brandId" AND b."demo" = false
+  JOIN "CreatorProfile" pr ON pr.id = cp."profileId"
+   AND pr."status" = 'APPROVED'
+   AND (pr."source" = 'SELF_SERVE' OR pr."profileReleasedAt" IS NOT NULL)
 `;
 
 /** Clicks per day for the last `days` days, zero-filled so gaps show as gaps. */
@@ -257,10 +271,15 @@ export async function topCreators(take = 5) {
       FROM "SocialHandle" GROUP BY "profileId"
     ) f ON f."profileId" = p.id
     LEFT JOIN (
+      -- The demonstration shop is ours, so its clicks and its one sale are
+      -- ours too. Without these joins a creator is ranked partly on our own
+      -- fixture, which is the fault that was already fixed in topProducts.
       SELECT cp."profileId",
              SUM(COALESCE(tl."clickCount", 0))::bigint AS clicks,
              SUM(COALESCE(s.value, 0))::bigint         AS sales
       FROM "CreatorProduct" cp
+      JOIN "Product" pd ON pd.id = cp."productId"
+      JOIN "Brand" br ON br.id = pd."brandId" AND br."demo" = false
       LEFT JOIN "TrackingLink" tl ON tl."creatorProductId" = cp.id
       LEFT JOIN (
         SELECT "creatorProductId", SUM("valuePence")::bigint AS value
