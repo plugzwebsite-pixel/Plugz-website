@@ -108,9 +108,19 @@ export const publicCategories = unstable_cache(
   { tags: [CATEGORY_TAG] }
 );
 
-/** The handful the header has room for. */
-export async function navCategories(): Promise<CategoryRecord[]> {
-  return (await publicCategories()).filter((c) => c.inNav);
+/**
+ * The handful the header has room for.
+ *
+ * Falls back to the first few by position when nothing is flagged. `inNav`
+ * defaults to false, correctly, since a new category should not appear in the
+ * header unasked, but that means a set of categories created entirely through
+ * the admin screen would leave the header with no links at all. Better to show
+ * the first three than to show nothing.
+ */
+export async function navCategories(limit = 3): Promise<CategoryRecord[]> {
+  const live = await publicCategories();
+  const chosen = live.filter((c) => c.inNav);
+  return chosen.length > 0 ? chosen : live.slice(0, limit);
 }
 
 export async function categoryBySlug(slug: string): Promise<CategoryRecord | null> {
@@ -127,10 +137,24 @@ export async function categoryBySlug(slug: string): Promise<CategoryRecord | nul
  */
 export function categoriesChanged() {
   revalidateTag(CATEGORY_TAG, { expire: 0 });
-  // The sitemap is a route with its own hourly window rather than a consumer
-  // of the tag, so it needs telling separately. Without this a new category is
-  // live on the site but missing from the sitemap for up to an hour, which
-  // reads as a fault when everything else updated at once.
+
+  // Clearing the tag drops the cached *data*, but each page is separately
+  // cached by ISR and will serve its stale copy once while it regenerates. The
+  // team edits a category and refreshes to check, so that one stale response
+  // is precisely the one they see, and it reads as the save having failed.
+  // These clear the rendered pages as well.
+  //
+  // The layout is the blunt one, and deliberately: the header carries the
+  // category links and the header is on every page, so a change to what
+  // appears there really does affect all of them. Category edits happen a
+  // handful of times a month, so paying for a full refresh is the cheaper
+  // mistake than showing the team something they have just changed.
+  revalidatePath("/category/[slug]", "page");
+  revalidatePath("/", "layout");
+
+  // Its own hourly window rather than a consumer of the tag, so it needs
+  // telling separately or a new category is live on the site but missing from
+  // the sitemap for up to an hour.
   revalidatePath("/sitemap.xml");
 }
 
