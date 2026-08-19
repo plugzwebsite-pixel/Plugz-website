@@ -66,27 +66,36 @@ export function SaveButton({
     setSaved(next); // optimistic: the tap should feel instant
     setBusy(true);
 
-    const res = next
-      ? await fetch("/api/wishlist", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ listingId }),
-        })
-      : await fetch(`/api/wishlist?listingId=${listingId}`, { method: "DELETE" });
+    // A dropped connection throws rather than returning a response. Without
+    // catching it the heart stays on the guess it made and the button never
+    // re-enables, so the shopper is left with a save that never happened and
+    // no way to try again.
+    try {
+      const res = next
+        ? await fetch("/api/wishlist", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ listingId }),
+          })
+        : await fetch(`/api/wishlist?listingId=${listingId}`, { method: "DELETE" });
 
-    setBusy(false);
-
-    if (!res.ok) {
-      setSaved(!next); // put it back
-      if (res.status === 401) {
-        router.push(`/signup/shopper?from=save`);
+      if (!res.ok) {
+        setSaved(!next); // put it back
+        if (res.status === 401) {
+          router.push(`/signup/shopper?from=save`);
+          return;
+        }
+        toast.error("Couldn't save that");
         return;
       }
-      toast.error("Couldn't save that");
-      return;
-    }
 
-    if (next) toast.success("Saved", `${productName} is in your saved items`);
+      if (next) toast.success("Saved", `${productName} is in your saved items`);
+    } catch {
+      setSaved(!next);
+      toast.error("Couldn't save that", "Check your connection and try again");
+    } finally {
+      setBusy(false);
+    }
   }
 
   const label = saved ? `Remove ${productName} from saved` : `Save ${productName}`;
