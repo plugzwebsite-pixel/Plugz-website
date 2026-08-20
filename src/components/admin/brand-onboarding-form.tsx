@@ -8,16 +8,23 @@ import { Field, Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/controls";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
+import { TrackingHandover } from "@/components/admin/tracking-handover";
 import { cn } from "@/lib/utils";
 
 type Path = "network" | "direct" | null;
+type Platform = "SHOPIFY" | "WOOCOMMERCE" | "OTHER";
+type Issued = { name: string; platform: Platform; key: string; secret: string };
 
 export function BrandOnboardingForm() {
   const [path, setPath] = useState<Path>(null);
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
+  // What was minted on save, so the handover can be shown straight away. The
+  // secret exists only here: it is never readable again after this response.
+  const [issued, setIssued] = useState<Issued | null>(null);
   const [f, setF] = useState({
     name: "",
+    platform: "OTHER" as Platform,
     websiteUrl: "",
     commissionRate: "",
     returnWindow: "",
@@ -41,10 +48,11 @@ export function BrandOnboardingForm() {
       return;
     }
     setSaving(true);
-    const res = await postJson<{ name: string }>("/api/admin/brands", {
+    const res = await postJson<Issued>("/api/admin/brands", {
       ...f,
       hasAffiliateProgramme: path === "network",
-      trackingMethod: path === "network" ? "NETWORK" : f.trackingMethod,
+      trackingMethod:
+        path === "network" ? "NETWORK" : f.platform === "SHOPIFY" ? "PIXEL" : f.trackingMethod,
     });
     setSaving(false);
 
@@ -52,12 +60,20 @@ export function BrandOnboardingForm() {
       toast.error("Couldn't add that brand", res.message);
       return;
     }
+    setIssued(res.data ?? null);
     setDone(true);
     toast.success("Brand added", `${res.data!.name} is live and ready for products.`);
   }
 
+  function reset() {
+    setDone(false);
+    setPath(null);
+    setIssued(null);
+  }
+
   if (done) {
     return (
+      <>
       <motion.div
         initial={{ opacity: 0, scale: 0.96 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -73,17 +89,31 @@ export function BrandOnboardingForm() {
           The brand and its {path === "network" ? "network" : "direct-deal"} tracking
           setup have been saved.
         </p>
-        <Button
-          className="mt-6"
-          variant="secondary"
-          onClick={() => {
-            setDone(false);
-            setPath(null);
-          }}
-        >
-          Add another brand
-        </Button>
+        <div className="mt-6 flex flex-wrap justify-center gap-3">
+          <Button variant="secondary" onClick={reset}>
+            Add another brand
+          </Button>
+          <a href="/admin/products/new">
+            <Button>Add its products</Button>
+          </a>
+        </div>
       </motion.div>
+
+      {/* The reason anyone came to this screen: something to send the brand.
+          Below the confirmation rather than inside it, because the secret is
+          readable exactly once and a centred success panel is the wrong place
+          to put a block of code somebody has to copy carefully. */}
+      {issued && (
+        <div className="mt-6 text-left">
+          <TrackingHandover
+            brandName={issued.name}
+            platform={issued.platform}
+            trackingKey={issued.key}
+            secret={issued.secret}
+          />
+        </div>
+      )}
+      </>
     );
   }
 
@@ -179,6 +209,24 @@ export function BrandOnboardingForm() {
 
             {/* Shared fields */}
             <Section title="Brand details">
+              {/* Asked here, and asked of everyone, because it decides what we
+                  hand them at the end: a snippet they paste themselves, or a
+                  key and secret for a developer. Getting this wrong sends a
+                  shop owner an integration they cannot carry out. */}
+              <Field
+                label="What is their shop built on?"
+                hint="Shopify shops can be tracking sales today, with no developer"
+                className="mb-5"
+              >
+                <Select
+                  value={f.platform}
+                  onChange={(e) => setF((s) => ({ ...s, platform: e.target.value as Platform }))}
+                >
+                  <option value="OTHER">Something else, or not sure</option>
+                  <option value="SHOPIFY">Shopify</option>
+                  <option value="WOOCOMMERCE">WooCommerce</option>
+                </Select>
+              </Field>
               <div className="grid gap-5 sm:grid-cols-2">
                 <Field label="Brand name" required>
                   <Input placeholder="Dawsylicious" leftIcon={<Building2 size={16} />} value={f.name} onChange={(e) => set("name")(e.target.value)} />

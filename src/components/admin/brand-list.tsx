@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Mail, Check, Users, Building2, KeyRound, Copy } from "lucide-react";
+import { Mail, Check, Users, Building2, KeyRound, Copy, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/primitives";
 import { useToast } from "@/components/ui/toast";
+import { TrackingHandover } from "@/components/admin/tracking-handover";
 import { compact, gbpFromPence } from "@/lib/utils";
 import { postJson } from "@/lib/client/api";
 
@@ -20,6 +21,7 @@ export type BrandRow = {
   clicks: number;
   salesPence: number;
   contacts: { name: string; email: string }[];
+  platform: "SHOPIFY" | "WOOCOMMERCE" | "OTHER";
 };
 
 const statusTone: Record<string, "green" | "amber" | "neutral"> = {
@@ -30,6 +32,10 @@ const statusTone: Record<string, "green" | "amber" | "neutral"> = {
 
 export function BrandList({ initial }: { initial: BrandRow[] }) {
   const [brands, setBrands] = useState(initial);
+  // Ninety-odd brands and no way to find one. Filtered here rather than on the
+  // server because the whole list is already loaded, so this is instant and a
+  // round trip would only make it slower.
+  const [q, setQ] = useState("");
   const [inviting, setInviting] = useState<string | null>(null);
   const [creds, setCreds] = useState<
     { brandId: string; key: string; secret: string; rolled: boolean } | null
@@ -111,9 +117,39 @@ export function BrandList({ initial }: { initial: BrandRow[] }) {
     );
   }
 
+  const needle = q.trim().toLowerCase();
+  const shown = needle
+    ? brands.filter(
+        (b) =>
+          b.name.toLowerCase().includes(needle) ||
+          b.contacts.some((c) => c.email.toLowerCase().includes(needle))
+      )
+    : brands;
+
   return (
     <div className="space-y-3">
-      {brands.map((b) => (
+      <div className="relative">
+        <Search
+          size={15}
+          className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-text-faint"
+        />
+        <input
+          type="search"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Find a brand"
+          aria-label="Find a brand"
+          className="h-10 w-full rounded-sm border border-border bg-surface-2 pl-10 pr-4 text-sm text-text placeholder:text-text-faint focus:border-brand-pink/60 focus:bg-surface"
+        />
+      </div>
+
+      {shown.length === 0 && (
+        <p className="rounded-md border border-dashed border-border py-10 text-center text-sm text-text-faint">
+          No brand matches &ldquo;{q}&rdquo;.
+        </p>
+      )}
+
+      {shown.map((b) => (
         <div key={b.id} className="rounded-md border border-border bg-surface p-5">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="min-w-0">
@@ -165,7 +201,8 @@ export function BrandList({ initial }: { initial: BrandRow[] }) {
                 loading={issuing === b.id}
                 onClick={() => issueCredentials(b.id, b.name)}
               >
-                <KeyRound size={14} /> Tracking keys
+                <KeyRound size={14} />{" "}
+                {b.platform === "SHOPIFY" ? "Tracking script" : "Tracking keys"}
               </Button>
             </div>
           </div>
@@ -174,48 +211,20 @@ export function BrandList({ initial }: { initial: BrandRow[] }) {
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
-              className="mt-4 overflow-hidden rounded-md border border-brand-pink/40 bg-brand-pink/[0.04] p-4"
+              className="mt-4 overflow-hidden"
             >
-              <p className="text-sm font-medium text-text-strong">
-                {creds.rolled
-                  ? "New credentials. The previous pair has stopped working"
-                  : "Credentials issued"}
-              </p>
-              <p className="mt-1 text-sm text-text-muted">
-                {`Send these to ${b.name} with the integration guide. The signing
-                secret is not stored anywhere you can read it again. If it is
-                lost, issue a new pair.`}
-              </p>
-
-              <div className="mt-3 space-y-2">
-                {(
-                  [
-                    ["Endpoint", "https://pluggzofficial.co.uk/api/track/sale"],
-                    ["Key", creds.key],
-                    ["Signing secret", creds.secret],
-                  ] as const
-                ).map(([label, value]) => (
-                  <div key={label} className="flex items-center gap-2">
-                    <span className="w-28 shrink-0 text-xs text-text-faint">
-                      {label}
-                    </span>
-                    <code className="min-w-0 flex-1 truncate rounded bg-surface-2 px-2 py-1.5 font-mono text-xs text-text">
-                      {value}
-                    </code>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => {
-                        void navigator.clipboard.writeText(value);
-                        toast.success("Copied");
-                      }}
-                    >
-                      <Copy size={13} />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-
+              {creds.rolled && (
+                <p className="mb-3 text-sm text-amber-300">
+                  New credentials. The previous pair has stopped working, so
+                  anything still using it will be refused.
+                </p>
+              )}
+              <TrackingHandover
+                brandName={b.name}
+                platform={b.platform}
+                trackingKey={creds.key}
+                secret={creds.secret}
+              />
               <Button
                 size="sm"
                 variant="secondary"

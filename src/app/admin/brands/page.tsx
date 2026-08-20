@@ -13,6 +13,7 @@ async function loadBrands(): Promise<BrandRow[]> {
       id: true,
       name: true,
       status: true,
+      platform: true,
       commissionRate: true,
       returnWindowDays: true,
       users: { select: { name: true, email: true } },
@@ -44,6 +45,7 @@ async function loadBrands(): Promise<BrandRow[]> {
         0
       ),
       contacts: b.users,
+      platform: b.platform,
     };
   });
 }

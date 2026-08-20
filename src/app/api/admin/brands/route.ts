@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import { db } from "@/lib/db";
 import { ok, fail, parseBody } from "@/lib/http";
 import { requireAdmin } from "@/lib/auth/access";
@@ -51,6 +52,7 @@ const schema = z.object({
   name: z.string().trim().min(1, "Give the brand a name").max(120),
   websiteUrl: z.string().trim().max(500).optional(),
   hasAffiliateProgramme: z.boolean(),
+  platform: z.enum(["SHOPIFY", "WOOCOMMERCE", "OTHER"]).optional(),
   trackingMethod: z.enum(["PLUGGZ_DIRECT", "DISCOUNT_CODE", "PIXEL", "NETWORK"]).optional(),
   commissionRate: z.string().trim().max(40).optional(),
   returnWindow: z.string().trim().max(60).optional(),
@@ -99,12 +101,18 @@ export async function POST(req: Request) {
       // rejected, and the point of onboarding one is to start tracking.
       status: "ACTIVE",
       hasAffiliateProgramme: input.hasAffiliateProgramme,
+      platform: input.platform ?? "OTHER",
       // A direct deal defaults to our own link, which is the launch path and
       // what the postback verifies against; a brand already on a network keeps
-      // its deep link.
+      // its deep link. A Shopify shop reports through the pixel, so say so:
+      // the admin screens read this to decide what to offer.
       trackingMethod:
         input.trackingMethod ??
-        (input.hasAffiliateProgramme ? "NETWORK" : "PLUGGZ_DIRECT"),
+        (input.hasAffiliateProgramme
+          ? "NETWORK"
+          : input.platform === "SHOPIFY"
+            ? "PIXEL"
+            : "PLUGGZ_DIRECT"),
       commissionRate: firstNumber(input.commissionRate, 11),
       returnWindowDays: Math.round(firstNumber(input.returnWindow, 30)),
       attributionWindowDays: Math.round(firstNumber(input.attributionWindow, 30)),
@@ -150,5 +158,22 @@ export async function POST(req: Request) {
     });
   }
 
-  return ok(brand, 201);
+  // Issue the credentials now rather than making it a second, separate errand.
+  //
+  // Whatever the shop runs on, the very next thing the person onboarding it
+  // needs is something to hand the brand: a snippet with the key baked in for
+  // Shopify, or the key and secret for anyone whose developer will be calling
+  // the postback. Both start here, so both are minted here.
+  //
+  // The secret is returned exactly once, in this response, and only its stored
+  // copy remains afterwards. Rolling it later means calling the credentials
+  // endpoint, which replaces both.
+  const key = `pz_live_${randomBytes(18).toString("hex")}`;
+  const secret = randomBytes(32).toString("hex");
+  await db.brand.update({
+    where: { id: brand.id },
+    data: { trackingKey: key, trackingSecret: secret },
+  });
+
+  return ok({ ...brand, platform: input.platform ?? "OTHER", key, secret }, 201);
 }
