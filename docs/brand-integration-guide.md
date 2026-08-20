@@ -126,19 +126,21 @@ against your account.
 
 ## Alternative · A tracking pixel, if server work is not possible
 
-Add this to your order-confirmation page:
+For a Shopify shop, add a custom pixel: **Settings**, then **Customer events**,
+then **Add custom pixel**. Paste the snippet we send you, set Permission to
+Required under Customer privacy, then **Save** and **Connect**. Saving alone does
+not switch it on.
 
-```html
-<img src="https://pluggzofficial.co.uk/t/sale.gif?key=pz_live_brand_a1b2c3&order=1002948&value=4499"
-     width="1" height="1" alt="" style="display:none">
-```
+The snippet reads the `pz` value off the address when the shopper arrives, keeps
+it in a cookie for 30 days, and posts to `/api/track/pixel` when the order
+completes. We send it with your key already inside it.
 
-It reads the `pluggz_ref` cookie from step 1 itself.
-
-**We recommend the server call instead.** A pixel is blocked by ad blockers and
-some browsers, does not fire if the shopper closes the tab early, and cannot be
-signed, so it will under-report, and the numbers you and we see will disagree.
-Use it only as a stop-gap.
+**We recommend the server call instead.** A pixel runs in the shopper's own
+browser, so an ad blocker or a privacy setting can stop it, it does not fire if
+the tab is closed early, and nothing in it can be signed, because anything the
+browser holds can be read by anyone who looks. Sales arriving this way are
+recorded as **unverified** and should be reconciled against your own order list
+before commission is paid.
 
 ---
 
