@@ -74,7 +74,13 @@ export async function POST(req: Request) {
 
   let body: Payload;
   try {
-    body = JSON.parse(raw) as Payload;
+    const parsed: unknown = JSON.parse(raw);
+    // A brand that signs `null` correctly gets past the checks above, so the
+    // shape has to be verified too rather than assumed.
+    if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) {
+      return reply({ ok: false, error: "Body must be a JSON object." }, 400);
+    }
+    body = parsed as Payload;
   } catch {
     return reply({ ok: false, error: "Body was not valid JSON." }, 400);
   }

@@ -92,7 +92,14 @@ export async function POST(req: Request) {
 
   let body: Payload;
   try {
-    body = (await req.json()) as Payload;
+    const parsed: unknown = await req.json();
+    // Valid JSON is not the same as a usable body. `null` parses perfectly and
+    // then throws on the first property read, which turned a malformed request
+    // into a 500 rather than the 400 it deserves.
+    if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) {
+      return reply({ ok: false, error: "Body must be a JSON object." }, 400);
+    }
+    body = parsed as Payload;
   } catch {
     return reply({ ok: false, error: "Body was not valid JSON." }, 400);
   }
