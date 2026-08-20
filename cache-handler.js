@@ -85,6 +85,83 @@ function client() {
   }
 }
 
+// --- revalidatePath ----------------------------------------------------------
+//
+// `revalidateTag` receives two kinds of tag and they need answering differently.
+//
+// A tag the application wrote, like "categories", was recorded against its
+// entries when they were stored, so the index built in `set` finds them.
+//
+// A tag Next invented for `revalidatePath` was not. Next tracks those as *soft*
+// tags, which it keeps to itself and never passes to a cache handler, so there
+// is no index to look in. Ignoring them, which is what this did at first, makes
+// `revalidatePath` do nothing at all: the team edits a category, refreshes, and
+// sees the old page. Since the entry key *is* the path, the answer is to match
+// on the key rather than look anything up.
+
+const IMPLICIT = "_N_T_";
+
+/** Redis glob metacharacters, so a literal path cannot become a pattern. */
+function escapeGlob(s) {
+  return s.replace(/([[\]?*^\\])/g, "\\$1");
+}
+
+/**
+ * The key patterns a `_N_T_` tag should clear, or null if this is a real tag.
+ *
+ *   _N_T_/sitemap.xml      one page
+ *   _N_T_/category/[slug]  every page of a dynamic route
+ *   _N_T_/layout           that layout and everything below it
+ *   _N_T_/                 the root layout, so the whole site
+ */
+function pathPatternsFor(tag) {
+  if (!tag.startsWith(IMPLICIT)) return null;
+  let path = tag.slice(IMPLICIT.length) || "/";
+
+  if (path.endsWith("/layout")) path = path.slice(0, -"/layout".length) || "/";
+
+  // A route pattern rather than a path: clear everything under the part that
+  // is literal. `revalidatePath("/category/[slug]", "page")` has to reach
+  // /category/home and /category/christmas-edit, which share only that prefix.
+  const dynamic = path.indexOf("[");
+  if (dynamic !== -1) {
+    return [`${escapeGlob(path.slice(0, dynamic))}*`];
+  }
+
+  if (path === "/") return ["*"];
+
+  // The page itself, and anything nested below it.
+  return [escapeGlob(path), `${escapeGlob(path)}/*`];
+}
+
+/** Does this key fall under the path a `_N_T_` tag names? For the fallback. */
+function matchesPath(tag, key) {
+  const patterns = pathPatternsFor(tag);
+  if (!patterns) return false;
+  return patterns.some((p) => {
+    if (p === "*") return true;
+    const bare = p.replace(/\\(.)/g, "$1");
+    return bare.endsWith("*") ? key.startsWith(bare.slice(0, -1)) : key === bare;
+  });
+}
+
+/**
+ * Every key matching a pattern.
+ *
+ * SCAN rather than KEYS: KEYS blocks the server for the length of the scan, and
+ * this Redis also carries the rate limiter, which every request touches.
+ */
+async function scanKeys(r, pattern) {
+  const found = [];
+  let cursor = "0";
+  do {
+    const [next, batch] = await r.scan(cursor, "MATCH", pattern, "COUNT", 500);
+    cursor = next;
+    found.push(...batch);
+  } while (cursor !== "0");
+  return found;
+}
+
 // --- the fallback -----------------------------------------------------------
 //
 // Local development, and the seconds after a Redis blip. A miss is always
@@ -149,13 +226,28 @@ module.exports = class CacheHandler {
     const r = client();
     if (!r) {
       for (const [key, entry] of memory) {
-        if (entry.tags?.some((t) => list.includes(t))) memory.delete(key);
+        if (entry.tags?.some((t) => list.includes(t)) || list.some((t) => matchesPath(t, key))) {
+          memory.delete(key);
+        }
       }
       return;
     }
 
     try {
       for (const tag of list) {
+        // Two quite different kinds of tag arrive here.
+        const paths = pathPatternsFor(tag);
+        if (paths) {
+          for (const pattern of paths) {
+            const found = await scanKeys(r, `${NAMESPACE}:e:${pattern}`);
+            if (found.length === 0) continue;
+            const pipeline = r.pipeline();
+            for (const full of found) pipeline.del(full);
+            await pipeline.exec();
+          }
+          continue;
+        }
+
         const keys = await r.smembers(tagKey(tag));
         const pipeline = r.pipeline();
         for (const key of keys) pipeline.del(entryKey(key));
