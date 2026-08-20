@@ -328,7 +328,12 @@ export async function getSimilarProducts(
 // --- search -----------------------------------------------------------------
 
 export async function searchCatalogue(query: string) {
-  const q = query.trim();
+  // Control characters are stripped before anything else, and the null byte is
+  // the one that matters: Postgres refuses a string containing one, so `?q=%00`
+  // reached the driver and came back as a 500 on a public page that anybody can
+  // request. Nothing legitimate is lost, since none of these can appear in a
+  // product or creator name.
+  const q = query.replace(/[\u0000-\u001f\u007f]/g, "").trim().slice(0, 120);
   if (!q) return { creators: [], products: [] };
 
   const insensitive = Prisma.QueryMode.insensitive;
