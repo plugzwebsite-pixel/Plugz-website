@@ -139,6 +139,7 @@ export async function POST(req: Request) {
       orderRef,
       soldAt,
       clickRef: click.id,
+      source: "POSTBACK",
     });
     return reply({ ok: true, saleId: sale.id, status: "pending" }, 200);
   } catch (err) {

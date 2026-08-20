@@ -4,6 +4,27 @@ import { COOKIE_NAME, verifySession, homeForRole } from "@/lib/auth/jwt";
 const UNSAFE_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 
 /**
+ * Routes that are meant to be called from somebody else's website.
+ *
+ * The forgery check below assumes a cross-origin POST is an attack, which is
+ * true of every route that acts on a session cookie. It is not true here. A
+ * Shopify pixel runs on the brand's own domain and posts to us from there, so
+ * it arrives with a foreign Origin every single time and would be turned away
+ * as a forgery.
+ *
+ * Exempting it costs nothing, because a forgery check protects actions that
+ * borrow the visitor's identity, and this route has no identity to borrow: it
+ * reads no cookie and no session, and authenticates on a key and a click
+ * reference carried in the body. Making a victim's browser post here achieves
+ * exactly what the attacker could have achieved with curl, which is the
+ * definition of a request not worth blocking.
+ *
+ * Keep this list to routes that genuinely need it, and never add one that
+ * reads a cookie.
+ */
+const CROSS_ORIGIN_BY_DESIGN = new Set(["/api/track/pixel"]);
+
+/**
  * Cross-site request forgery check.
  *
  * The session cookie is SameSite=lax, which already stops a browser sending it
@@ -48,7 +69,7 @@ function isForgedRequest(req: NextRequest): boolean {
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  if (isForgedRequest(req)) {
+  if (!CROSS_ORIGIN_BY_DESIGN.has(pathname) && isForgedRequest(req)) {
     return NextResponse.json(
       { ok: false, message: "Request blocked." },
       { status: 403 }

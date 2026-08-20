@@ -1,4 +1,5 @@
 import "server-only";
+import type { SaleSource } from "@prisma/client";
 import { db } from "@/lib/db";
 import {
   resolveRates,
@@ -30,6 +31,13 @@ export type SaleInput = {
   soldAt?: Date;
   /** The `pz` value from the click-out, when the brand passes it back. */
   clickRef?: string | null;
+  /**
+   * How it reached us. Worth recording because it decides how much the figure
+   * can be trusted: a signed postback cannot be tampered with, a browser pixel
+   * can. Callers that leave it unset are the admin ones, where a person has
+   * already looked at the row.
+   */
+  source?: SaleSource;
 };
 
 export type RecordedSale = {
@@ -92,6 +100,7 @@ export async function recordSale(input: SaleInput): Promise<RecordedSale> {
       clickId,
       orderRef: input.orderRef?.trim() || null,
       valuePence: input.valuePence,
+      source: input.source ?? "CSV",
       soldAt,
       verifiesAt: addDays(soldAt, windowDays),
       creatorRate: rates.creatorRate,
