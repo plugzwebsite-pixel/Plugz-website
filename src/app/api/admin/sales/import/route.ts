@@ -19,8 +19,29 @@ export const maxDuration = 60;
 
 type Row = Record<string, string>;
 
+/**
+ * Which character separates the columns.
+ *
+ * A comma, usually, but not always: Excel writes semicolons wherever the
+ * system uses a comma for the decimal point, which is most of Europe, and a
+ * brand sending a report from a German or French office sends semicolons
+ * without knowing it. Read as commas, such a file parses as a single column,
+ * every row is skipped for having no value in it, and the import looks broken
+ * when it is only misread.
+ *
+ * Decided on the header line alone, and by simple majority, because the header
+ * is the one row guaranteed to contain several columns.
+ */
+function detectDelimiter(src: string): string {
+  const header = src.slice(0, src.indexOf("\n") === -1 ? src.length : src.indexOf("\n"));
+  const counts = [",", ";", "\t"].map((d) => ({ d, n: header.split(d).length - 1 }));
+  const best = counts.sort((a, b) => b.n - a.n)[0];
+  return best.n > 0 ? best.d : ",";
+}
+
 /** Split a CSV honouring quoted fields: order references contain commas. */
 function parseCsv(src: string): Row[] {
+  const delimiter = detectDelimiter(src);
   const rows: string[][] = [];
   let row: string[] = [], cell = "", quoted = false;
   for (let i = 0; i < src.length; i++) {
@@ -30,7 +51,7 @@ function parseCsv(src: string): Row[] {
         if (src[i + 1] === '"') { cell += '"'; i++; } else quoted = false;
       } else cell += c;
     } else if (c === '"') quoted = true;
-    else if (c === ",") { row.push(cell); cell = ""; }
+    else if (c === delimiter) { row.push(cell); cell = ""; }
     else if (c === "\n") { row.push(cell); rows.push(row); row = []; cell = ""; }
     else if (c !== "\r") cell += c;
   }
@@ -78,6 +99,25 @@ export async function POST(req: Request) {
   const rows = parseCsv(await file.text());
   if (rows.length === 0) return fail("That file had no rows.", 400);
   if (rows.length > 2000) return fail("Import up to 2000 rows at a time.", 400);
+
+  // Refuse a file whose value column was never found, rather than reporting a
+  // hundred rows individually skipped for having no value in them.
+  //
+  // They mean quite different things. A handful of skipped rows is a report
+  // with some gaps in it. Every row skipped is a report whose column is called
+  // something we do not recognise, and the person uploading it needs to be told
+  // that, not handed a list. Naming the headings we did read is what turns it
+  // from "the import is broken" into a thing they can fix in Excel.
+  const VALUE_COLUMNS = ["value", "amount", "total", "ordervalue"];
+  const headings = Object.keys(rows[0] ?? {});
+  if (!headings.some((h) => VALUE_COLUMNS.includes(h))) {
+    return fail(
+      `No order value column found. Rename one of your columns to "value", ` +
+        `"amount", "total" or "order value". The columns we read were: ` +
+        `${headings.filter(Boolean).join(", ") || "none"}.`,
+      422
+    );
+  }
 
   const results: {
     line: number;
@@ -131,6 +171,7 @@ export async function POST(req: Request) {
         orderRef: order || null,
         soldAt,
         clickRef: row.clickref || row.pz || null,
+        source: "CSV",
       });
       results.push({ line, order, value: `£${(pence / 100).toFixed(2)}`, outcome: "Recorded" });
       recorded++;
