@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { requireAdmin } from "@/lib/auth/access";
 import { ImportSales } from "@/components/admin/import-sales";
+import { SaleSourceLabel } from "@/components/admin/sale-source";
 import { recentSales } from "@/lib/stats";
 import { gbpFromPence } from "@/lib/utils";
 
@@ -54,6 +55,7 @@ export default async function AdminSalesPage() {
               <thead>
                 <tr className="text-left text-xs uppercase tracking-wide text-text-faint">
                   <th className="px-6 py-3 font-medium">Order</th>
+                  <th className="px-6 py-3 font-medium">Reported by</th>
                   <th className="px-6 py-3 font-medium">Creator</th>
                   <th className="px-6 py-3 font-medium">Brand</th>
                   <th className="px-6 py-3 font-medium">Value</th>
@@ -66,6 +68,9 @@ export default async function AdminSalesPage() {
                   <tr key={s.id} className="border-t border-border">
                     <td className="px-6 py-3 font-mono text-xs text-text-muted">
                       {s.orderRef ?? "Not given"}
+                    </td>
+                    <td className="px-6 py-3">
+                      <SaleSourceLabel source={s.source} />
                     </td>
                     <td className="px-6 py-3 text-text-strong">@{s.handle}</td>
                     <td className="px-6 py-3 text-text-muted">{s.brand}</td>

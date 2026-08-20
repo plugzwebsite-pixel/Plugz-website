@@ -580,6 +580,7 @@ export async function recentSales(take = 5) {
       valuePence: true,
       creatorAmountPence: true,
       soldAt: true,
+      source: true,
       creatorProduct: {
         select: {
           profile: { select: { handle: true } },
@@ -595,6 +596,7 @@ export async function recentSales(take = 5) {
     valuePence: r.valuePence,
     creatorAmountPence: r.creatorAmountPence,
     soldAt: r.soldAt,
+    source: r.source,
     handle: r.creatorProduct.profile.handle,
     brand: r.creatorProduct.product.brand.name,
   }));
