@@ -36,11 +36,14 @@ const nextConfig: NextConfig = {
   // Don't advertise the framework or its version.
   poweredByHeader: false,
 
-  // PM2 runs four workers, and each one kept its own in-memory copy of the
-  // cache. Revalidating a tag reached the worker that handled the request and
-  // left the other three serving the old page, so an admin edit appeared on
-  // some refreshes and not others. With the memory layer off, every worker
-  // reads the cache on disk and they all see the same invalidation.
+  // The four PM2 workers share one cache, in Redis, rather than each keeping
+  // their own. Without this, revalidating reached whichever worker handled the
+  // request and left the other three serving the old page.
+  //
+  // The memory layer stays off, which is what Next's own guidance pairs with a
+  // custom handler: an in-process copy sits in front of the shared one and
+  // brings back exactly the inconsistency the shared one exists to remove.
+  cacheHandler: require.resolve("./cache-handler.js"),
   cacheMaxMemorySize: 0,
 
   // Required at runtime rather than bundled. ioredis resolves its own
