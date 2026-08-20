@@ -30,7 +30,21 @@ export function canonicalUrl(raw: string): string {
     if (junk.test(key)) url.searchParams.delete(key);
   }
   url.protocol = "https:";
-  url.hostname = url.hostname.replace(/^www\./, "").toLowerCase();
+
+  // The `www.` stays.
+  //
+  // It used to be stripped, so that a product reached at www.brand.com and at
+  // brand.com counted as one. That is a fair thing to want and it was the wrong
+  // way to get it, because this address is not only a key: it is where the
+  // tracking link sends the shopper. A great many shops answer on one host and
+  // not the other, and The Christmas PJ Company is one of them, so a link built
+  // from the stripped address led nowhere at all. The client found that before
+  // we did.
+  //
+  // A duplicate row is something an administrator can see and merge. A dead
+  // destination is a lost sale that nobody notices until a brand asks why their
+  // report is empty, so the two are not close in cost.
+  url.hostname = url.hostname.toLowerCase();
   return url.toString().replace(/\/$/, "");
 }
 
