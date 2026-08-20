@@ -265,6 +265,11 @@ model Brand {
   hasAffiliateProgramme Boolean        @default(false)
   trackingMethod        TrackingMethod @default(DISCOUNT_CODE)
 
+  // Defaults to OTHER because every brand added before this column was asked
+  // no such question, and guessing Shopify for them would have the admin screen
+  // offer a pixel to shops that cannot run one.
+  platform              StorePlatform  @default(OTHER)
+
   // Network path. Built now, unusable until Pluggz is accepted as a
   // sub-affiliate (Awin and Sovrn have both declined pending traffic).
   networkName     String?
@@ -463,6 +468,32 @@ enum SaleStatus {
   REJECTED
 }
 
+/// What the brand's shop is built on.
+///
+/// This decides which integration we hand them, and it is the first question
+/// worth asking. A Shopify shop can be tracking sales in five minutes with a
+/// pixel the owner pastes into an admin screen, no developer involved. Anything
+/// else needs someone who can put a signed call on their server, which is a
+/// different conversation and a much slower one.
+enum StorePlatform {
+  SHOPIFY
+  WOOCOMMERCE
+  OTHER
+}
+
+/// How a sale reached us, which is really a question about how much it can be
+/// trusted. A postback is signed by the brand's server with a secret only they
+/// and we hold, so its value cannot be tampered with. A pixel runs in the
+/// shopper's own browser, where the key is visible and the reported value can
+/// be edited by anyone willing to open dev tools, so it is a claim rather than
+/// a fact and must be reconciled against the brand's orders before payout.
+enum SaleSource {
+  POSTBACK
+  PIXEL
+  CSV
+  MANUAL
+}
+
 // Where the money has physically reached.
 enum PayoutStage {
   PENDING // sale in, return window still open
@@ -485,6 +516,11 @@ model Sale {
 
   status SaleStatus  @default(PENDING)
   stage  PayoutStage @default(PENDING)
+
+  // Defaults to CSV because every sale that existed before this column did
+  // arrived through an uploaded report or was entered by hand. Each route sets
+  // it explicitly from here on.
+  source SaleSource @default(CSV)
 
   // Rates are snapshotted at sale time. A later change to the global default
   // or an override must never retroactively rewrite historical commission.
