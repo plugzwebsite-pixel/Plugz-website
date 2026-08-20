@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Container, Eyebrow } from "@/components/ui/primitives";
 import { ProductCard } from "@/components/marketing/cards";
@@ -7,7 +8,12 @@ import { Aurora } from "@/components/marketing/aurora";
 import { Pill } from "@/components/ui/primitives";
 import { SponsorBanner } from "@/components/marketing/sponsor-banner";
 import { categoryBySlug, publicCategories } from "@/lib/categories";
-import { getProductsByCategory } from "@/lib/queries";
+import {
+  getProductsByCategory,
+  parseCategorySort,
+  CATEGORY_SORTS,
+  type CategorySort,
+} from "@/lib/queries";
 
 // Served from cache and refreshed in the background. Shoppers arriving from a
 // creator's post get a static page rather than a database round trip, and new
@@ -33,18 +39,19 @@ export async function generateMetadata({
   return { title: cat ? cat.name : "Category" };
 }
 
-const filters = ["Trending", "New in", "Under £50", "Editor's picks", "Most plugged"];
-
 export default async function CategoryPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ sort?: string }>;
 }) {
   const { slug } = await params;
   const cat = await categoryBySlug(slug);
   if (!cat) notFound();
 
-  const products = await getProductsByCategory(cat.name);
+  const sort = parseCategorySort((await searchParams).sort);
+  const products = await getProductsByCategory(cat.name, 24, sort);
 
   return (
     <>
@@ -69,11 +76,17 @@ export default async function CategoryPage({
       {cat.banner && <SponsorBanner banner={cat.banner} category={cat.name} />}
 
       <Container className="py-10">
+        {/* Plain links rather than a client component: the ordering belongs in
+            the address, so a view can be bookmarked and sent to someone. */}
         <div className="flex flex-wrap gap-2.5">
-          {filters.map((f, i) => (
-            <Pill key={f} active={i === 0}>
-              {f}
-            </Pill>
+          {(Object.keys(CATEGORY_SORTS) as CategorySort[]).map((key) => (
+            <Link
+              key={key}
+              href={key === "plugged" ? `/category/${slug}` : `/category/${slug}?sort=${key}`}
+              scroll={false}
+            >
+              <Pill active={sort === key}>{CATEGORY_SORTS[key]}</Pill>
+            </Link>
           ))}
         </div>
 
