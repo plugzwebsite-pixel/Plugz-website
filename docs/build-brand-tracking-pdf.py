@@ -193,17 +193,46 @@ def build(path):
 
     # ================================================== part three, testing
     s.append(Paragraph("Part three: test it once, together", S["h2"]))
-    s.extend(bullets([
-        "We send a test link. Open it in a normal browser and check <b>pz</b> arrives on "
-        "your product page and is stored.",
-        "Place one real order for a small amount.",
-        "We confirm the sale has appeared, against the right creator, with the commission "
-        "split correctly.",
-        "We remove the test order so it does not sit in anybody's figures.",
-    ]))
     s.append(Paragraph(
-        "Do this before anything is announced. It takes ten minutes and it is the only way to "
-        "know the whole chain works end to end.", S["muted"]))
+        "Do this before anything is announced. It takes about ten minutes and it is the only "
+        "way to know the whole chain works end to end.", S["muted"]))
+
+    s.append(KeepTogether([
+        Paragraph("Where the test link comes from", S["h3"]),
+        Paragraph(
+            "A tracking link is created the moment a creator puts one of the brand's products "
+            "on their storefront. There is one for every product on every creator, and it is "
+            "the same link a shopper follows. Nothing separate has to be generated for a test.",
+            S["body"]),
+        Paragraph(
+            "To find one: <b>Admin</b>, then <b>Products</b>. Search for the product, and the "
+            "<b>Tracking link</b> column gives it. The copy button beside it puts the full "
+            "address on your clipboard, ready to paste.", S["body"]),
+        Paragraph(f"https://{SITE}/go/qjdqqkfm", S["code"]),
+        Paragraph(
+            "If the column says None, no creator has plugged that product yet, so no link "
+            "exists. Ask a creator to add it, or add it to a creator's storefront yourself.",
+            S["muted"]),
+    ]))
+
+    s.append(Spacer(1, 8))
+    s.append(Paragraph("Then, in order", S["h3"]))
+    s.extend(bullets([
+        "Send the brand that link and ask them to open it in a normal browser. They should "
+        "check that <b>pz</b> arrives on their product page and that their site keeps it.",
+        "They place one real order for a small amount, in that same browser.",
+        "Open <b>Admin</b>, then <b>Record sales</b>. The order should appear within a minute, "
+        "against the right creator, with the commission already split.",
+        "Remove the test order afterwards so it does not sit in anybody's figures, and reset "
+        "the click count on that link.",
+    ]))
+
+    s.append(Spacer(1, 6))
+    s.append(Paragraph(
+        "If nothing appears, the useful question is which half failed. A click recorded "
+        "against the link means our side worked and the order message never arrived, which "
+        "puts it on the brand's side. No click at all means the shopper never followed the "
+        "link we think they did.", S["body"]))
 
     s.append(Paragraph("What happens to a sale after that", S["h3"]))
     s.append(datatable([
