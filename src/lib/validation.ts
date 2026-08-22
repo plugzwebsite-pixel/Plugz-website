@@ -162,6 +162,25 @@ export type BrandEnquiryInput = z.infer<typeof brandEnquirySchema>;
 export const forgotPasswordSchema = z.object({ email });
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
 
+/**
+ * Changing a password while signed in.
+ *
+ * The current one is asked for as well, so somebody who walks up to an unlocked
+ * screen cannot take the account over. The reset flow does not need it, because
+ * proving control of the mailbox is what stands in its place there.
+ */
+export const changePasswordSchema = z
+  .object({
+    current: z.string().min(1, "Enter your current password"),
+    password,
+  })
+  .refine((v) => v.current !== v.password, {
+    message: "That is the password you already have",
+    path: ["password"],
+  });
+
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+
 export const resetPasswordSchema = z.object({
   token: z.string().min(10, "Invalid reset link"),
   password,
