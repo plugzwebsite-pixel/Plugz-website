@@ -452,6 +452,57 @@ export async function brandTopCreators(brandId: string, take = 5) {
 }
 
 /** This brand's products on Pluggz, and how each is performing. */
+/**
+ * A brand's own catalogue, whether or not anybody has plugged it yet.
+ *
+ * Separate from brandProducts, which lists creator storefront listings and so
+ * shows nothing at all until a creator picks something up. Now that a brand can
+ * add its own products, that would have meant adding one and being shown an
+ * empty screen, which reads as the save having failed.
+ *
+ * This is the inventory view: what the brand has offered, and how far each item
+ * has got.
+ */
+export async function brandCatalogue(brandId: string, take = 100) {
+  const rows = await db.product.findMany({
+    where: { brandId },
+    orderBy: { createdAt: "desc" },
+    take,
+    select: {
+      id: true,
+      name: true,
+      imageUrl: true,
+      pricePence: true,
+      category: true,
+      sourceUrl: true,
+      createdAt: true,
+      creatorProducts: {
+        select: {
+          live: true,
+          trackingLink: { select: { clickCount: true } },
+          sales: { where: { status: "APPROVED" }, select: { valuePence: true } },
+        },
+      },
+    },
+  });
+
+  return rows.map((r) => ({
+    id: r.id,
+    name: r.name,
+    imageUrl: r.imageUrl,
+    pricePence: r.pricePence,
+    category: r.category,
+    sourceUrl: r.sourceUrl,
+    addedAt: r.createdAt,
+    plugs: r.creatorProducts.filter((c) => c.live).length,
+    clicks: r.creatorProducts.reduce((t, c) => t + (c.trackingLink?.clickCount ?? 0), 0),
+    salesPence: r.creatorProducts.reduce(
+      (t, c) => t + c.sales.reduce((x, s) => x + s.valuePence, 0),
+      0
+    ),
+  }));
+}
+
 export async function brandProducts(brandId: string, take = 20) {
   const rows = await db.creatorProduct.findMany({
     where: { product: { brandId }, profile: publiclyVisibleCreator },
