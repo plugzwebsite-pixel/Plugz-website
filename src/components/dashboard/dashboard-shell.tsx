@@ -17,6 +17,8 @@ import {
   Percent,
   Wallet,
   Package,
+  PackagePlus,
+  KeyRound,
   MousePointerClick,
   ScrollText,
   LayoutGrid,
@@ -49,6 +51,7 @@ const NAVS: Record<DashboardVariant, NavItem[]> = {
     { label: "Import creators", href: "/admin/creators/import", icon: Upload },
     { label: "Shoppers", href: "/admin/shoppers", icon: Users },
     { label: "Brands", href: "/admin/brands", icon: Store },
+    { label: "Brand credentials", href: "/admin/credentials", icon: KeyRound },
     { label: "Categories", href: "/admin/categories", icon: LayoutGrid },
     { label: "Brand enquiries", href: "/admin/enquiries", icon: Inbox },
     { label: "Analytics", href: "/admin/analytics", icon: BarChart3 },
@@ -63,7 +66,9 @@ const NAVS: Record<DashboardVariant, NavItem[]> = {
   brand: [
     { label: "Performance", href: "/brand/dashboard", icon: LayoutDashboard },
     { label: "Your products", href: "/brand/products", icon: Package },
+    { label: "Add a product", href: "/brand/products/new", icon: PackagePlus },
     { label: "Invoices", href: "/brand/invoices", icon: Receipt },
+    { label: "Settings", href: "/brand/settings", icon: Settings },
   ],
 };
 
