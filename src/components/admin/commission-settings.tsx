@@ -9,6 +9,12 @@ import { Select } from "@/components/ui/controls";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/toast";
 import { postJson } from "@/lib/client/api";
+import {
+  CREATOR_FLOOR,
+  PLUGGZ_FLOOR,
+  TOTAL_MIN,
+  TOTAL_MAX,
+} from "@/lib/commission-limits";
 
 export type Override = {
   id: string;
@@ -32,10 +38,6 @@ export type SeasonalWindow = {
   past: boolean;
 };
 
-const CREATOR_FLOOR = 8;
-const PLUGGZ_FLOOR = 3;
-const TOTAL_MIN = 11;
-const TOTAL_MAX = 15;
 
 export function CommissionSettings({
   defaultCreatorRate,

@@ -2,24 +2,27 @@ import { db } from "@/lib/db";
 import { ok, fail, parseBody } from "@/lib/http";
 import { requireRole } from "@/lib/auth/guard";
 import { z } from "zod";
+import {
+  CREATOR_FLOOR,
+  PLUGGZ_FLOOR,
+  TOTAL_MIN,
+  TOTAL_MAX,
+  RATE_CEILING,
+} from "@/lib/commission-limits";
 
 /**
  * Commission rates.
  *
  * The creator floor of 8% is contractual, not a UI preference. The schema
  * allows anything, so the floor is enforced here where it can't be bypassed by
- * editing the page. Total take is held to the 11-15% band the commercial terms
- * describe.
+ * editing the page. Total take is held to the band in src/lib/commission-limits.ts, which the
+ * screen reads from the same place so the two cannot disagree.
  */
-const CREATOR_FLOOR = 8;
-const PLUGGZ_FLOOR = 3;
-const TOTAL_MIN = 11;
-const TOTAL_MAX = 15;
 
 const rates = z
   .object({
-    creatorRate: z.number().min(CREATOR_FLOOR, `Creator share can't go below ${CREATOR_FLOOR}%`).max(30),
-    pluggzRate: z.number().min(PLUGGZ_FLOOR, `Pluggz share can't go below ${PLUGGZ_FLOOR}%`).max(30),
+    creatorRate: z.number().min(CREATOR_FLOOR, `Creator share can't go below ${CREATOR_FLOOR}%`).max(RATE_CEILING),
+    pluggzRate: z.number().min(PLUGGZ_FLOOR, `Pluggz share can't go below ${PLUGGZ_FLOOR}%`).max(RATE_CEILING),
   })
   .refine((d) => {
     const total = d.creatorRate + d.pluggzRate;
