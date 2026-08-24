@@ -23,10 +23,13 @@ export function Hero({
   creators,
   stats,
   creatorCount,
+  copy,
 }: {
   creators: CreatorCardData[];
   stats: { value: string; label: string }[];
   creatorCount: number;
+  /** Editable from the admin. Falls back to what shipped when left empty. */
+  copy?: { heroTitle?: string; heroSubtitle?: string };
 }) {
   const router = useRouter();
 
@@ -58,19 +61,25 @@ export function Hero({
             variants={item}
             className="mx-auto mt-6 max-w-3xl font-display text-[clamp(2.4rem,6vw,4rem)] font-semibold leading-[1.03] text-text-strong"
           >
-            Your favourite creators.
-            <br />
-            <span className="text-gradient italic">
-              Their favourite products.
-            </span>
+            {copy?.heroTitle ? (
+              copy.heroTitle
+            ) : (
+              <>
+                Your favourite creators.
+                <br />
+                <span className="text-gradient italic">
+                  Their favourite products.
+                </span>
+              </>
+            )}
           </motion.h1>
 
           <motion.p
             variants={item}
             className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-text-muted"
           >
-            The place where creators share what they actually buy, wear, eat, use
-            and love.
+            {copy?.heroSubtitle ??
+              "The place where creators share what they actually buy, wear, eat, use and love."}
           </motion.p>
 
           <motion.p

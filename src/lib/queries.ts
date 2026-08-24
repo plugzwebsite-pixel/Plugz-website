@@ -179,6 +179,32 @@ function oneCardPerProduct(rows: ProductRow[]): ProductRow[] {
   return out;
 }
 
+/**
+ * What the homepage shows, and why it is not simply the most clicked.
+ *
+ * The team picks. Without that, the front page is whatever happens to have the
+ * most clicks, which on a young platform is whatever was posted first, and
+ * leaves nobody able to put a seasonal edit or a new partner in front of
+ * shoppers. Where nothing has been chosen it falls back to the most clicked, so
+ * the page is never empty.
+ */
+export async function getHomepageProducts(limit = 8): Promise<ProductCardData[]> {
+  const chosen = await db.creatorProduct.findMany({
+    where: { ...liveProduct, featured: true },
+    select: productSelect,
+    orderBy: [{ trackingLink: { clickCount: "desc" } }, { createdAt: "desc" }],
+    take: limit * 4,
+  });
+  const cards = oneCardPerProduct(chosen).slice(0, limit).map(toProductCard);
+  if (cards.length >= limit) return cards;
+
+  // Topped up rather than replaced, so choosing three products does not mean
+  // the homepage shows only three.
+  const already = new Set(cards.map((c) => c.id));
+  const filler = await getTrendingProducts(limit * 2);
+  return [...cards, ...filler.filter((f) => !already.has(f.id))].slice(0, limit);
+}
+
 export async function getTrendingProducts(limit = 8): Promise<ProductCardData[]> {
   const rows = await db.creatorProduct.findMany({
     where: liveProduct,

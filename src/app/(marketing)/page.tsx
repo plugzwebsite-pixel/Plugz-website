@@ -15,9 +15,10 @@ import {
   getCategoryCounts,
   getFeaturedBrand,
   getFeaturedCreators,
-  getTrendingProducts,
+  getHomepageProducts,
   getPlatformStats,
 } from "@/lib/queries";
+import { siteContent } from "@/lib/site-content";
 import { compact, gbpFromPence } from "@/lib/utils";
 
 /**
@@ -30,9 +31,10 @@ import { compact, gbpFromPence } from "@/lib/utils";
 export const revalidate = 60;
 
 export default async function HomePage() {
-  const [trendProducts, featured, stats, featuredBrand, categoryCounts, categories] =
+  const [trendProducts, copy, featured, stats, featuredBrand, categoryCounts, categories] =
     await Promise.all([
-      getTrendingProducts(8),
+      getHomepageProducts(8),
+      siteContent(),
       // The hero wall wants every creator it can get: each row has to span the
       // screen on its own, and a short list only loops back on itself.
       getFeaturedCreators(24),
@@ -74,6 +76,7 @@ export default async function HomePage() {
         creators={featured}
         stats={heroStats}
         creatorCount={stats.creators}
+        copy={copy}
       />
 
       {/* Trending now, moved high up so shoppers hit the hot picks fast */}
