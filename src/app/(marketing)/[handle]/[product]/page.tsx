@@ -9,6 +9,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ProductCard } from "@/components/marketing/cards";
 import { VideoPlayer } from "@/components/marketing/video-player";
+import { ViewBeacon } from "@/components/marketing/view-beacon";
 import { SaveButton } from "@/components/marketing/save-button";
 import { Reveal } from "@/components/ui/reveal";
 import { ProductImage } from "@/components/ui/product-image";
@@ -82,6 +83,7 @@ export default async function ProductPage({
 
   return (
     <>
+      <ViewBeacon listingId={row.id} />
       <Container className="py-10">
         <div className="grid gap-10 lg:grid-cols-[1.1fr_1fr]">
           {/* Image */}

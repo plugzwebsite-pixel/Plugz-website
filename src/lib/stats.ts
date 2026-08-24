@@ -80,7 +80,7 @@ async function dailyClicks(
 // --- creator ----------------------------------------------------------------
 
 export async function creatorDashboard(profileId: string) {
-  const [listings, liveCount, salesAgg, pipeline, clickSeries] = await Promise.all([
+  const [listings, liveCount, salesAgg, pipeline, clickSeries, views] = await Promise.all([
     db.trackingLink.aggregate({
       where: { creatorProduct: { profileId } },
       _sum: { clickCount: true },
@@ -103,6 +103,9 @@ export async function creatorDashboard(profileId: string) {
                  WHERE cp."profileId" = ${profileId}
                    AND c."clickedAt" >= now() - interval '14 days'`
     ),
+    // Looked at on Pluggz, as opposed to clicked through to the brand. The two
+    // together are what say whether a page is persuading anybody.
+    db.productView.count({ where: { creatorProduct: { profileId } } }),
   ]);
 
   const clicks = listings._sum.clickCount ?? 0;
@@ -151,9 +154,7 @@ export async function creatorDashboard(profileId: string) {
       paidPence: stageTotal("PAID_TO_CREATOR"),
     },
     clickSeries,
-    // Not measured yet: on-site storefront views. Deliberately null rather
-    // than a stand-in number.
-    views: null as number | null,
+    views,
   };
 }
 

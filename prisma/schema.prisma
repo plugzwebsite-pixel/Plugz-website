@@ -53,6 +53,7 @@ model User {
   passwordResetTokens PasswordResetToken[]
   wishlist            WishlistItem[]
   reviewedVideos      CreatorVideo[]
+  siteEdits           SiteContent[]
 
   // Set only for BRAND accounts: the brand whose figures this person may see.
   // A brand can have several contacts; each one is tied to exactly one brand,
@@ -375,6 +376,14 @@ model CreatorProduct {
   review String?
   rating Int? // 1-5
 
+  /// Chosen by the team for the homepage. Separate from `live`, which is the
+  /// creator's own decision about whether to show it at all: being on their
+  /// storefront and being on the front page are two different things, and one
+  /// of them is not the creator's to grant.
+  featured Boolean @default(false)
+
+  views ProductView[]
+
   /// Kept for the handful of listings that carry a plain file address. New
   /// video goes through CreatorVideo and Cloudflare Stream; this is read as a
   /// fallback so nothing already published disappears.
@@ -531,6 +540,45 @@ model CreatorVideo {
   // The moderation queue reads these two together: what is live and unlooked at.
   @@index([review, state])
   @@index([createdAt])
+}
+
+/// Somebody looking at a product page on Pluggz itself.
+///
+/// Clicks measure what left for a brand's site; this measures what was looked
+/// at and did not. Without both, a product with two hundred views and one click
+/// is indistinguishable from one nobody ever saw, and those two need entirely
+/// different conversations with the brand.
+///
+/// Recorded from the browser rather than during the render, because the product
+/// pages are prerendered and counting on the server would make every one of
+/// them dynamic. Bots are excluded on the way in, the same as clicks.
+model ProductView {
+  id String @id @default(cuid())
+
+  creatorProductId String
+  creatorProduct   CreatorProduct @relation(fields: [creatorProductId], references: [id], onDelete: Cascade)
+
+  /// The same attribution session a click carries, so a view and the click it
+  /// led to can be tied together.
+  sessionId String
+  viewedAt  DateTime @default(now())
+
+  @@index([creatorProductId, viewedAt])
+  @@index([viewedAt])
+}
+
+/// Editable copy and placements for the public homepage.
+///
+/// A key and a value rather than a column per field. The team wants to change a
+/// headline or swap a promotional strip without a release, and the alternative
+/// is a migration every time somebody rewords a sentence.
+model SiteContent {
+  key   String @id
+  value String
+
+  updatedAt   DateTime @updatedAt
+  updatedById String?
+  updatedBy   User?    @relation(fields: [updatedById], references: [id], onDelete: SetNull)
 }
 
 /// Where a video is in Cloudflare's hands.
