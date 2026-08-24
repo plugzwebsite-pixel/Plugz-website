@@ -36,14 +36,18 @@ export function pixelEndpointUrl(origin?: string): string {
  * `document` because a custom pixel runs in a sandbox where the ordinary
  * globals are absent. Code written the usual way fails there silently, which is
  * the worst way for tracking to fail.
+ *
+ * Every field is read with plain `if` statements rather than a ternary or a
+ * chain of `||`. That is not a style preference: Shopify's own code editor
+ * refuses to save a pixel with a line beginning in an operator, and reports it
+ * only as "Fix the highlighted code error". Keep each statement on one line.
  */
 export function shopifyPixelSnippet(trackingKey: string, origin?: string): string {
   return `const KEY = ${JSON.stringify(trackingKey)};
 
 analytics.subscribe("page_viewed", async () => {
-  const pz = new URLSearchParams(
-    init.context.window.location.search
-  ).get("pz");
+  const params = new URLSearchParams(init.context.window.location.search);
+  const pz = params.get("pz");
   if (pz) browser.cookie.set(\`pz=\${pz}; max-age=2592000; path=/\`);
 });
 
@@ -51,15 +55,33 @@ analytics.subscribe("checkout_completed", async (event) => {
   const pz = await browser.cookie.get("pz");
   if (!pz) return;
   const c = event.data.checkout;
+
+  let orderRef = "";
+  if (c.order && c.order.id) orderRef = String(c.order.id);
+  else if (c.token) orderRef = String(c.token);
+  else if (c.id) orderRef = String(c.id);
+
+  let amount = null;
+  if (c.totalPrice && c.totalPrice.amount != null) amount = c.totalPrice.amount;
+  else if (c.subtotalPrice && c.subtotalPrice.amount != null) amount = c.subtotalPrice.amount;
+
+  let currency = "GBP";
+  if (c.currencyCode) currency = c.currencyCode;
+  else if (c.totalPrice && c.totalPrice.currencyCode) currency = c.totalPrice.currencyCode;
+
+  if (!orderRef) return;
+  if (amount == null) return;
+  if (Number(amount) <= 0) return;
+
   fetch(${JSON.stringify(pixelEndpointUrl(origin))}, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       key: KEY,
-      pz,
-      orderRef: String(c.order.id),
-      value: Math.round(Number(c.totalPrice.amount) * 100),
-      currency: c.currencyCode,
+      pz: pz,
+      orderRef: orderRef,
+      value: Math.round(Number(amount) * 100),
+      currency: currency,
     }),
   });
 });`;
