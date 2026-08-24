@@ -234,6 +234,12 @@ export async function getCreatorProduct(handle: string, slug: string) {
       review: true,
       rating: true,
       videoUrl: true,
+      // Only a clip that is playable and has not been taken down. A video
+      // still encoding, or one moderation has pulled, must not reach a shopper.
+      video: {
+        where: { state: "READY", review: { not: "REMOVED" } },
+        select: { uid: true, thumbnailUrl: true },
+      },
       profile: { select: creatorSelect },
       trackingLink: { select: { code: true, discountCode: true, clickCount: true } },
       product: {

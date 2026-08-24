@@ -52,6 +52,7 @@ model User {
   emailTokens         EmailVerificationToken[]
   passwordResetTokens PasswordResetToken[]
   wishlist            WishlistItem[]
+  reviewedVideos      CreatorVideo[]
 
   // Set only for BRAND accounts: the brand whose figures this person may see.
   // A brand can have several contacts; each one is tied to exactly one brand,
@@ -104,7 +105,6 @@ model CreatorProfile {
 
 /**
  * A shopper's account.
- *
  * Shoppers browse and buy without ever signing in, because there is no checkout
  * on Pluggz, so an account exists for one reason: the shopper chooses to be
  * known to us. That makes consent the whole point of this record rather than a
@@ -268,7 +268,7 @@ model Brand {
   // Defaults to OTHER because every brand added before this column was asked
   // no such question, and guessing Shopify for them would have the admin screen
   // offer a pixel to shops that cannot run one.
-  platform              StorePlatform  @default(OTHER)
+  platform StorePlatform @default(OTHER)
 
   // Network path. Built now, unusable until Pluggz is accepted as a
   // sub-affiliate (Awin and Sovrn have both declined pending traffic).
@@ -371,10 +371,15 @@ model CreatorProduct {
   productId String
   product   Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
 
-  slug     String
-  review   String?
-  rating   Int? // 1-5
-  videoUrl String? // Cloudflare Stream id/url once video upload ships
+  slug   String
+  review String?
+  rating Int? // 1-5
+
+  /// Kept for the handful of listings that carry a plain file address. New
+  /// video goes through CreatorVideo and Cloudflare Stream; this is read as a
+  /// fallback so nothing already published disappears.
+  videoUrl String?
+  video    CreatorVideo?
 
   collectionId String?
   collection   Collection? @relation(fields: [collectionId], references: [id], onDelete: SetNull)
@@ -487,6 +492,71 @@ enum StorePlatform {
 /// shopper's own browser, where the key is visible and the reported value can
 /// be edited by anyone willing to open dev tools, so it is a claim rather than
 /// a fact and must be reconciled against the brand's orders before payout.
+/// A promotional clip a creator recorded for one of their listings.
+///
+/// One per listing, which is why the relation is unique: the storefront shows a
+/// product with its video, not a gallery, and letting a listing carry five of
+/// them would only raise the question of which one plays.
+///
+/// Kept apart from CreatorProduct rather than added as six more columns on it,
+/// because moderation needs a queue with an audit trail: who looked, when, and
+/// why something came down. That does not belong wedged into the listing row.
+model CreatorVideo {
+  id String @id @default(cuid())
+
+  creatorProductId String         @unique
+  creatorProduct   CreatorProduct @relation(fields: [creatorProductId], references: [id], onDelete: Cascade)
+
+  /// Cloudflare's own identifier. Everything about the file is asked of them
+  /// using this; we store no bytes.
+  uid String @unique
+
+  state  VideoState  @default(UPLOADING)
+  review VideoReview @default(PENDING)
+
+  durationSeconds Int?
+  thumbnailUrl    String?
+  /// Set once Cloudflare says the clip is playable, so a half-uploaded file is
+  /// never put in front of a shopper.
+  readyAt         DateTime?
+
+  removedReason String?
+  reviewedAt    DateTime?
+  reviewedById  String?
+  reviewedBy    User?     @relation(fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // The moderation queue reads these two together: what is live and unlooked at.
+  @@index([review, state])
+  @@index([createdAt])
+}
+
+/// Where a video is in Cloudflare's hands.
+///
+/// The file never touches this server. A creator's browser uploads straight to
+/// Cloudflare using a one-time address, which is what keeps a platform full of
+/// phone footage from needing storage or bandwidth of its own.
+enum VideoState {
+  UPLOADING // the one-time address exists, the file has not arrived yet
+  PROCESSING // Cloudflare is encoding it
+  READY // playable
+  FAILED // Cloudflare could not use it
+}
+
+/// What a human has decided about it.
+///
+/// Moderation is deliberately after publication, resolved with Lisa on 27 July:
+/// a video is live the moment it is playable, and is reviewed afterwards.
+/// Holding every clip until somebody looks would make the storefront useless to
+/// a creator posting on a Friday night.
+enum VideoReview {
+  PENDING // live, nobody has looked yet
+  APPROVED // looked at and kept
+  REMOVED // taken down
+}
+
 enum SaleSource {
   POSTBACK
   PIXEL
@@ -588,7 +658,6 @@ model PlatformSetting {
 // targets is set; creator overrides win over brand overrides.
 /**
  * A lifestyle category: the tiles on the homepage and the pages behind them.
- *
  * `name` is the join key, because Product.category is free text written by the
  * scraper and the importer rather than a foreign key. Renaming a category has
  * to rewrite every product that carries the old name, which the admin route
@@ -596,13 +665,11 @@ model PlatformSetting {
  */
 /**
  * A product a shopper saved to come back to.
- *
  * Saved as the creator's listing rather than the master product, because on
  * Pluggz the recommendation is the thing: coming back to "the dress Katie
  * plugged" is the point, and the same dress on another storefront is a
  * different card with a different review. It also keeps the creator credited
  * when the shopper eventually buys.
- *
  * Hung off User rather than ShopperProfile so anyone signed in can save,
  * without a role gate turning a browsing creator away from their own site.
  */
@@ -670,7 +737,6 @@ enum DisputeStatus {
 
 /**
  * A disagreement about one recorded sale.
- *
  * Every figure on this platform is computed, so when a brand or a creator says
  * a number is wrong there was nowhere to record that, who is waiting on whom,
  * or what was agreed in the end. Deliberately a note against the sale rather

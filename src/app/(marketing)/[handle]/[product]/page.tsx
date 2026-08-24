@@ -8,6 +8,7 @@ import { Container, Badge, Eyebrow } from "@/components/ui/primitives";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ProductCard } from "@/components/marketing/cards";
+import { VideoPlayer } from "@/components/marketing/video-player";
 import { SaveButton } from "@/components/marketing/save-button";
 import { Reveal } from "@/components/ui/reveal";
 import { ProductImage } from "@/components/ui/product-image";
@@ -104,14 +105,23 @@ export default async function ProductPage({
                 spacerClassName="aspect-square w-full"
               />
             </div>
-            {row.videoUrl && (
+            {/* A Cloudflare clip if there is one, otherwise the plain file
+                address that a handful of older listings still carry. */}
+            {row.video ? (
+              <VideoPlayer
+                uid={row.video.uid}
+                poster={row.video.thumbnailUrl}
+                title={row.product.name}
+              />
+            ) : row.videoUrl ? (
               <video
                 src={row.videoUrl}
                 controls
                 playsInline
+                preload="none"
                 className="mt-4 w-full rounded-lg border border-border"
               />
-            )}
+            ) : null}
           </Reveal>
 
           {/* Detail */}

@@ -54,6 +54,17 @@ export async function GET() {
       id: true,
       slug: true,
       live: true,
+      video: {
+        select: {
+          id: true,
+          uid: true,
+          state: true,
+          review: true,
+          durationSeconds: true,
+          thumbnailUrl: true,
+          removedReason: true,
+        },
+      },
       review: true,
       rating: true,
       createdAt: true,

@@ -24,7 +24,14 @@ const csp = [
   "font-src 'self' https://fonts.gstatic.com data:",
   "img-src 'self' data: blob: https:",
   "media-src 'self' https:",
-  "connect-src 'self' https://cloudflareinsights.com" +
+  // Creator video is hosted by Cloudflare Stream and played in their iframe.
+  // Without this, frame-src falls back to default-src 'self' and the player is
+  // blocked with nothing on the page to say why.
+  "frame-src 'self' https://iframe.videodelivery.net https://customer-*.cloudflarestream.com",
+  // A creator's file is uploaded straight from their browser to Cloudflare, so
+  // the upload hosts have to be reachable or every video fails at 0%.
+  "connect-src 'self' https://cloudflareinsights.com " +
+    "https://upload.videodelivery.net https://upload.cloudflarestream.com" +
     (isProd ? "" : " ws: http://localhost:*"),
   "frame-ancestors 'none'",
   "form-action 'self'",

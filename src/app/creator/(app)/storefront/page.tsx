@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getSession } from "@/lib/auth/session";
 import { StorefrontManager } from "@/components/creator/storefront-manager";
+import { streamConfigured } from "@/lib/stream";
 
 export const metadata: Metadata = { title: "Storefront links" };
 
@@ -13,7 +14,7 @@ export default async function CreatorStorefrontPage() {
         Paste a brand product URL and Pluggz builds the product page, generates the
         affiliate tracking, and adds it to your storefront, with no manual work.
       </p>
-      <StorefrontManager handle={user?.handle ?? ""} />
+      <StorefrontManager handle={user?.handle ?? ""} videoEnabled={streamConfigured()} />
     </div>
   );
 }

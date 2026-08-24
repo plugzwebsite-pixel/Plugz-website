@@ -14,6 +14,7 @@ import {
   MousePointerClick,
   ImageOff,
 } from "lucide-react";
+import { VideoUpload } from "@/components/creator/video-upload";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/primitives";
@@ -63,6 +64,15 @@ type Listing = {
   id: string;
   slug: string;
   live: boolean;
+  video: {
+    id: string;
+    uid: string;
+    state: "UPLOADING" | "PROCESSING" | "READY" | "FAILED";
+    review: "PENDING" | "APPROVED" | "REMOVED";
+    durationSeconds: number | null;
+    thumbnailUrl: string | null;
+    removedReason: string | null;
+  } | null;
   product: {
     name: string;
     imageUrl: string | null;
@@ -87,7 +97,13 @@ type Available = {
   _count: { creatorProducts: number };
 };
 
-export function StorefrontManager({ handle }: { handle: string }) {
+export function StorefrontManager({
+  handle,
+  videoEnabled,
+}: {
+  handle: string;
+  videoEnabled: boolean;
+}) {
   const [listings, setListings] = useState<Listing[]>([]);
   const [available, setAvailable] = useState<Available[]>([]);
   const [url, setUrl] = useState("");
@@ -268,8 +284,9 @@ export function StorefrontManager({ handle }: { handle: string }) {
                   initial={{ opacity: 0, y: -8 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
-                  className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:gap-4"
+                  className="px-5 py-4"
                 >
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
                   <ProductThumb
                     src={l.product.imageUrl}
                     size={48}
@@ -336,6 +353,18 @@ export function StorefrontManager({ handle }: { handle: string }) {
                     >
                       <Trash2 size={15} />
                     </button>
+                  </div>
+                  </div>
+
+                  {/* A clip for this product. Below the row rather than in it,
+                      because uploading is an occasional job and the row is
+                      already carrying the link, the code and the click count. */}
+                  <div className="mt-3 border-t border-border pt-3">
+                    <VideoUpload
+                      listingId={l.id}
+                      initial={l.video}
+                      configured={videoEnabled}
+                    />
                   </div>
                 </motion.div>
               ))}
