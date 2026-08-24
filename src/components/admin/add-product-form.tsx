@@ -223,7 +223,7 @@ export function AddProductForm({
                   </p>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
-                  {p.pricePence ? (
+                  {p.pricePence !== null ? (
                     <span className="text-sm text-text-muted">
                       {gbpFromPence(p.pricePence)}
                     </span>

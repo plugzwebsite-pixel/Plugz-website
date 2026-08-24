@@ -51,6 +51,17 @@ export function BrandAddProductForm({ categories }: { categories: string[] }) {
 
   const set = (k: keyof typeof f) => (v: string) => setF((s) => ({ ...s, [k]: v }));
 
+  /** Best effort. A file left behind costs a little disk, not correctness. */
+  async function discard(url: string) {
+    try {
+      await fetch(`/api/uploads/product-image?url=${encodeURIComponent(url)}`, {
+        method: "DELETE",
+      });
+    } catch {
+      // Nothing to tell the user; the picture they chose is unaffected.
+    }
+  }
+
   async function upload(file: File) {
     setUploading(true);
     try {
@@ -62,7 +73,11 @@ export function BrandAddProductForm({ categories }: { categories: string[] }) {
         toast.error("Couldn't use that image", json?.message);
         return;
       }
+      // Swapping one photograph for another leaves the first with nothing
+      // pointing at it, so it goes rather than sitting on disk for ever.
+      const previous = f.imageUrl;
       setF((s) => ({ ...s, imageUrl: json.data.url }));
+      if (previous) void discard(previous);
       toast.success("Image ready");
     } catch {
       toast.error("Couldn't reach the server", "Try again in a moment.");
@@ -188,7 +203,11 @@ export function BrandAddProductForm({ categories }: { categories: string[] }) {
                   type="button"
                   size="sm"
                   variant="ghost"
-                  onClick={() => setF((s) => ({ ...s, imageUrl: "" }))}
+                  onClick={() => {
+                    const dropped = f.imageUrl;
+                    setF((s) => ({ ...s, imageUrl: "" }));
+                    if (dropped) void discard(dropped);
+                  }}
                 >
                   <X size={14} /> Remove
                 </Button>
@@ -258,7 +277,7 @@ export function BrandAddProductForm({ categories }: { categories: string[] }) {
                   <p className="truncate text-xs text-text-faint">{p.category}</p>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
-                  {p.pricePence ? (
+                  {p.pricePence !== null ? (
                     <span className="text-sm text-text-muted">
                       {gbpFromPence(p.pricePence)}
                     </span>

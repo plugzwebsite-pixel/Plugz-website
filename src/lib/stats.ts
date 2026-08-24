@@ -477,6 +477,11 @@ export async function brandCatalogue(brandId: string, take = 100) {
       sourceUrl: true,
       createdAt: true,
       creatorProducts: {
+        // The same visibility rule the listings table below uses. Without it
+        // this counted a suspended or unreleased creator's listing, so the
+        // catalogue said a product had two creators while the table under it
+        // showed one, on the same screen.
+        where: { profile: publiclyVisibleCreator },
         select: {
           live: true,
           trackingLink: { select: { clickCount: true } },
