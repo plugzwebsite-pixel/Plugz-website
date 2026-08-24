@@ -123,6 +123,25 @@ export async function recordSale(input: SaleInput): Promise<RecordedSale> {
 export class SaleError extends Error {}
 
 /**
+ * Was this the database refusing a second sale for the same order?
+ *
+ * Both tracking routes look for an existing sale before writing one, and two
+ * calls for the same order can pass that look together: a thank-you page that
+ * fires twice does it reliably. The unique constraint on
+ * (creatorProductId, orderRef) is what actually prevents the duplicate, and
+ * Prisma reports it as P2002. Recognising it here is what lets a caller be told
+ * "already recorded" instead of "server error", which is the difference between
+ * a brand ignoring a retry and a brand opening a ticket.
+ */
+export function isDuplicateOrder(err: unknown): boolean {
+  return (
+    typeof err === "object" &&
+    err !== null &&
+    (err as { code?: string }).code === "P2002"
+  );
+}
+
+/**
  * Find the listing a brand's report row refers to.
  *
  * A report gives whatever the brand happens to hold: our own click reference if

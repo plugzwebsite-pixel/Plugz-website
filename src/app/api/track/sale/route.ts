@@ -1,6 +1,6 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { db } from "@/lib/db";
-import { recordSale, SaleError } from "@/lib/sales";
+import { recordSale, SaleError, isDuplicateOrder } from "@/lib/sales";
 import { rateLimit, clientKey } from "@/lib/rate-limit";
 
 /**
@@ -150,6 +150,24 @@ export async function POST(req: Request) {
     return reply({ ok: true, saleId: sale.id, status: "pending" }, 200);
   } catch (err) {
     if (err instanceof SaleError) return reply({ ok: false, error: err.message }, 400);
+
+    // The duplicate check above is a look followed by a write, and two calls
+    // for the same order can pass the look together. A thank-you page that
+    // fires twice does exactly that. The database still refuses the second one,
+    // so treat that refusal as what it is rather than reporting a fault.
+    if (isDuplicateOrder(err)) {
+      const existing = await db.sale.findUnique({
+        where: { creatorProductId_orderRef: { creatorProductId, orderRef } },
+        select: { id: true, status: true },
+      });
+      if (existing) {
+        return reply(
+          { ok: true, saleId: existing.id, status: existing.status.toLowerCase(), duplicate: true },
+          200
+        );
+      }
+    }
+
     console.error("[track/sale] failed:", err);
     return reply({ ok: false, error: "Could not record that sale." }, 500);
   }
