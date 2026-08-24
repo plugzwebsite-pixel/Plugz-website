@@ -1,19 +1,12 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Container, Eyebrow } from "@/components/ui/primitives";
-import { ProductCard } from "@/components/marketing/cards";
 import { Reveal } from "@/components/ui/reveal";
 import { Aurora } from "@/components/marketing/aurora";
-import { Pill } from "@/components/ui/primitives";
 import { SponsorBanner } from "@/components/marketing/sponsor-banner";
+import { CategoryProducts } from "@/components/marketing/category-products";
 import { categoryBySlug, publicCategories } from "@/lib/categories";
-import {
-  getProductsByCategory,
-  parseCategorySort,
-  CATEGORY_SORTS,
-  type CategorySort,
-} from "@/lib/queries";
+import { getProductsByCategory } from "@/lib/queries";
 
 // Served from cache and refreshed in the background. Shoppers arriving from a
 // creator's post get a static page rather than a database round trip, and new
@@ -41,17 +34,16 @@ export async function generateMetadata({
 
 export default async function CategoryPage({
   params,
-  searchParams,
 }: {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ sort?: string }>;
 }) {
   const { slug } = await params;
   const cat = await categoryBySlug(slug);
   if (!cat) notFound();
 
-  const sort = parseCategorySort((await searchParams).sort);
-  const products = await getProductsByCategory(cat.name, 24, sort);
+  // The whole category, because the grid below sorts it in the browser and a
+  // sort applied to one page of several would quietly sort the wrong thing.
+  const products = await getProductsByCategory(cat.name, 48);
 
   return (
     <>
@@ -76,33 +68,8 @@ export default async function CategoryPage({
       {cat.banner && <SponsorBanner banner={cat.banner} category={cat.name} />}
 
       <Container className="py-10">
-        {/* Plain links rather than a client component: the ordering belongs in
-            the address, so a view can be bookmarked and sent to someone. */}
-        <div className="flex flex-wrap gap-2.5">
-          {(Object.keys(CATEGORY_SORTS) as CategorySort[]).map((key) => (
-            <Link
-              key={key}
-              href={key === "plugged" ? `/category/${slug}` : `/category/${slug}?sort=${key}`}
-              scroll={false}
-            >
-              <Pill active={sort === key}>{CATEGORY_SORTS[key]}</Pill>
-            </Link>
-          ))}
-        </div>
+        <CategoryProducts products={products} categoryName={cat.name} />
 
-        {products.length === 0 ? (
-          <p className="mt-10 rounded-md border border-dashed border-border py-20 text-center text-text-faint">
-            Nothing plugged in {cat.name.toLowerCase()} yet. Check back soon.
-          </p>
-        ) : (
-          <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {products.map((p, i) => (
-              <Reveal key={`${p.creatorHandle}-${p.slug}`} index={i % 4}>
-                <ProductCard product={p} />
-              </Reveal>
-            ))}
-          </div>
-        )}
       </Container>
     </>
   );

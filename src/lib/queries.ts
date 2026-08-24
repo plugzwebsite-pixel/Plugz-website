@@ -202,54 +202,18 @@ export async function getProductsForCreator(handle: string, limit = 24) {
 }
 
 /**
- * The ways a category page can be ordered.
+ * A category's listings, most plugged first.
  *
- * Deliberately short. The page used to offer five choices including "Trending"
- * and "Editor's picks", neither of which had anything behind it, and none of
- * the five did anything when clicked. Every option here is one the data can
- * actually answer, because an ordering that quietly does nothing is worse than
- * an ordering that is not offered.
+ * One ordering only. The page hands the whole set to the grid and the grid
+ * reorders it in the browser, which is what lets the page stay prerendered:
+ * reading a sort from the address would make every category render from
+ * scratch on every visit, sorted or not.
  */
-export const CATEGORY_SORTS = {
-  plugged: "Most plugged",
-  new: "New in",
-  under50: "Under £50",
-  cheapest: "Price: low to high",
-} as const;
-
-export type CategorySort = keyof typeof CATEGORY_SORTS;
-
-export function parseCategorySort(raw?: string): CategorySort {
-  return raw && raw in CATEGORY_SORTS ? (raw as CategorySort) : "plugged";
-}
-
-export async function getProductsByCategory(
-  category: string,
-  limit = 24,
-  sort: CategorySort = "plugged"
-) {
-  const orderBy: Prisma.CreatorProductOrderByWithRelationInput[] =
-    sort === "new"
-      ? [{ createdAt: "desc" }]
-      : sort === "cheapest"
-        ? [{ product: { pricePence: "asc" } }]
-        : [{ trackingLink: { clickCount: "desc" } }, { createdAt: "desc" }];
-
+export async function getProductsByCategory(category: string, limit = 48) {
   const rows = await db.creatorProduct.findMany({
-    where: {
-      ...liveProduct,
-      product: {
-        category,
-        brand: publicBrand,
-        // A product with no price cannot honestly be called under £50, and 19
-        // of them have none, so they are left out of the price views rather
-        // than shown as if they qualified.
-        ...(sort === "under50" ? { pricePence: { not: null, lte: 5000 } } : {}),
-        ...(sort === "cheapest" ? { pricePence: { not: null } } : {}),
-      },
-    },
+    where: { ...liveProduct, product: { category, brand: publicBrand } },
     select: productSelect,
-    orderBy,
+    orderBy: [{ trackingLink: { clickCount: "desc" } }, { createdAt: "desc" }],
     take: limit * 4,
   });
   return oneCardPerProduct(rows).slice(0, limit).map(toProductCard);
