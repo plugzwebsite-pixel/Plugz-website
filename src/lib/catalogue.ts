@@ -113,6 +113,34 @@ type ProductInput = {
   category: string;
 };
 
+/**
+ * Look a product up by address, matching www and bare as the same shop.
+ *
+ * Keeping the www in the stored address was the right call, because that
+ * address is where the tracking link sends the shopper and a good number of
+ * shops answer on only one of the two hosts. It left a gap though: a product
+ * saved before that change, under the bare host, no longer matches a later
+ * lookup that carries the www, so the same item can be added twice with its
+ * clicks and sales split across the pair.
+ *
+ * Looking for both forms closes the gap without touching what gets stored, so
+ * the destination stays whatever actually works and the duplicate never
+ * happens. The row that is found keeps its own address.
+ */
+export async function findProductBySourceUrl(rawUrl: string) {
+  const canonical = canonicalUrl(rawUrl);
+  const url = new URL(canonical);
+  const twin = new URL(canonical);
+  twin.hostname = url.hostname.startsWith("www.")
+    ? url.hostname.slice(4)
+    : `www.${url.hostname}`;
+
+  return db.product.findFirst({
+    where: { sourceUrl: { in: [canonical, twin.toString().replace(/\/$/, "")] } },
+    select: { id: true, brandId: true, brand: { select: { name: true } } },
+  });
+}
+
 export async function findOrCreateProduct(input: ProductInput) {
   const sourceUrl = canonicalUrl(input.sourceUrl);
   const existing = await db.product.findUnique({ where: { sourceUrl } });

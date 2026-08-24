@@ -4,7 +4,7 @@ import { ok, fail, parseBody } from "@/lib/http";
 import { requireAdmin } from "@/lib/auth/access";
 import { rateLimit, clientKey } from "@/lib/rate-limit";
 import { scrapeProduct, ScrapeError } from "@/lib/scrape";
-import { findOrCreateProduct, canonicalUrl } from "@/lib/catalogue";
+import { findOrCreateProduct, findProductBySourceUrl } from "@/lib/catalogue";
 import { isChoosableCategory } from "@/lib/categories";
 
 /**
@@ -81,10 +81,21 @@ export async function POST(req: Request) {
   // adding the same address twice within seconds is exactly what someone does
   // when they are not sure the first one worked, and a timestamp cannot tell
   // those two cases apart.
-  const already = await db.product.findUnique({
-    where: { sourceUrl: canonicalUrl(scraped.url) },
-    select: { id: true },
-  });
+  const already = await findProductBySourceUrl(scraped.url);
+
+  // The brand-side route refuses this and the admin one did not, which was
+  // worse rather than better: findOrCreateProduct returns the row that already
+  // owns the address, so picking Brand A and pasting Brand B's link reported
+  // success under Brand A's name while the product stayed Brand B's. A product
+  // carries its owner's commission terms, so quietly moving one is a money
+  // question, not a tidying one.
+  if (already && already.brandId !== brand.id) {
+    return fail(
+      `That address is already in the catalogue under ${already.brand.name}.`,
+      409,
+      { url: `Already listed under ${already.brand.name}` }
+    );
+  }
 
   const product = await findOrCreateProduct({
     brandId: brand.id,

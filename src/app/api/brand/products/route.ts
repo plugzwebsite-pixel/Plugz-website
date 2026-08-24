@@ -4,7 +4,7 @@ import { ok, fail, parseBody } from "@/lib/http";
 import { checkBrandAccess } from "@/lib/auth/access";
 import { rateLimit, clientKey } from "@/lib/rate-limit";
 import { scrapeProduct, ScrapeError } from "@/lib/scrape";
-import { findOrCreateProduct, canonicalUrl } from "@/lib/catalogue";
+import { findOrCreateProduct, findProductBySourceUrl } from "@/lib/catalogue";
 import { isChoosableCategory } from "@/lib/categories";
 
 /**
@@ -76,10 +76,7 @@ export async function POST(req: Request) {
   // Asked before creating rather than inferred afterwards, because adding the
   // same address twice in quick succession is exactly what somebody does when
   // they are not sure the first attempt worked.
-  const already = await db.product.findUnique({
-    where: { sourceUrl: canonicalUrl(scraped.url) },
-    select: { id: true, brandId: true },
-  });
+  const already = await findProductBySourceUrl(scraped.url);
 
   // Another brand's product, reached by pasting their address. Refused rather
   // than quietly handed over, since a product carries the commission terms of
