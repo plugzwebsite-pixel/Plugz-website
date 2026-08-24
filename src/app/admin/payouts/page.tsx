@@ -133,6 +133,7 @@ export default async function PayoutsPage() {
                   <th className="px-6 py-3 font-medium">Brand</th>
                   <th className="px-6 py-3 font-medium">Value</th>
                   <th className="px-6 py-3 font-medium">Creator earns</th>
+                  <th className="px-6 py-3 font-medium">Pluggz earns</th>
                   <th className="px-6 py-3 font-medium">Verifies</th>
                   <th className="px-6 py-3 font-medium">Status</th>
                 </tr>
@@ -154,6 +155,9 @@ export default async function PayoutsPage() {
                     </td>
                     <td className="px-6 py-3.5 text-text">
                       {gbpFromPence(r.creatorAmountPence)}
+                    </td>
+                    <td className="px-6 py-3 font-medium text-text-strong">
+                      {gbpFromPence(r.pluggzAmountPence)}
                     </td>
                     <td className="px-6 py-3.5 text-text-muted">
                       {r.verifiesAt.toLocaleDateString("en-GB")}

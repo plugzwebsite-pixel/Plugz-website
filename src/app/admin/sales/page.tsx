@@ -32,9 +32,20 @@ export default async function AdminSalesPage() {
           page. Without this, a successful import looks like nothing happened. */}
       <div className="rounded-md border border-border bg-surface">
         <div className="flex items-center justify-between border-b border-border px-6 py-4">
-          <h2 className="font-display text-lg font-semibold text-text-strong">
-            Last recorded
-          </h2>
+          <div>
+            <h2 className="font-display text-lg font-semibold text-text-strong">
+              Last recorded
+            </h2>
+            {recent.length > 0 && (
+              <p className="mt-1 text-sm text-text-muted">
+                {`${gbpFromPence(
+                  recent.reduce((t, s) => t + s.pluggzAmountPence, 0)
+                )} to Pluggz across these, on ${gbpFromPence(
+                  recent.reduce((t, s) => t + s.valuePence, 0)
+                )} of sales`}
+              </p>
+            )}
+          </div>
           <Link
             href="/admin/payouts"
             className="flex items-center gap-1.5 text-sm text-text-muted hover:text-text-strong"
@@ -60,6 +71,7 @@ export default async function AdminSalesPage() {
                   <th className="px-6 py-3 font-medium">Brand</th>
                   <th className="px-6 py-3 font-medium">Value</th>
                   <th className="px-6 py-3 font-medium">Creator earns</th>
+                  <th className="px-6 py-3 font-medium">Pluggz earns</th>
                   <th className="px-6 py-3 font-medium">Recorded</th>
                 </tr>
               </thead>
@@ -79,6 +91,9 @@ export default async function AdminSalesPage() {
                     </td>
                     <td className="px-6 py-3 text-text-muted">
                       {gbpFromPence(s.creatorAmountPence)}
+                    </td>
+                    <td className="px-6 py-3 font-medium text-text-strong">
+                      {gbpFromPence(s.pluggzAmountPence)}
                     </td>
                     <td className="px-6 py-3 text-text-faint">
                       {s.soldAt.toLocaleDateString("en-GB", {

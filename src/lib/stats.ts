@@ -567,7 +567,10 @@ export async function brandInvoices(brandId: string, take = 20) {
 export async function payoutPipeline() {
   const byStage = await db.sale.groupBy({
     by: ["stage"],
-    where: { status: { in: ["PENDING", "APPROVED"] } },
+    where: {
+      status: { in: ["PENDING", "APPROVED"] },
+      creatorProduct: { product: { brand: publicBrand } },
+    },
     _sum: { valuePence: true, creatorAmountPence: true, pluggzAmountPence: true },
     _count: true,
   });
@@ -596,12 +599,16 @@ export async function payoutPipeline() {
 
 export async function settlementRows(take = 20) {
   return db.sale.findMany({
+    // The demonstration shop is our own fixture, so its sale is our own money
+    // moving in a circle and does not belong in a settlement view.
+    where: { creatorProduct: { product: { brand: publicBrand } } },
     orderBy: { soldAt: "desc" },
     take,
     select: {
       id: true,
       valuePence: true,
       creatorAmountPence: true,
+      pluggzAmountPence: true,
       status: true,
       stage: true,
       soldAt: true,
@@ -629,6 +636,10 @@ export async function settlementRows(take = 20) {
  */
 export async function recentSales(take = 5) {
   const rows = await db.sale.findMany({
+    // The demonstration shop is our own fixture, so its sale is our own money
+    // moving in a circle. Left in, it put nine pounds of make believe into the
+    // figure that says what Pluggz has earned.
+    where: { creatorProduct: { product: { brand: publicBrand } } },
     orderBy: { createdAt: "desc" },
     take,
     select: {
@@ -636,6 +647,7 @@ export async function recentSales(take = 5) {
       orderRef: true,
       valuePence: true,
       creatorAmountPence: true,
+      pluggzAmountPence: true,
       soldAt: true,
       source: true,
       creatorProduct: {
@@ -652,6 +664,7 @@ export async function recentSales(take = 5) {
     orderRef: r.orderRef,
     valuePence: r.valuePence,
     creatorAmountPence: r.creatorAmountPence,
+    pluggzAmountPence: r.pluggzAmountPence,
     soldAt: r.soldAt,
     source: r.source,
     handle: r.creatorProduct.profile.handle,
