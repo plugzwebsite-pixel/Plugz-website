@@ -40,7 +40,7 @@ function detectDelimiter(src: string): string {
 }
 
 /** Split a CSV honouring quoted fields: order references contain commas. */
-function parseCsv(src: string): Row[] {
+function parseCsv(src: string): { rows: Row[]; delimiter: string } {
   const delimiter = detectDelimiter(src);
   const rows: string[][] = [];
   let row: string[] = [], cell = "", quoted = false;
@@ -58,16 +58,46 @@ function parseCsv(src: string): Row[] {
   if (cell || row.length) { row.push(cell); rows.push(row); }
 
   const [header, ...body] = rows.filter((r) => r.some((c) => c.trim()));
-  if (!header) return [];
+  if (!header) return { rows: [], delimiter };
   const keys = header.map((h) => h.trim().toLowerCase().replace(/[^a-z]/g, ""));
-  return body.map((r) => Object.fromEntries(keys.map((k, i) => [k, (r[i] ?? "").trim()])));
+  return {
+    rows: body.map((r) => Object.fromEntries(keys.map((k, i) => [k, (r[i] ?? "").trim()]))),
+    delimiter,
+  };
 }
 
-/** "48.50", "£48.50" and "4850p" all mean the same thing to a brand. */
-function toPence(raw: string): number | null {
-  const value = raw.replace(/[£$,\s]/g, "");
+/**
+ * "48.50", "£48.50" and "4850p" all mean the same thing to a brand.
+ *
+ * So does "48,50", and that one is why this takes the delimiter. A comma is a
+ * thousands separator in a British report and a decimal point in a German one,
+ * and the two readings of "48,50" are £48.50 and £4,850.00. Getting it wrong
+ * does not fail: it records a hundred times the money and pays commission on
+ * it. The file's own delimiter says which convention it was written in, since
+ * a spreadsheet that separates columns with semicolons is one whose decimal
+ * mark is a comma.
+ */
+function toPence(raw: string, delimiter = ","): number | null {
+  let value = raw.replace(/[£$\s]/g, "");
   if (!value) return null;
   if (/^\d+p$/i.test(value)) return parseInt(value, 10);
+
+  const lastComma = value.lastIndexOf(",");
+  const lastDot = value.lastIndexOf(".");
+
+  if (lastComma !== -1 && lastDot !== -1) {
+    // Both present, so whichever comes last is the decimal mark and the other
+    // groups the thousands. "1.499,99" and "1,499.99" are the same amount.
+    if (lastComma > lastDot) value = value.replace(/\./g, "").replace(",", ".");
+    else value = value.replace(/,/g, "");
+  } else if (lastComma !== -1) {
+    // A comma alone. In a semicolon or tab separated file it is the decimal
+    // mark. In a comma separated one it can only be grouping, because a decimal
+    // comma would have split the column.
+    if (delimiter !== ",") value = value.replace(",", ".");
+    else value = value.replace(/,/g, "");
+  }
+
   const n = Number(value);
   if (!Number.isFinite(n) || n <= 0) return null;
   return Math.round(n * 100);
@@ -96,7 +126,7 @@ export async function POST(req: Request) {
     return fail("That file is over 5MB. Split it and try again.", 400);
   }
 
-  const rows = parseCsv(await file.text());
+  const { rows, delimiter } = parseCsv(await file.text());
   if (rows.length === 0) return fail("That file had no rows.", 400);
   if (rows.length > 2000) return fail("Import up to 2000 rows at a time.", 400);
 
@@ -131,7 +161,7 @@ export async function POST(req: Request) {
   for (const [i, row] of rows.entries()) {
     const line = i + 2; // header is line 1
     const order = row.orderref || row.order || row.orderid || row.reference || "";
-    const pence = toPence(row.value || row.amount || row.total || row.ordervalue || "");
+    const pence = toPence(row.value || row.amount || row.total || row.ordervalue || "", delimiter);
 
     if (pence === null) {
       results.push({ line, order, value: "-", outcome: "Skipped, no usable order value" });
