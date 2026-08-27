@@ -14,6 +14,7 @@ import {
   PLUGGZ_FLOOR,
   TOTAL_MIN,
   TOTAL_MAX,
+  RATE_CEILING,
 } from "@/lib/commission-limits";
 
 export type Override = {
@@ -388,7 +389,7 @@ function AddOverride({
             id="ov-creator"
             type="number"
             min={CREATOR_FLOOR}
-            max={30}
+            max={RATE_CEILING}
             value={creatorRate}
             onChange={(e) => setCreatorRate(Number(e.target.value))}
           />
@@ -402,7 +403,7 @@ function AddOverride({
             id="ov-pluggz"
             type="number"
             min={PLUGGZ_FLOOR}
-            max={30}
+            max={RATE_CEILING}
             value={pluggzRate}
             onChange={(e) => setPluggzRate(Number(e.target.value))}
           />

@@ -5,7 +5,6 @@ import { z } from "zod";
 import {
   CREATOR_FLOOR,
   PLUGGZ_FLOOR,
-  TOTAL_MIN,
   TOTAL_MAX,
   RATE_CEILING,
 } from "@/lib/commission-limits";
@@ -13,10 +12,11 @@ import {
 /**
  * Commission rates.
  *
- * The creator floor of 8% is contractual, not a UI preference. The schema
- * allows anything, so the floor is enforced here where it can't be bypassed by
- * editing the page. Total take is held to the band in src/lib/commission-limits.ts, which the
- * screen reads from the same place so the two cannot disagree.
+ * The floors are commercial, not a UI preference, so they are enforced here
+ * where they cannot be bypassed by editing the page. The figures themselves
+ * live in src/lib/commission-limits.ts, which the screen reads from too, so the
+ * two cannot disagree about what is allowed. Do not restate them in this
+ * comment: the last version named 8% and outlived it by a day.
  */
 
 const rates = z
@@ -24,10 +24,18 @@ const rates = z
     creatorRate: z.number().min(CREATOR_FLOOR, `Creator share can't go below ${CREATOR_FLOOR}%`).max(RATE_CEILING),
     pluggzRate: z.number().min(PLUGGZ_FLOOR, `Pluggz share can't go below ${PLUGGZ_FLOOR}%`).max(RATE_CEILING),
   })
-  .refine((d) => {
-    const total = d.creatorRate + d.pluggzRate;
-    return total >= TOTAL_MIN && total <= TOTAL_MAX;
-  }, `Total take must be between ${TOTAL_MIN}% and ${TOTAL_MAX}%`);
+  // Only the upper bound is checked here, and deliberately.
+  //
+  // TOTAL_MIN is the two floors added together, and zod has already enforced
+  // each of those before this runs, so anything reaching this point satisfies
+  // the minimum by construction. Testing for it would be a branch that can
+  // never be true and an error nobody can ever be shown. TOTAL_MIN still earns
+  // its place: the screen quotes the band so somebody can see what is allowed
+  // before typing.
+  .refine(
+    (d) => d.creatorRate + d.pluggzRate <= TOTAL_MAX,
+    `Total take cannot go above ${TOTAL_MAX}%`
+  );
 
 const defaultSchema = z.object({ scope: z.literal("global") }).and(rates);
 

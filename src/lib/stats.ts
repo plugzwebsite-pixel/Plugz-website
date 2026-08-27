@@ -205,7 +205,14 @@ export async function adminAnalytics() {
                    WHERE c."clickedAt" >= now() - interval '14 days'`
       ),
       db.sale.aggregate({
-        where: { status: "APPROVED" },
+        // The demonstration shop again, and this is the one that mattered most.
+        // Its sale is APPROVED, so without this it lands straight on the
+        // headline revenue card: the single most visible number on the site,
+        // reading nine pounds of our own fixture as money Pluggz had earned.
+        where: {
+          status: "APPROVED",
+          creatorProduct: { product: { brand: publicBrand } },
+        },
         _sum: { valuePence: true, pluggzAmountPence: true },
         _count: true,
       }),
