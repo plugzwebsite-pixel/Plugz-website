@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { db } from "@/lib/db";
 import { publicOrigin } from "@/lib/url";
+import { rateLimit, clientKey } from "@/lib/rate-limit";
 import {
   ATTRIBUTION_COOKIE,
   buildDestination,
@@ -73,7 +74,32 @@ export async function GET(
   const sessionId = existing || randomUUID();
 
   const userAgent = req.headers.get("user-agent");
-  const bot = isBot(userAgent);
+
+  // Two ways to not be a shopper, and the second one matters more.
+  //
+  // The first is saying so. A crawler that names itself is caught by the user
+  // agent, which is most of them and costs nothing to check.
+  //
+  // The second is behaving impossibly. On 26 August one address took 133
+  // different links in 15 seconds, at 532 a minute, every one without a
+  // referrer, presenting as an ordinary Firefox on a Mac. Nothing in the user
+  // agent could have caught that, and it put a couple of hundred clicks into
+  // the client's report on a day of about ten real ones, which is the sort of
+  // thing that makes somebody stop trusting every other number on the page.
+  //
+  // So a burst from one address stops counting. Fifteen a minute is far above
+  // anyone reading product pages and far below a machine, and the redirect
+  // still happens either way: a real shopper caught by this still reaches the
+  // shop, and only the statistic is declined.
+  const burst = await rateLimit(clientKey(req, "go-count"), 15, 60_000);
+  const bot = isBot(userAgent) || !burst.ok;
+
+  if (!burst.ok) {
+    console.warn("[go] not counting a burst from one address", {
+      link: link.id,
+      agent: userAgent?.slice(0, 80),
+    });
+  }
 
   // Bots get redirected but never counted. A crawler must not inflate a
   // creator's click numbers or their ranking.
