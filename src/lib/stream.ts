@@ -44,7 +44,26 @@ export function streamConfigured(): boolean {
   return streamConfig() !== null;
 }
 
-export class StreamError extends Error {}
+export class StreamError extends Error {
+  /** Cloudflare's own code, so a caller can tell why without reading English. */
+  readonly code: number | null;
+
+  constructor(message: string, code: number | null = null) {
+    super(message);
+    this.code = code;
+  }
+
+  /**
+   * Out of storage, rather than anything wrong with the request.
+   *
+   * Worth its own question because it is not a fault: the account simply has
+   * no minutes left, and the person who can fix it is whoever holds the
+   * Cloudflare billing, not the creator staring at an upload button.
+   */
+  get isQuota(): boolean {
+    return this.code === 10011 || /storage capacity|quota/i.test(this.message);
+  }
+}
 
 async function call<T>(
   path: string,
@@ -64,12 +83,13 @@ async function call<T>(
   });
 
   const json = (await res.json().catch(() => null)) as
-    | { success?: boolean; result?: T; errors?: { message?: string }[] }
+    | { success?: boolean; result?: T; errors?: { message?: string; code?: number }[] }
     | null;
 
   if (!res.ok || !json?.success) {
     const detail = json?.errors?.map((e) => e.message).filter(Boolean).join("; ");
-    throw new StreamError(detail || `Cloudflare Stream returned ${res.status}`);
+    const code = json?.errors?.find((e) => typeof e.code === "number")?.code ?? null;
+    throw new StreamError(detail || `Cloudflare Stream returned ${res.status}`, code);
   }
   return json.result as T;
 }

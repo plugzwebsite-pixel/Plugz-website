@@ -55,9 +55,24 @@ export async function POST(req: Request) {
       listingId: listing.id,
     });
   } catch (err) {
-    if (err instanceof StreamError) return fail(err.message, 502);
+    if (err instanceof StreamError) {
+      // Out of storage is not a fault and must not be reported as one. It says
+      // the account has no minutes left, which the creator can do nothing about
+      // and should not be shown a server error for. The status matters too:
+      // Cloudflare replaces a 502 from us with its own error page, so the one
+      // message worth reading never arrives.
+      if (err.isQuota) {
+        console.error("[creator/videos] Cloudflare Stream is out of storage:", err.message);
+        return fail(
+          "Video uploads are paused while we top up our video storage. Nothing else is affected, and we will let you know as soon as it is back.",
+          503
+        );
+      }
+      console.error("[creator/videos] Cloudflare Stream refused:", err.message);
+      return fail("Couldn't start that upload. Please try again shortly.", 503);
+    }
     console.error("[creator/videos] direct upload failed:", err);
-    return fail("Couldn't start that upload.", 502);
+    return fail("Couldn't start that upload.", 503);
   }
 
   const previous = listing.video;
