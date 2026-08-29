@@ -100,9 +100,11 @@ model CreatorProfile {
   stripeAccountId String? @unique
 
   // Stripe's answer to "may this account receive money yet", copied here so a
-  // payout run does not have to ask about every creator one at a time. Set from
-  // the account.updated webhook and refreshed when a creator returns from
-  // onboarding, so it is a cache of Stripe's opinion and never our own.
+  // payout run does not have to ask about every creator one at a time. Written
+  // when a creator comes back from onboarding, and again at the start of a
+  // payout run for anybody not yet marked ready, since Stripe can finish
+  // verifying somebody days later. It is a cache of Stripe's opinion and never
+  // our own, so nothing may set it except a reply from Stripe.
   stripePayoutsEnabled Boolean   @default(false)
   stripeOnboardedAt    DateTime?
 

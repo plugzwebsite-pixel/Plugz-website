@@ -3,7 +3,13 @@ import { db } from "@/lib/db";
 import { ok, fail, parseBody } from "@/lib/http";
 import { requireAdmin } from "@/lib/auth/access";
 import { rateLimit, clientKey } from "@/lib/rate-limit";
-import { stripeConfigured, stripeIsLive, sendTransfer, StripeNotReady } from "@/lib/stripe";
+import {
+  stripeConfigured,
+  stripeIsLive,
+  sendTransfer,
+  accountState,
+  StripeNotReady,
+} from "@/lib/stripe";
 
 /**
  * Paying the creators.
@@ -103,6 +109,32 @@ export async function POST(req: Request) {
     g.saleIds.push(s.id);
     g.pence += s.creatorAmountPence;
     groups.set(key, g);
+  }
+
+  // Stripe finishes verifying an account in its own time, sometimes days after
+  // the creator filled the form in. Our copy of "may they be paid" is only
+  // refreshed when they open their payouts page, so a creator who never goes
+  // back would be skipped for ever on a stale no. Anybody not yet marked ready
+  // is asked about again here, which is the one moment the answer matters.
+  const stale = [...groups.values()].filter((g) => g.accountId && !g.payoutsEnabled);
+  for (const g of stale) {
+    try {
+      const state = await accountState(g.accountId as string);
+      g.payoutsEnabled = state.payoutsEnabled;
+      g.requirement = state.requirement;
+      await db.creatorProfile.update({
+        where: { id: g.profileId },
+        data: {
+          stripePayoutsEnabled: state.payoutsEnabled,
+          stripeRequirement: state.requirement,
+          ...(state.payoutsEnabled ? { stripeOnboardedAt: new Date() } : {}),
+        },
+      });
+    } catch (err) {
+      // Leave the stored answer standing. Stale is a held payout; invented
+      // would be money sent to an account Stripe will not pay out from.
+      console.error(`[payouts] could not refresh @${g.handle}:`, err);
+    }
   }
 
   const results: {
