@@ -54,6 +54,7 @@ model User {
   wishlist            WishlistItem[]
   reviewedVideos      CreatorVideo[]
   siteEdits           SiteContent[]
+  campaignsCreated    Campaign[]
 
   // Set only for BRAND accounts: the brand whose figures this person may see.
   // A brand can have several contacts; each one is tied to exactly one brand,
@@ -100,6 +101,7 @@ model CreatorProfile {
   creatorProducts    CreatorProduct[]
   payouts            Payout[]
   commissionOverride CommissionOverride?
+  campaignCreators   CampaignCreator[]
 
   @@index([status])
 }
@@ -312,8 +314,9 @@ model Brand {
   commissionOverride    CommissionOverride?
   users                 User[] // brand-side contacts with dashboard access
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  campaigns Campaign[]
 
   @@index([status])
 }
@@ -382,7 +385,8 @@ model CreatorProduct {
   /// of them is not the creator's to grant.
   featured Boolean @default(false)
 
-  views ProductView[]
+  views     ProductView[]
+  campaigns CampaignListing[]
 
   /// Kept for the handful of listings that carry a plain file address. New
   /// video goes through CreatorVideo and Cloudflare Stream; this is read as a
@@ -422,6 +426,90 @@ model Collection {
   createdAt DateTime @default(now())
 
   @@unique([profileId, slug])
+}
+
+/// Where a campaign is in its life.
+enum CampaignStatus {
+  DRAFT
+  LIVE
+  ENDED
+}
+
+/// A storefront the team issues, rather than one a creator built.
+///
+/// Everything public on Pluggz so far belongs to exactly one creator, which is
+/// right for the ordinary case and wrong for the thing brands actually buy: a
+/// season, a launch, a story that several creators tell together. That cannot
+/// live on any one storefront, because no one of them owns it, and it cannot be
+/// self served, because the arrangement is commercial and agreed before anyone
+/// posts anything.
+///
+/// A campaign gathers listings that already exist rather than creating new
+/// ones. Every listing it shows keeps its own tracking link, its own creator
+/// and its own commission terms, so a sale made through a campaign page is
+/// attributed exactly as it would have been anywhere else. The campaign is a
+/// way of presenting work, never a second set of books.
+model Campaign {
+  id   String @id @default(cuid())
+  name String
+  slug String @unique
+
+  tagline      String?
+  description  String?
+  heroImageUrl String?
+
+  /// The brand paying for it, when one is. A campaign can also be ours alone,
+  /// which is why this is optional rather than assumed.
+  brandId String?
+  brand   Brand?  @relation(fields: [brandId], references: [id], onDelete: SetNull)
+
+  status   CampaignStatus @default(DRAFT)
+  startsAt DateTime?
+  endsAt   DateTime?
+
+  creators CampaignCreator[]
+  listings CampaignListing[]
+
+  createdById String?
+  createdBy   User?   @relation(fields: [createdById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, startsAt])
+}
+
+/// A creator taking part. Position is the order they appear in.
+model CampaignCreator {
+  id         String   @id @default(cuid())
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  profileId String
+  profile   CreatorProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  position Int @default(0)
+
+  @@unique([campaignId, profileId])
+}
+
+/// A listing the campaign shows.
+///
+/// Points at a CreatorProduct, never at a Product, because the tracking link
+/// and the creator are attached to the listing. Pointing at the product would
+/// mean deciding at render time whose link to use, which is exactly the
+/// decision that must not be improvised.
+model CampaignListing {
+  id         String   @id @default(cuid())
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  creatorProductId String
+  creatorProduct   CreatorProduct @relation(fields: [creatorProductId], references: [id], onDelete: Cascade)
+
+  position Int @default(0)
+
+  @@unique([campaignId, creatorProductId])
 }
 
 // Pluggz's own affiliate link.

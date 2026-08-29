@@ -44,3 +44,13 @@ export function postJson<T = unknown>(url: string, body: unknown) {
 export function patchJson<T = unknown>(url: string, body: unknown) {
   return sendJson<T>(url, "PATCH", body);
 }
+
+/**
+ * A DELETE with no body.
+ *
+ * The identifier goes in the address rather than a payload, because a request
+ * that removes something should be readable in a log without unpacking it.
+ */
+export function deleteJson<T = unknown>(url: string) {
+  return sendJson<T>(url, "DELETE", undefined);
+}
