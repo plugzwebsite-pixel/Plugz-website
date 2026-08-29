@@ -108,16 +108,11 @@ export function PayoutSetup({ justReturned }: { justReturned: boolean }) {
           15th, once each sale has passed the brand&apos;s returns window.
         </p>
       ) : state.started ? (
-        <>
-          <p className="mt-2 text-sm text-text-muted">
-            Stripe still needs something before it can pay you.
-          </p>
-          {state.requirement && (
-            <p className="mt-2 rounded-sm border border-border bg-surface-2 p-3 font-mono text-xs text-text-muted">
-              {state.requirement}
-            </p>
-          )}
-        </>
+        <p className="mt-2 text-sm text-text-muted">
+          {state.requirement ??
+            "Stripe still needs something before it can pay you."}{" "}
+          Carry on where you left off and it takes a minute or two.
+        </p>
       ) : (
         <p className="mt-2 text-sm text-text-muted">
           Set this up once and your earnings arrive automatically. It takes about

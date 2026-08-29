@@ -4,16 +4,22 @@ import Stripe from "stripe";
 /**
  * Paying creators, through Stripe Connect.
  *
- * Express accounts, deliberately. A creator's bank details, address and
- * identity documents are entered on Stripe's own pages and held by Stripe. We
- * store an account identifier and nothing else, which is the only arrangement
- * where losing our database does not mean losing anybody's bank details.
+ * A creator's bank details, address and identity documents are entered on
+ * Stripe's own pages and held by Stripe. We store an account identifier and
+ * nothing else, which is the only arrangement where losing our database does
+ * not mean losing anybody's bank details.
  *
- * Money moves as a transfer from the Pluggz balance to a creator's connected
- * account, which is what the payout pipeline has always described: a sale
- * clears its return window, the brand settles with us, and the creator's share
- * is sent on. Nothing here decides how much; that was fixed against each sale
- * when it was recorded.
+ * Accounts are made through the v2 accounts API. Stripe now refuses to create
+ * accounts the old way for an integration built today, and says so in as many
+ * words, so there is no older path to fall back to. The account is a recipient:
+ * it can be sent money and can pay that money out to a bank, and it cannot take
+ * payments from anybody. That is the whole of what a creator needs.
+ *
+ * Money still moves as a transfer, which is a v1 call and works against a v2
+ * account once its transfers capability is active. That is the same pipeline
+ * this has always described: a sale clears its return window, the brand settles
+ * with us, and the creator's share is sent on. Nothing here decides how much;
+ * that was fixed against each sale when it was recorded.
  */
 
 let client: Stripe | null = null;
@@ -51,12 +57,21 @@ export function stripeIsLive(): boolean {
 
 export class StripeNotReady extends Error {}
 
+/** Everything we ever ask Stripe to send back about an account. */
+const INCLUDE = ["configuration.recipient", "requirements"] as const;
+
+function storefrontUrl(handle: string): string {
+  return `https://pluggzofficial.co.uk/@${handle}`;
+}
+
 /**
  * The creator's connected account, made if they do not have one yet.
  *
- * Nothing about them is sent beyond their email, which Stripe uses to reach
- * them about their own account. Everything else is asked for by Stripe during
- * onboarding, where it belongs.
+ * Nothing about them is sent beyond their email and their storefront address.
+ * The email is how Stripe reaches them about their own account; the storefront
+ * is a thing Stripe would otherwise stop and ask them to type, and we already
+ * know it. Everything else is asked for by Stripe during onboarding, where it
+ * belongs.
  */
 export async function ensureConnectedAccount(input: {
   existingId: string | null;
@@ -68,25 +83,36 @@ export async function ensureConnectedAccount(input: {
 
   if (input.existingId) {
     try {
-      const found = await s.accounts.retrieve(input.existingId);
-      if (!found.deleted) return found.id;
+      const found = await s.v2.core.accounts.retrieve(input.existingId);
+      if (found?.id) return found.id;
     } catch {
-      // Deleted at Stripe, or made against a different set of keys, which is
+      // Closed at Stripe, or made against a different set of keys, which is
       // exactly what happens on the day test keys are swapped for live ones.
       // Falling through makes a new one rather than failing for ever.
     }
   }
 
-  const account = await s.accounts.create({
-    type: "express",
-    email: input.email,
-    business_type: "individual",
-    capabilities: { transfers: { requested: true } },
-    business_profile: {
-      url: `https://pluggzofficial.co.uk/@${input.handle}`,
-      product_description: "Commission on sales earned through a Pluggz storefront",
-    },
+  const account = await s.v2.core.accounts.create({
+    contact_email: input.email,
+    display_name: `@${input.handle}`,
+    // The hosted pages a creator sees, and afterwards the small dashboard where
+    // they can change their own bank details without going through us.
+    dashboard: "express",
     metadata: { pluggzHandle: input.handle },
+    identity: { country: "gb", entity_type: "individual" },
+    defaults: {
+      currency: "gbp",
+      profile: { business_url: storefrontUrl(input.handle) },
+      // Pluggz carries the Stripe fees and any losses, rather than netting them
+      // off a creator's commission. A creator who is told they earned nine
+      // pounds should receive nine pounds.
+      responsibilities: { fees_collector: "application", losses_collector: "application" },
+    },
+    configuration: {
+      recipient: {
+        capabilities: { stripe_balance: { stripe_transfers: { requested: true } } },
+      },
+    },
   });
   return account.id;
 }
@@ -101,19 +127,29 @@ export async function onboardingLink(accountId: string, origin: string): Promise
   const s = stripe();
   if (!s) throw new StripeNotReady("Payouts are not switched on yet.");
 
-  const link = await s.accountLinks.create({
+  const link = await s.v2.core.accountLinks.create({
     account: accountId,
-    type: "account_onboarding",
-    // Stripe sends them back here whether they finished or gave up part way,
-    // and the page works out which by asking Stripe rather than by guessing
-    // from which address was used.
-    refresh_url: `${origin}/creator/payouts?again=1`,
-    return_url: `${origin}/creator/payouts?done=1`,
+    use_case: {
+      type: "account_onboarding",
+      account_onboarding: {
+        configurations: ["recipient"],
+        // Stripe sends them back here whether they finished or gave up part
+        // way, and the page works out which by asking Stripe rather than by
+        // guessing from which address was used.
+        refresh_url: `${origin}/creator/payouts?again=1`,
+        return_url: `${origin}/creator/payouts?done=1`,
+      },
+    },
   });
   return link.url;
 }
 
-/** Where a creator manages the account once it exists. */
+/**
+ * Where a creator manages the account once it exists.
+ *
+ * Only ever reached after onboarding is finished, which is also the only time
+ * Stripe will issue one of these.
+ */
 export async function accountDashboardLink(accountId: string): Promise<string> {
   const s = stripe();
   if (!s) throw new StripeNotReady("Payouts are not switched on yet.");
@@ -121,7 +157,48 @@ export async function accountDashboardLink(accountId: string): Promise<string> {
   return link.url;
 }
 
+/**
+ * Requirement field paths, said the way a person would say them.
+ *
+ * Stripe names these as paths into the account, which is right for an API and
+ * useless on a creator's screen. Anything not listed falls back to the path
+ * itself, so a requirement Stripe adds later is still shown rather than
+ * quietly swallowed.
+ */
+const PLAIN_ENGLISH: [RegExp, string][] = [
+  [/^external_account/, "their bank account"],
+  [/^identity\.attestations\.terms_of_service/, "accepting Stripe's terms"],
+  [/^identity\.individual\.(given_name|surname|full_name)/, "their name"],
+  [/^identity\.individual\.date_of_birth/, "their date of birth"],
+  [/^identity\.individual\.address/, "their address"],
+  [/^identity\.individual\.(id_number|verification|documents)/, "proof of identity"],
+  [/^identity\.(business_details|company)\.documents/, "a company document"],
+  [/^identity\.individual\.phone/, "a phone number"],
+  [/^identity\.individual\.email/, "an email address"],
+  [/^defaults\.profile\.business_url/, "a link to their storefront"],
+  [/^defaults\.profile/, "a few details about what they do"],
+];
+
+function humanise(paths: string[]): string | null {
+  const seen: string[] = [];
+  for (const path of paths) {
+    const match = PLAIN_ENGLISH.find(([pattern]) => pattern.test(path));
+    const said = match ? match[1] : path;
+    if (!seen.includes(said)) seen.push(said);
+  }
+  if (seen.length === 0) return null;
+  if (seen.length === 1) return `Stripe still needs ${seen[0]}.`;
+  const last = seen.pop() as string;
+  return `Stripe still needs ${seen.join(", ")} and ${last}.`;
+}
+
 export type AccountState = {
+  /**
+   * Whether Stripe will both accept money for them and pass it on to their
+   * bank. Both halves matter: an account that can be sent money but cannot pay
+   * it out leaves a creator's earnings sitting in a Stripe balance they cannot
+   * reach, which is worse than holding the payout and telling them why.
+   */
   payoutsEnabled: boolean;
   requirement: string | null;
 };
@@ -129,21 +206,28 @@ export type AccountState = {
 /**
  * What Stripe currently thinks of an account.
  *
- * `payouts_enabled` is the only thing that decides whether money may be sent.
- * The requirement is carried alongside it so a creator who is not ready can be
- * told which document is missing rather than simply refused.
+ * The requirement is carried alongside so a creator who is not ready can be
+ * told what is missing rather than simply refused, and so an admin looking at
+ * a held payout can see the reason without opening Stripe.
  */
 export async function accountState(accountId: string): Promise<AccountState> {
   const s = stripe();
   if (!s) throw new StripeNotReady("Payouts are not switched on yet.");
 
-  const a = await s.accounts.retrieve(accountId);
-  const due = a.requirements?.currently_due ?? [];
-  const disabled = a.requirements?.disabled_reason ?? null;
+  const account = await s.v2.core.accounts.retrieve(accountId, { include: [...INCLUDE] });
+  const balance = account.configuration?.recipient?.capabilities?.stripe_balance;
+
+  const canReceive = balance?.stripe_transfers?.status === "active";
+  const canPayOut = balance?.payouts?.status === "active";
+
+  const outstanding = (account.requirements?.entries ?? [])
+    .filter((entry) => entry.awaiting_action_from === "user")
+    .map((entry) => entry.description)
+    .filter((description): description is string => Boolean(description));
 
   return {
-    payoutsEnabled: Boolean(a.payouts_enabled),
-    requirement: due.length > 0 ? due.join(", ") : disabled,
+    payoutsEnabled: canReceive && canPayOut,
+    requirement: humanise(outstanding),
   };
 }
 
