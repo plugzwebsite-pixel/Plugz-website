@@ -89,6 +89,27 @@ model CreatorProfile {
   // Dual-consent: admin-added creators must log in and release their profile.
   profileReleasedAt DateTime?
 
+  // --- getting paid -------------------------------------------------------
+  //
+  // The creator's own account at Stripe, created through Connect Express.
+  //
+  // Only the identifier lives here. Their bank details, their address and
+  // whatever Stripe needs to verify them are entered on Stripe's own pages and
+  // held by Stripe, never by us. That is the whole reason for choosing Express:
+  // a platform that never sees a bank account cannot leak one.
+  stripeAccountId String? @unique
+
+  // Stripe's answer to "may this account receive money yet", copied here so a
+  // payout run does not have to ask about every creator one at a time. Set from
+  // the account.updated webhook and refreshed when a creator returns from
+  // onboarding, so it is a cache of Stripe's opinion and never our own.
+  stripePayoutsEnabled Boolean   @default(false)
+  stripeOnboardedAt    DateTime?
+
+  /// What Stripe is still waiting for, in its own words, so "not ready yet"
+  /// can tell the creator which document is missing.
+  stripeRequirement String?
+
   // Tick-box terms acceptance, automatically timestamped + versioned.
   termsVersion    String?
   termsAcceptedAt DateTime?
@@ -763,6 +784,18 @@ enum PayoutStatus {
 }
 
 // A twice-monthly payout run (1st and 15th) for one creator.
+/// Where a payout got to at Stripe, as opposed to what we intended.
+///
+/// Separate from PayoutStatus, which is the team's own view of a run. A
+/// transfer can be created and later reversed, and a record that only said
+/// "sent" could not tell that story.
+enum TransferState {
+  NONE
+  SENT
+  FAILED
+  REVERSED
+}
+
 model Payout {
   id        String         @id @default(cuid())
   profileId String
@@ -771,8 +804,14 @@ model Payout {
   runDate     DateTime
   amountPence Int
   status      PayoutStatus @default(SCHEDULED)
-  reference   String? // Wise transfer reference
+  reference   String? // a Wise reference, from before Stripe
   sentAt      DateTime?
+
+  /// Stripe's own transfer id, so a payment here can be found in their
+  /// dashboard, and so the same run can never be sent twice.
+  stripeTransferId String?       @unique
+  transferState    TransferState @default(NONE)
+  failureReason    String?
 
   sales Sale[]
 

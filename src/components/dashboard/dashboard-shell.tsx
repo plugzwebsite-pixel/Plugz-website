@@ -46,6 +46,7 @@ const NAVS: Record<DashboardVariant, NavItem[]> = {
   creator: [
     { label: "Dashboard", href: "/creator/dashboard", icon: LayoutDashboard },
     { label: "Storefront links", href: "/creator/storefront", icon: Store },
+    { label: "Payouts", href: "/creator/payouts", icon: Wallet },
     { label: "Profile & settings", href: "/creator/settings", icon: Settings },
   ],
   admin: [
