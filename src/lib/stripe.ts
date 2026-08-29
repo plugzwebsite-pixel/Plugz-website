@@ -231,6 +231,130 @@ export async function accountState(accountId: string): Promise<AccountState> {
   };
 }
 
+// --- billing the brands -----------------------------------------------------
+//
+// The other direction. Commission owed by a brand is raised as an invoice at
+// Stripe and paid on Stripe's own hosted page, so card and bank details never
+// reach this application, exactly as with creator payouts. Stripe then tells us
+// it was paid, and that is what releases the creators' share.
+
+/**
+ * The brand's customer record at Stripe, made if it has not got one.
+ *
+ * Only a name and an address to send the invoice to. Nothing about how they
+ * pay is asked for here; that happens on the page they are sent to.
+ */
+export async function ensureBrandCustomer(input: {
+  existingId: string | null;
+  brandId: string;
+  name: string;
+  email: string | null;
+}): Promise<string> {
+  const s = stripe();
+  if (!s) throw new StripeNotReady("Billing is not switched on yet.");
+
+  if (input.existingId) {
+    try {
+      const found = await s.customers.retrieve(input.existingId);
+      if (!found.deleted) return found.id;
+    } catch {
+      // Gone at Stripe, or made against a different set of keys, which is what
+      // happens the day test keys become live ones. Make a new one rather than
+      // failing for ever.
+    }
+  }
+
+  const customer = await s.customers.create({
+    name: input.name,
+    email: input.email ?? undefined,
+    description: "Pluggz commission account",
+    metadata: { pluggzBrandId: input.brandId },
+  });
+  return customer.id;
+}
+
+/**
+ * Raise the invoice at Stripe and send it.
+ *
+ * `collection_method: send_invoice` rather than charging a card on file: a
+ * brand is a business being billed, not a subscriber, and it should be able to
+ * pay by transfer or card on its own terms within the days it was given.
+ *
+ * The invoice is finalised before it is sent, which is what fixes the amount.
+ * After that Stripe will not let it quietly change, which is the same property
+ * the Pluggz record relies on.
+ */
+export async function sendBrandInvoice(input: {
+  customerId: string;
+  amountPence: number;
+  number: string;
+  brandName: string;
+  daysUntilDue: number;
+  invoiceId: string;
+  lineDescription: string;
+}): Promise<{ id: string; hostedInvoiceUrl: string | null; pdfUrl: string | null }> {
+  const s = stripe();
+  if (!s) throw new StripeNotReady("Billing is not switched on yet.");
+
+  // Made first and items attached to it explicitly, so a stray pending item on
+  // that customer cannot be swept onto this brand's bill.
+  const invoice = await s.invoices.create(
+    {
+      customer: input.customerId,
+      collection_method: "send_invoice",
+      days_until_due: input.daysUntilDue,
+      currency: "gbp",
+      description: "Pluggz commission, " + input.number,
+      metadata: { pluggzInvoiceId: input.invoiceId, pluggzNumber: input.number },
+      pending_invoice_items_behavior: "exclude",
+      auto_advance: false,
+    },
+    { idempotencyKey: "invoice_create_" + input.invoiceId }
+  );
+
+  await s.invoiceItems.create(
+    {
+      customer: input.customerId,
+      invoice: invoice.id,
+      amount: input.amountPence,
+      currency: "gbp",
+      description: input.lineDescription,
+    },
+    { idempotencyKey: "invoice_item_" + input.invoiceId }
+  );
+
+  const finalised = await s.invoices.finalizeInvoice(invoice.id as string);
+  const sent = await s.invoices.sendInvoice(finalised.id as string);
+
+  return {
+    id: sent.id as string,
+    hostedInvoiceUrl: sent.hosted_invoice_url ?? null,
+    pdfUrl: sent.invoice_pdf ?? null,
+  };
+}
+
+export function stripeWebhookConfigured(): boolean {
+  return Boolean(process.env.STRIPE_WEBHOOK_SECRET?.trim());
+}
+
+/**
+ * Check that a webhook really came from Stripe.
+ *
+ * Over the raw bytes, never a re-serialised object: the signature covers
+ * exactly what was sent, and JSON.parse followed by JSON.stringify does not
+ * reliably give the same bytes back. This endpoint moves sales along, so an
+ * unsigned request that could reach it would let anybody mark their own
+ * invoice paid.
+ */
+export function verifyWebhook(rawBody: string, signature: string | null) {
+  const s = stripe();
+  if (!s) throw new StripeNotReady("Payouts are not switched on yet.");
+  const secret = process.env.STRIPE_WEBHOOK_SECRET?.trim();
+  if (!secret) throw new StripeNotReady("The webhook signing secret is not set.");
+  if (!signature) throw new Error("No signature on that request.");
+  return s.webhooks.constructEvent(rawBody, signature, secret);
+}
+
 /**
  * Send a creator their share.
  *

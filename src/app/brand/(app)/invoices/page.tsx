@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { checkBrandAccess } from "@/lib/auth/access";
 import { brandInvoices, brandDashboard } from "@/lib/stats";
+import { invoicesForBrand } from "@/lib/invoicing";
 import { Badge } from "@/components/ui/primitives";
 import { gbpFromPence } from "@/lib/utils";
 
@@ -26,9 +27,10 @@ export default async function BrandInvoicesPage() {
   const access = await checkBrandAccess();
   if (!access.ok) redirect(access.redirectTo);
 
-  const [rows, stats] = await Promise.all([
+  const [rows, stats, invoices] = await Promise.all([
     brandInvoices(access.brandId),
     brandDashboard(access.brandId),
+    invoicesForBrand(access.brandId),
   ]);
 
   return (
@@ -47,6 +49,51 @@ export default async function BrandInvoicesPage() {
           value={gbpFromPence(stats.pendingValuePence)}
           sub={`${stats.pendingCount} orders · not yet charged`}
         />
+      </div>
+
+      <div className="rounded-md border border-border bg-surface">
+        <div className="border-b border-border px-6 py-4">
+          <h2 className="font-display text-lg font-semibold text-text-strong">
+            Your invoices
+          </h2>
+        </div>
+
+        {invoices.length === 0 ? (
+          <p className="px-6 py-10 text-center text-sm text-text-muted">
+            Nothing has been invoiced yet. An invoice is raised once sales have
+            cleared your return window.
+          </p>
+        ) : (
+          <ul className="divide-y divide-border">
+            {invoices.map((inv) => (
+              <li key={inv.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 px-6 py-4">
+                <span className="font-mono text-sm text-text-strong">{inv.number}</span>
+                <span className="text-sm text-text-muted">
+                  {inv._count.sales} sale{inv._count.sales === 1 ? "" : "s"} to{" "}
+                  {inv.periodEnd.toLocaleDateString("en-GB")}
+                </span>
+                <Badge tone={inv.status === "PAID" ? "green" : "amber"}>
+                  {inv.status === "PAID"
+                    ? "Paid " + (inv.paidAt ? inv.paidAt.toLocaleDateString("en-GB") : "")
+                    : "Due " + inv.dueAt.toLocaleDateString("en-GB")}
+                </Badge>
+                <span className="ml-auto font-semibold text-text-strong">
+                  {gbpFromPence(inv.amountPence)}
+                </span>
+                {inv.status !== "PAID" && inv.hostedInvoiceUrl && (
+                  <a
+                    href={inv.hostedInvoiceUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="rounded-pill bg-grad-brand px-4 py-1.5 text-sm font-medium text-white"
+                  >
+                    Pay this invoice
+                  </a>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       <div className="rounded-md border border-border bg-surface">
@@ -115,7 +162,7 @@ export default async function BrandInvoicesPage() {
 
       <p className="text-xs text-text-faint">
         Questions about an invoice or a specific order? Contact the Pluggz team.
-        Billing is handled directly rather than through this dashboard.
+        Card and bank details are entered on Stripe&apos;s own pages, never here.
       </p>
     </div>
   );

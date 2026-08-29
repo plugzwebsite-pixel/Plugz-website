@@ -321,6 +321,11 @@ model Brand {
   trackingKey    String? @unique
   trackingSecret String?
 
+  // The brand's customer record at Stripe, so an invoice can be raised against
+  // it and paid. Only the identifier lives here. Card and bank details are
+  // entered on Stripe's own pages, the same arrangement as creator payouts.
+  stripeCustomerId String? @unique
+
   // Placeholder launch content. Deleting these cascades through products,
   // listings and tracking links, so the demo catalogue can be cleared in one
   // query the moment Lisa and Rachel's real brands are loaded.
@@ -336,6 +341,7 @@ model Brand {
   returnWindowOverrides ReturnWindowOverride[]
   commissionOverride    CommissionOverride?
   users                 User[] // brand-side contacts with dashboard access
+  invoices              BrandInvoice[]
 
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
@@ -766,6 +772,12 @@ model Sale {
   payoutId String?
   payout   Payout? @relation(fields: [payoutId], references: [id], onDelete: SetNull)
 
+  // The invoice that billed this sale's commission to the brand. A sale only
+  // reaches PAID_TO_PLUGGZ when that invoice is settled, which is what ties
+  // "the brand has paid us" to a real payment rather than to somebody's memory.
+  brandInvoiceId String?
+  brandInvoice   BrandInvoice? @relation(fields: [brandInvoiceId], references: [id], onDelete: SetNull)
+
   disputes Dispute[]
 
   createdAt DateTime @default(now())
@@ -798,6 +810,76 @@ enum TransferState {
   REVERSED
 }
 
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PAID
+  VOID
+}
+
+/// How money actually changed hands. Kept for both directions, because "it was
+/// paid" and "it was paid through Stripe" are different claims and only one of
+/// them can be proved from a Stripe record.
+enum SettlementMethod {
+  STRIPE
+  BANK_TRANSFER
+}
+
+/// What a brand owes Pluggz, as a record rather than a calculation.
+///
+/// The commission owed was always derivable by adding up sales, and for a long
+/// time that is all it was: a view. A view cannot be sent to anybody, cannot be
+/// paid, and cannot say whether it has been. This is the thing a brand receives
+/// and settles, and settling it is what moves its sales to PAID_TO_PLUGGZ,
+/// which is in turn what releases the creators' share to be paid out.
+///
+/// Before this existed nothing in the codebase ever wrote that stage, so a sale
+/// verified and then stopped, and no creator could have been paid at all.
+model BrandInvoice {
+  id      String @id @default(cuid())
+  brandId String
+  brand   Brand  @relation(fields: [brandId], references: [id], onDelete: Cascade)
+
+  /// Human facing and sequential, because "invoice PZ-0007" is what appears on
+  /// a bank statement and in an email, not a cuid.
+  number String @unique
+
+  /// Commission owed to Pluggz. Always the sum of its sales' pluggzAmountPence
+  /// at the moment it was raised, so a later rate change cannot alter an
+  /// invoice that has already gone out.
+  amountPence Int
+  currency    String @default("GBP")
+
+  status InvoiceStatus @default(DRAFT)
+
+  periodStart DateTime
+  periodEnd   DateTime
+  dueAt       DateTime
+  issuedAt    DateTime?
+  paidAt      DateTime?
+
+  settledBy SettlementMethod?
+  /// The bank reference, when a brand paid by transfer rather than through Stripe.
+  reference String?
+  /// Who recorded a manual settlement, so an off-system payment still has a name against it.
+  settledById String?
+
+  /// Stripe's own invoice, when one was raised there. The hosted address is
+  /// where the brand pays, and is Stripe's page rather than ours, so no card
+  /// details ever reach this application.
+  stripeInvoiceId  String? @unique
+  hostedInvoiceUrl String?
+  invoicePdfUrl    String?
+
+  sales Sale[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([brandId, status])
+  @@index([status, dueAt])
+}
+
 model Payout {
   id        String         @id @default(cuid())
   profileId String
@@ -806,8 +888,13 @@ model Payout {
   runDate     DateTime
   amountPence Int
   status      PayoutStatus @default(SCHEDULED)
-  reference   String? // a Wise reference, from before Stripe
+  reference   String? // the bank reference, when this was paid by hand
   sentAt      DateTime?
+
+  /// How the creator was actually paid. Stripe fills this in itself; the other
+  /// value is written when somebody records a bank transfer they made, which
+  /// is the only way a payment made outside the platform gets on the record.
+  paidBy SettlementMethod?
 
   /// Stripe's own transfer id, so a payment here can be found in their
   /// dashboard, and so the same run can never be sent twice.

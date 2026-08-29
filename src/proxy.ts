@@ -22,7 +22,13 @@ const UNSAFE_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
  * Keep this list to routes that genuinely need it, and never add one that
  * reads a cookie.
  */
-const CROSS_ORIGIN_BY_DESIGN = new Set(["/api/track/pixel"]);
+const CROSS_ORIGIN_BY_DESIGN = new Set([
+  "/api/track/pixel",
+  // Stripe posts from its own servers with no cookie and no Origin we could
+  // recognise. It proves who it is with a signature over the raw body, which
+  // is a stronger check than this one, and the route refuses anything unsigned.
+  "/api/webhooks/stripe",
+]);
 
 /**
  * Cross-site request forgery check.

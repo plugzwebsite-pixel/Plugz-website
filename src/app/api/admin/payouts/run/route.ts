@@ -199,6 +199,7 @@ export async function POST(req: Request) {
             sentAt: new Date(),
             stripeTransferId: transfer.id,
             transferState: "SENT",
+            paidBy: "STRIPE",
             failureReason: null,
           },
         }),
