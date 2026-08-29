@@ -1,4 +1,5 @@
 import type { Prisma } from "@prisma/client";
+import { revalidateListing } from "@/lib/revalidate";
 import { db } from "@/lib/db";
 import { publicBrand } from "@/lib/queries";
 import { isChoosableCategory } from "@/lib/categories";
@@ -214,6 +215,10 @@ export async function POST(req: Request) {
     review: input.review,
     rating: input.rating,
   });
+
+  // A creator adds a listing and goes straight to their storefront to look at
+  // it. Without this they are shown the copy from before it existed.
+  revalidateListing({ handle: profile?.handle ?? "", slug: listing.slug });
 
   return ok(
     {

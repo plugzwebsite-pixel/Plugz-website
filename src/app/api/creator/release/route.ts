@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { ok, fail } from "@/lib/http";
 import { getSession } from "@/lib/auth/session";
+import { revalidateStorefront } from "@/lib/revalidate";
 import { z } from "zod";
 
 const TERMS_VERSION = "2026-07-01";
@@ -36,7 +37,7 @@ export async function POST(req: Request) {
 
   const profile = await db.creatorProfile.findUnique({
     where: { userId: user.id },
-    select: { id: true, status: true, profileReleasedAt: true },
+    select: { id: true, status: true, profileReleasedAt: true, handle: true },
   });
   if (!profile) return fail("No creator profile found.", 404);
   if (profile.status !== "APPROVED") {
@@ -54,6 +55,11 @@ export async function POST(req: Request) {
       termsAcceptedAt: new Date(),
     },
   });
+
+  // The storefront was very likely requested while the profile was still
+  // private and cached as a 404. Leaving it would show the creator their own
+  // page saying it does not exist, at the exact moment they go and look.
+  revalidateStorefront(profile.handle);
 
   return ok({ released: true });
 }
