@@ -50,9 +50,20 @@ export function stripeConfigured(): boolean {
   return Boolean(process.env.STRIPE_SECRET_KEY?.trim());
 }
 
-/** Test keys and live keys look alike; only the prefix says which. */
+/**
+ * Whether real money is at stake.
+ *
+ * Decided by ruling test keys out rather than by listing the live ones. That
+ * is deliberate: this only matters for a warning shown before somebody moves
+ * money, so an unfamiliar prefix must read as live. Matching `sk_live_` alone
+ * did the opposite, and a restricted live key, which begins `rk_live_`, was
+ * reported to an administrator as a test key while it could pay creators for
+ * real.
+ */
 export function stripeIsLive(): boolean {
-  return (process.env.STRIPE_SECRET_KEY ?? "").startsWith("sk_live_");
+  const key = process.env.STRIPE_SECRET_KEY?.trim();
+  if (!key) return false;
+  return !key.includes("_test_");
 }
 
 export class StripeNotReady extends Error {}
