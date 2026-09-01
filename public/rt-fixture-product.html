@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<title>RT Fixture Blouse</title>
+<meta property="og:title" content="RT Fixture Blouse">
+<meta property="og:image" content="https://pluggzofficial.co.uk/rt-fixture-product.png">
+<meta property="og:description" content="A stand in product page used to exercise the catalogue importer.">
+<meta property="og:site_name" content="RT Fixture Shop">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": "RT Fixture Blouse",
+  "image": "https://pluggzofficial.co.uk/rt-fixture-product.png",
+  "description": "A stand in product page used to exercise the catalogue importer.",
+  "offers": {
+    "@type": "Offer",
+    "price": "42.50",
+    "priceCurrency": "GBP",
+    "availability": "https://schema.org/InStock"
+  }
+}
+</script>
+</head>
+<body>
+<!--
+  A fixture for the release suite, not a product.
+
+  The catalogue importer is tested by pointing it at a page it can actually
+  read. Pointing it at a real shop would make the suite depend on that shop
+  being up, on it not blocking a datacentre address, and on its prices not
+  changing overnight.
+
+  It lives here rather than being copied in by the test run because the
+  application reads its public directory once at boot, so a file dropped in
+  afterwards is not served until the app is reloaded, and reloading production
+  to run a test is the wrong trade. Nothing links to it and it is marked
+  noindex.
+-->
+<h1>RT Fixture Blouse</h1>
+<p>Price: GBP 42.50</p>
+<p>A stand in product page used to exercise the catalogue importer. It is not for sale.</p>
+</body>
+</html>
