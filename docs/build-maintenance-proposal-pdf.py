@@ -26,11 +26,11 @@ def build(path):
     s = []
 
     s.append(Paragraph("Monthly maintenance and support", S["title"]))
-    s.append(Paragraph("For the Pluggz platform, after launch", S["sub"]))
+    s.append(Paragraph("For the Pluggz platform", S["sub"]))
 
     s.append(Paragraph(
-        "To keep the platform secure, stable and performing well after launch, "
-        "the following ongoing maintenance and support plan applies.", S["body"]))
+        "To keep the platform secure, stable and performing well, the following "
+        "ongoing maintenance and support plan applies.", S["body"]))
 
     # ------------------------------------------------------------- the fee
     s.append(Paragraph("The monthly fee", S["h2"]))
