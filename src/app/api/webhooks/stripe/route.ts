@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { verifyWebhook, stripeWebhookConfigured, StripeNotReady } from "@/lib/stripe";
 import { settleInvoice } from "@/lib/invoicing";
+import { recordPlatformPayout } from "@/lib/platform-payouts";
 
 /**
  * Stripe telling us what happened.
@@ -85,6 +86,28 @@ export async function POST(req: Request) {
       case "invoice.payment_failed": {
         const stripeInvoice = event.data.object as { id?: string };
         console.warn("[webhooks/stripe] a brand's payment failed:", stripeInvoice.id);
+        break;
+      }
+
+      case "payout.paid":
+      case "payout.failed":
+      case "payout.created":
+      case "payout.updated":
+      case "payout.canceled": {
+        // Pluggz's own share reaching Pluggz's own bank. This is the last
+        // movement in the chain and the only one that used to happen with no
+        // record on this side of it.
+        const payout = event.data.object as {
+          id: string; amount: number; currency: string; status: string;
+          arrival_date: number; failure_message?: string | null;
+        };
+        await recordPlatformPayout(payout);
+        if (event.type === "payout.failed") {
+          console.error(
+            "[webhooks/stripe] a payout to the company bank failed: " +
+            payout.id + " " + (payout.failure_message ?? "no reason given")
+          );
+        }
         break;
       }
 

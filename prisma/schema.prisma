@@ -817,6 +817,41 @@ enum InvoiceStatus {
   VOID
 }
 
+/// Pluggz's own share reaching Pluggz's own bank.
+///
+/// A brand pays its whole commission into the Pluggz balance at Stripe. The
+/// creators' half is transferred out to them; what stays behind is what Pluggz
+/// has earned, and Stripe pays that on to the company bank account on its own
+/// schedule. That last movement was the one part of the money that happened
+/// entirely outside this system, so the platform could say what it had earned
+/// but not whether it had actually been paid.
+///
+/// Recorded from Stripe rather than worked out here. The figure that matters is
+/// the one that landed, and only Stripe knows it: fees, refunds and timing all
+/// sit between what was earned and what arrives.
+model PlatformPayout {
+  id             String @id @default(cuid())
+  stripePayoutId String @unique
+
+  amountPence Int
+  currency    String @default("GBP")
+
+  /// Stripe's own word for it: pending, in_transit, paid, failed or canceled.
+  status      String
+  /// When Stripe expects it to reach the bank, which is not when it was sent.
+  arrivalDate DateTime
+  /// Set only when Stripe says it failed, so somebody can be told why.
+  failureReason String?
+
+  /// The last four of the account it went to, for matching against a statement.
+  bankLast4 String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, arrivalDate])
+}
+
 /// How money actually changed hands. Kept for both directions, because "it was
 /// paid" and "it was paid through Stripe" are different claims and only one of
 /// them can be proved from a Stripe record.
