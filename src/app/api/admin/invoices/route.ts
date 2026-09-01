@@ -49,7 +49,8 @@ export async function POST(req: Request) {
     const sales = await billableSales(input.brandId);
     return ok({
       count: sales.length,
-      amountPence: sales.reduce((t, s) => t + s.pluggzAmountPence, 0),
+      // The whole commission, which is what the brand is charged.
+      amountPence: sales.reduce((t, s) => t + s.creatorAmountPence + s.pluggzAmountPence, 0),
       sales: sales.map((s) => ({
         orderRef: s.orderRef,
         productName: s.productName,

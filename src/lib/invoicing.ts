@@ -92,7 +92,7 @@ export async function invoiceBoard() {
     db.sale.groupBy({
       by: ["creatorProductId"],
       where: { status: "APPROVED", stage: "VERIFIED", brandInvoiceId: null },
-      _sum: { pluggzAmountPence: true },
+      _sum: { pluggzAmountPence: true, creatorAmountPence: true },
       _count: true,
     }),
     db.brandInvoice.findMany({
@@ -125,7 +125,7 @@ export async function invoiceBoard() {
     const brand = brandOf.get(row.creatorProductId);
     if (!brand) continue;
     const entry = owed.get(brand.id) ?? { id: brand.id, name: brand.name, pence: 0, sales: 0 };
-    entry.pence += Number(row._sum.pluggzAmountPence ?? 0);
+    entry.pence += Number(row._sum.pluggzAmountPence ?? 0) + Number(row._sum.creatorAmountPence ?? 0);
     entry.sales += row._count;
     owed.set(brand.id, entry);
   }
@@ -191,7 +191,11 @@ export async function raiseInvoice(brandId: string): Promise<
     return { ok: false, reason: "There is nothing to invoice for this brand yet." };
   }
 
-  const amountPence = sales.reduce((t, s) => t + s.pluggzAmountPence, 0);
+  // The brand owes the whole commission, not Pluggz's half of it. Billing
+  // only the platform's share was a real fault: the creators' half would have
+  // been paid out of Pluggz's own money, and the brand's own invoices page has
+  // always shown them the total.
+  const amountPence = sales.reduce((t, s) => t + s.creatorAmountPence + s.pluggzAmountPence, 0);
   if (amountPence <= 0) {
     return { ok: false, reason: "Those sales add up to nothing owed." };
   }
