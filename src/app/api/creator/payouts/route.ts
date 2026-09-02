@@ -121,7 +121,29 @@ export async function POST(req: Request) {
     return ok({ url, kind: "onboard" });
   } catch (err) {
     if (err instanceof StripeNotReady) return fail(err.message, 503);
-    console.error("[creator/payouts] Stripe refused:", err);
+
+    // Telling a creator to try again shortly is only kind when trying again
+    // might work. When the fault is at our end, it will not, and saying so
+    // sends them back to the same button every few minutes. That happened:
+    // Stripe would not let us create accounts until the platform itself was
+    // activated, and the only thing anybody saw was an invitation to retry.
+    const code = (err as { code?: string; type?: string })?.code ?? "";
+    const ourEnd = [
+      "account_create_activation_required",
+      "account_invalid",
+      "api_key_expired",
+      "platform_api_key_expired",
+    ].includes(code);
+
+    console.error("[creator/payouts] Stripe refused:", code || err);
+
+    if (ourEnd) {
+      return fail(
+        "This is something we need to switch on at our end, not anything you " +
+          "have done. We have been told and will let you know the moment it is ready.",
+        503
+      );
+    }
     return fail("Couldn't start that just now. Please try again shortly.", 503);
   }
 }

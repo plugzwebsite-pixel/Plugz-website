@@ -27,11 +27,20 @@ const csp = [
   // Creator video is hosted by Cloudflare Stream and played in their iframe.
   // Without this, frame-src falls back to default-src 'self' and the player is
   // blocked with nothing on the page to say why.
-  "frame-src 'self' https://iframe.videodelivery.net https://customer-*.cloudflarestream.com",
+  //
+  // The host has to be written as a whole leading wildcard. Stream serves each
+  // account from customer-<code>.cloudflarestream.com, and the obvious way to
+  // say that, customer-*.cloudflarestream.com, is not valid CSP: a wildcard may
+  // only stand for an entire label, never part of one. Browsers do not fail
+  // loudly on that. They drop the whole directive and carry on, so the player
+  // would have been blocked the day the first video went up, with only a line
+  // in the console to say why.
+  "frame-src 'self' https://iframe.videodelivery.net https://*.cloudflarestream.com",
   // A creator's file is uploaded straight from their browser to Cloudflare, so
-  // the upload hosts have to be reachable or every video fails at 0%.
+  // the upload hosts have to be reachable or every video fails at 0%. Stream
+  // hands back a one time address on either host, so both are allowed.
   "connect-src 'self' https://cloudflareinsights.com " +
-    "https://upload.videodelivery.net https://upload.cloudflarestream.com" +
+    "https://upload.videodelivery.net https://*.cloudflarestream.com" +
     (isProd ? "" : " ws: http://localhost:*"),
   "frame-ancestors 'none'",
   "form-action 'self'",

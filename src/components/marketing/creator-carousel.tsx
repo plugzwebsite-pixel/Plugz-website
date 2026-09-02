@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Avatar } from "@/components/ui/avatar";
 import type { CreatorCardData } from "@/lib/queries";
-import { cn } from "@/lib/utils";
+import { cn, shortName } from "@/lib/utils";
 
 type Creator = CreatorCardData;
 
@@ -20,8 +20,8 @@ function Face({ creator }: { creator: Creator }) {
       <span className="transition-transform duration-300 group-hover/face:-translate-y-1 group-hover/face:scale-105">
         <Avatar name={creator.name} src={creator.avatarUrl ?? undefined} size="xl" ring />
       </span>
-      <span className="text-sm font-medium text-text-strong">
-        {creator.name.split(" ")[0]}
+      <span className="max-w-[7rem] truncate text-sm font-medium text-text-strong">
+        {shortName(creator.name)}
       </span>
     </Link>
   );

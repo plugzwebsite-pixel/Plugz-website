@@ -7,6 +7,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { LayoutDashboard, Settings, LogOut, ChevronDown } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import type { SessionUser } from "@/lib/auth/jwt";
+import { shortName } from "@/lib/utils";
 
 // Every role, including BRAND. A brand contact whose menu sent them back to
 // the homepage had no way into their own dashboard from here.
@@ -50,7 +51,7 @@ export function UserMenu({ user }: { user: SessionUser }) {
       >
         <Avatar name={user.name} size="xs" />
         <span className="hidden text-sm font-medium text-text sm:block">
-          {user.name.split(" ")[0]}
+          {shortName(user.name)}
         </span>
         <ChevronDown size={14} className="text-text-faint" />
       </button>

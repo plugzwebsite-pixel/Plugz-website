@@ -7,6 +7,7 @@ import { ArrowLeft, ChevronDown, LogOut } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { hardNavigate } from "@/lib/auth/navigate";
 import type { SessionUser } from "@/lib/auth/jwt";
+import { shortName } from "@/lib/utils";
 
 /**
  * Who you are signed in as, and the way out.
@@ -51,7 +52,7 @@ export function DashboardUserMenu({ user }: { user: SessionUser }) {
       >
         <Avatar name={user.name} size="xs" />
         <span className="hidden max-w-28 truncate text-sm font-medium text-text sm:block">
-          {user.name.split(" ")[0]}
+          {shortName(user.name)}
         </span>
         <ChevronDown size={14} className="text-text-faint" />
       </button>
