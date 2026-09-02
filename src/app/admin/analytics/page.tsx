@@ -78,7 +78,11 @@ export default async function AdminAnalyticsPage() {
         <StatCard
           value={String(stats.salesCount)}
           label="Sales tracked"
-          sub="approved by brands"
+          sub={
+            stats.pendingCount > 0
+              ? `approved by brands · ${stats.pendingCount} more in a returns window`
+              : "approved by brands"
+          }
           icon={TrendingUp}
         />
         <StatCard

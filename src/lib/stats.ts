@@ -188,7 +188,7 @@ export async function creatorRecentSales(profileId: string, take = 8) {
 // --- admin ------------------------------------------------------------------
 
 export async function adminAnalytics() {
-  const [clicks, uniqueVisitors, creators, listings, brands, series, salesAgg] =
+  const [clicks, uniqueVisitors, creators, listings, brands, series, salesAgg, pendingAgg] =
     await Promise.all([
       db.click.count({ where: realClick }),
       db.click
@@ -214,6 +214,18 @@ export async function adminAnalytics() {
           creatorProduct: { product: { brand: publicBrand } },
         },
         _sum: { valuePence: true, pluggzAmountPence: true },
+        _count: true,
+      }),
+      // Sales that have arrived but have not cleared their returns window yet.
+      // Without this the headline reads zero while the Record sales screen
+      // plainly lists two, which looks like the tracking has stopped working
+      // rather than like a brand's returns window doing its job.
+      db.sale.aggregate({
+        where: {
+          status: "PENDING",
+          creatorProduct: { product: { brand: publicBrand } },
+        },
+        _sum: { valuePence: true },
         _count: true,
       }),
     ]);
@@ -243,6 +255,8 @@ export async function adminAnalytics() {
     brands,
     repeatRate,
     salesCount: salesAgg._count,
+    pendingCount: pendingAgg._count,
+    pendingValuePence: pendingAgg._sum.valuePence ?? 0,
     salesValuePence: salesAgg._sum.valuePence ?? 0,
     pluggzRevenuePence: salesAgg._sum.pluggzAmountPence ?? 0,
     series,
