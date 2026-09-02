@@ -91,7 +91,15 @@ export async function invoiceBoard() {
   const [pending, invoices] = await Promise.all([
     db.sale.groupBy({
       by: ["creatorProductId"],
-      where: { status: "APPROVED", stage: "VERIFIED", brandInvoiceId: null },
+      where: {
+        status: "APPROVED",
+        stage: "VERIFIED",
+        brandInvoiceId: null,
+        // The demonstration shop's money is not real money. The nightly run has
+        // always skipped it; the screen did not, so it sat at the top of the
+        // list with a button offering to bill it.
+        creatorProduct: { product: { brand: { demo: false } } },
+      },
       _sum: { pluggzAmountPence: true, creatorAmountPence: true },
       _count: true,
     }),
@@ -182,9 +190,14 @@ export async function raiseInvoice(brandId: string): Promise<
 > {
   const brand = await db.brand.findUnique({
     where: { id: brandId },
-    select: { id: true, name: true, settlementDays: true },
+    select: { id: true, name: true, settlementDays: true, demo: true },
   });
   if (!brand) return { ok: false, reason: "That brand doesn't exist." };
+  // Guarded here rather than only where the list is built, so no screen or
+  // route can bill the demonstration shop by any route at all.
+  if (brand.demo) {
+    return { ok: false, reason: "That is the demonstration shop. Its sales are not real." };
+  }
 
   const sales = await billableSales(brandId);
   if (sales.length === 0) {
