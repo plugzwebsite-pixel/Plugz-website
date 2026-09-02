@@ -187,6 +187,36 @@ export const resetPasswordSchema = z.object({
 });
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 
+/**
+ * What a creator may change about themselves.
+ *
+ * Not the handle. Every tracking link a creator has already posted resolves
+ * through it, and so does their storefront address, so letting them edit it
+ * would break work they have already done and links other people have already
+ * shared. It is changed by asking us, the same as an email address.
+ *
+ * Follower counts are self reported, which they always have been. They are
+ * spot checked before approval rather than trusted, and a creator keeping
+ * their own numbers current is better than nobody keeping them at all: every
+ * count on the platform is currently zero because there was no way to enter one.
+ */
+export const creatorProfileSchema = z.object({
+  name: z.string().trim().min(2, "Enter your name").max(80),
+  bio: z.string().trim().max(400).optional().or(z.literal("")),
+  city: z.string().trim().max(80).optional().or(z.literal("")),
+  socials: z
+    .array(
+      z.object({
+        platform: z.enum(PLATFORMS),
+        handle: z.string().trim().max(60).optional().or(z.literal("")),
+        followers: z.coerce.number().int().min(0).max(100_000_000).default(0),
+      })
+    )
+    .max(10)
+    .default([]),
+});
+export type CreatorProfileInput = z.infer<typeof creatorProfileSchema>;
+
 export const adminAddCreatorSchema = z.object({
   name: z.string().trim().min(2, "Enter a name").max(80),
   email,

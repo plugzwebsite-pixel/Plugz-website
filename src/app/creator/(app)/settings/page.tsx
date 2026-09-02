@@ -1,19 +1,34 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth/session";
 import { db } from "@/lib/db";
 import { SettingsForm } from "@/components/creator/settings-form";
 import { AvatarUpload } from "@/components/creator/avatar-upload";
 
 export const metadata: Metadata = { title: "Profile & settings" };
+export const dynamic = "force-dynamic";
 
 export default async function CreatorSettingsPage() {
   const user = await getSession();
-  const profile = user
-    ? await db.creatorProfile.findUnique({
-        where: { userId: user.id },
-        select: { avatarUrl: true },
-      })
-    : null;
+  if (!user) redirect("/login?next=/creator/settings");
+
+  // Read what is actually stored. The form used to be handed a name and a
+  // handle and nothing else, so the bio it displayed was a line of sample copy
+  // written into the component and shown identically to every creator.
+  const profile = await db.creatorProfile.findUnique({
+    where: { userId: user.id },
+    select: {
+      avatarUrl: true,
+      handle: true,
+      bio: true,
+      city: true,
+      termsVersion: true,
+      socials: {
+        select: { platform: true, handle: true, followers: true },
+        orderBy: { platform: "asc" },
+      },
+    },
+  });
 
   return (
     <div className="space-y-6">
@@ -28,14 +43,23 @@ export default async function CreatorSettingsPage() {
           you plug.
         </p>
         <AvatarUpload
-          name={user?.name ?? ""}
+          name={user.name ?? ""}
           currentUrl={profile?.avatarUrl ?? null}
         />
       </div>
+
       <SettingsForm
-        name={user?.name ?? ""}
-        email={user?.email ?? ""}
-        handle={user?.handle ?? ""}
+        name={user.name ?? ""}
+        email={user.email ?? ""}
+        handle={profile?.handle ?? user.handle ?? ""}
+        bio={profile?.bio ?? ""}
+        city={profile?.city ?? ""}
+        socials={(profile?.socials ?? []).map((s) => ({
+          platform: s.platform,
+          handle: s.handle,
+          followers: s.followers,
+        }))}
+        termsVersion={profile?.termsVersion ?? null}
       />
     </div>
   );
