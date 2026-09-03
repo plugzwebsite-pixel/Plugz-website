@@ -100,7 +100,64 @@ export async function POST(req: Request) {
     },
   });
 
-  return ok({ id: override.id });
+  // An override says what Pluggz pays out. It does not say what the brand is
+  // charged, and nothing until now checked that the first was not larger than
+  // the second. A creator on 9 and 5 selling a brand charged 11 means Pluggz
+  // hands out fourteen percent of every sale and collects eleven, quietly, on
+  // every sale from then on.
+  //
+  // Not refused, because negotiated deals are the whole reason overrides
+  // exist and it is a commercial decision rather than a mistake by definition.
+  // It is saved and said out loud, so it is a choice rather than a surprise
+  // found later in the invoices.
+  const total = input.creatorRate + input.pluggzRate;
+  const warning = await overpayWarning(total, input.creatorProfileId, input.brandId);
+
+  return ok({ id: override.id, warning });
+}
+
+/**
+ * Whether this override pays out more than a brand is billed, and which ones.
+ *
+ * A creator override applies wherever they sell, so every brand they currently
+ * list is checked. A brand override is compared against that brand's own
+ * agreed rate.
+ */
+async function overpayWarning(
+  totalRate: number,
+  creatorProfileId?: string,
+  brandId?: string
+): Promise<string | null> {
+  const brands = creatorProfileId
+    ? await db.brand.findMany({
+        where: {
+          demo: false,
+          products: {
+            some: { creatorProducts: { some: { profileId: creatorProfileId, live: true } } },
+          },
+        },
+        select: { name: true, commissionRate: true },
+      })
+    : brandId
+      ? await db.brand.findMany({
+          where: { id: brandId },
+          select: { name: true, commissionRate: true },
+        })
+      : [];
+
+  const short = brands
+    .map((b) => ({ name: b.name, charged: Number(b.commissionRate) }))
+    .filter((b) => b.charged > 0 && b.charged < totalRate)
+    .sort((a, b) => a.charged - b.charged);
+
+  if (short.length === 0) return null;
+
+  const named = short.slice(0, 3).map((b) => `${b.name} at ${b.charged}%`).join(", ");
+  const rest = short.length > 3 ? ` and ${short.length - 3} more` : "";
+  return (
+    `Saved, but this pays out ${totalRate}% while some brands are charged less: ` +
+    `${named}${rest}. Pluggz covers the difference on every sale through them.`
+  );
 }
 
 export async function DELETE(req: Request) {

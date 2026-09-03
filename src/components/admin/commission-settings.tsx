@@ -335,7 +335,15 @@ function AddOverride({
       return;
     }
     const name = list.find((p) => p.id === subject)?.name ?? "They";
-    toast.success("Override added", `${name} is on ${creatorRate}% / ${pluggzRate}%`);
+    // Saved either way, but if this pays out more than a brand is charged, the
+    // difference comes out of Pluggz on every sale through them. Said out loud
+    // here rather than left to be noticed in an invoice weeks later.
+    const warning = (res.data as { warning?: string | null } | undefined)?.warning;
+    if (warning) {
+      toast.error("Override added, but check this", warning);
+    } else {
+      toast.success("Override added", `${name} is on ${creatorRate}% / ${pluggzRate}%`);
+    }
     setSubject("");
     setNote("");
     router.refresh();
