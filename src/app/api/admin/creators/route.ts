@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { ok, fail, parseBody } from "@/lib/http";
-import { adminAddCreatorSchema, profileUrl } from "@/lib/validation";
+import { adminAddCreatorSchema, profileUrl, normalisePlatform } from "@/lib/validation";
 import { isChoosableCategory } from "@/lib/categories";
 import { requireRole } from "@/lib/auth/guard";
 import { hashPassword } from "@/lib/auth/password";
@@ -50,7 +50,7 @@ export async function POST(req: Request) {
     .map((s) => {
       const handle = s.handle!.replace(/^@/, "").trim();
       return {
-        platform: s.platform,
+        platform: normalisePlatform(s.platform),
         handle,
         url: profileUrl(s.platform, handle),
         followers: s.followers ?? 0,

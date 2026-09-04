@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Heart, Share2, BadgeCheck } from "lucide-react";
+import { BadgeCheck } from "lucide-react";
 import { Container, Badge } from "@/components/ui/primitives";
 import { Avatar } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import { ProductCard } from "@/components/marketing/cards";
 import { Reveal } from "@/components/ui/reveal";
 import { Aurora } from "@/components/marketing/aurora";
@@ -14,7 +13,9 @@ import {
 } from "@/components/brand/social-icons";
 import { getCreatorByHandle, getProductsForCreator, publiclyVisibleCreator } from "@/lib/queries";
 import { db } from "@/lib/db";
-import { compact } from "@/lib/utils";
+import { compact, shortName } from "@/lib/utils";
+import { normalisePlatform, profileUrl } from "@/lib/validation";
+import { CreatorActions } from "@/components/storefront/creator-actions";
 
 function cleanHandle(raw: string) {
   return decodeURIComponent(raw).replace(/^@/, "").toLowerCase();
@@ -24,6 +25,13 @@ const PLATFORM_ICON: Record<string, typeof InstagramIcon> = {
   instagram: InstagramIcon,
   tiktok: TikTokIcon,
   youtube: YouTubeIcon,
+};
+
+/** What to call each one when the following is not known. */
+const PLATFORM_NAME: Record<string, string> = {
+  instagram: "Instagram",
+  tiktok: "TikTok",
+  youtube: "YouTube",
 };
 
 // Served from cache and refreshed in the background. Shoppers arriving from a
@@ -119,39 +127,40 @@ export default async function StorefrontPage({
                 </div>
                 <p className="mt-1 text-text-muted">@{creator.handle}</p>
                 <p className="mt-3 max-w-md text-text">{creator.tag}</p>
-                <div className="mt-4 flex flex-wrap items-center gap-3">
+                {/* Where a creator's own audience is shown, which is the thing
+                    that makes a storefront look like somebody rather than a
+                    page. Each platform is its own link out to the real
+                    account, with the following where we know it. */}
+                <div className="mt-4 flex flex-wrap items-center gap-2">
                   <Badge tone="brand">{creator.category}</Badge>
-                  <span className="text-sm text-text-faint">
-                    {creator.followers > 0 ? `${compact(creator.followers)} followers` : ""}
-                  </span>
-                  <div className="flex items-center gap-2 text-text-muted">
-                    {creator.socials.map((s) => {
-                      const Icon = PLATFORM_ICON[s.platform];
-                      if (!Icon || !s.url) return null;
-                      return (
-                        <a
-                          key={s.platform}
-                          href={s.url}
-                          target="_blank"
-                          rel="noopener noreferrer nofollow"
-                          aria-label={s.platform}
-                          className="transition-colors hover:text-brand-pink"
-                        >
-                          <Icon size={18} />
-                        </a>
-                      );
-                    })}
-                  </div>
+                  {creator.socials.map((s) => {
+                    const platform = normalisePlatform(s.platform);
+                    const Icon = PLATFORM_ICON[platform];
+                    // Rows written before the handle was tidied carry no url,
+                    // so one is worked out from the handle rather than the link
+                    // being dropped, which is what used to happen.
+                    const href = s.url || profileUrl(platform, s.handle);
+                    if (!Icon || !href) return null;
+                    const clean = s.handle.replace(/^@/, "");
+                    return (
+                      <a
+                        key={`${platform}-${clean}`}
+                        href={href}
+                        target="_blank"
+                        rel="noopener noreferrer nofollow"
+                        title={`@${clean} on ${PLATFORM_NAME[platform] ?? platform}`}
+                        className="inline-flex items-center gap-1.5 rounded-pill border border-border bg-surface-2 px-3 py-1 text-sm text-text-muted transition-colors hover:border-brand-pink hover:text-text-strong"
+                      >
+                        <Icon size={15} />
+                        {s.followers > 0
+                          ? compact(s.followers)
+                          : (PLATFORM_NAME[platform] ?? platform)}
+                      </a>
+                    );
+                  })}
                 </div>
               </div>
-              <div className="flex gap-2">
-                <Button variant="secondary" size="sm">
-                  <Heart size={15} /> Follow
-                </Button>
-                <Button variant="outline" size="sm">
-                  <Share2 size={15} /> Share
-                </Button>
-              </div>
+              <CreatorActions handle={creator.handle} name={creator.name} />
             </div>
           </Reveal>
         </Container>
@@ -160,7 +169,7 @@ export default async function StorefrontPage({
       <Container className="py-10">
         {products.length === 0 ? (
           <p className="rounded-md border border-dashed border-border py-20 text-center text-text-faint">
-            {creator.name.split(" ")[0]} hasn&apos;t plugged anything yet. Check back
+            {shortName(creator.name)} hasn&apos;t plugged anything yet. Check back
             soon.
           </p>
         ) : (

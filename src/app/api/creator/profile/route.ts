@@ -2,7 +2,7 @@ import { db } from "@/lib/db";
 import { ok, fail, parseBody } from "@/lib/http";
 import { checkCreatorAccess } from "@/lib/auth/access";
 import { rateLimit, clientKey } from "@/lib/rate-limit";
-import { creatorProfileSchema, profileUrl } from "@/lib/validation";
+import { creatorProfileSchema, profileUrl, normalisePlatform } from "@/lib/validation";
 import { revalidateStorefront } from "@/lib/revalidate";
 
 /**
@@ -46,7 +46,7 @@ export async function PATCH(req: Request) {
     .map((s) => {
       const handle = (s.handle as string).replace(/^@/, "").trim();
       return {
-        platform: s.platform,
+        platform: normalisePlatform(s.platform),
         handle,
         url: profileUrl(s.platform, handle),
         followers: s.followers ?? 0,

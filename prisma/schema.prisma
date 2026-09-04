@@ -52,6 +52,7 @@ model User {
   emailTokens         EmailVerificationToken[]
   passwordResetTokens PasswordResetToken[]
   wishlist            WishlistItem[]
+  following           CreatorFollow[]
   reviewedVideos      CreatorVideo[]
   siteEdits           SiteContent[]
   campaignsCreated    Campaign[]
@@ -116,9 +117,10 @@ model CreatorProfile {
   termsVersion    String?
   termsAcceptedAt DateTime?
 
-  socials   SocialHandle[]
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
+  socials    SocialHandle[]
+  followedBy CreatorFollow[]
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
 
   collections        Collection[]
   creatorProducts    CreatorProduct[]
@@ -837,9 +839,9 @@ model PlatformPayout {
   currency    String @default("GBP")
 
   /// Stripe's own word for it: pending, in_transit, paid, failed or canceled.
-  status      String
+  status        String
   /// When Stripe expects it to reach the bank, which is not when it was sent.
-  arrivalDate DateTime
+  arrivalDate   DateTime
   /// Set only when Stripe says it failed, so somebody can be told why.
   failureReason String?
 
@@ -893,9 +895,9 @@ model BrandInvoice {
   issuedAt    DateTime?
   paidAt      DateTime?
 
-  settledBy SettlementMethod?
+  settledBy   SettlementMethod?
   /// The bank reference, when a brand paid by transfer rather than through Stripe.
-  reference String?
+  reference   String?
   /// Who recorded a manual settlement, so an off-system payment still has a name against it.
   settledById String?
 
@@ -972,6 +974,31 @@ model PlatformSetting {
  * Hung off User rather than ShopperProfile so anyone signed in can save,
  * without a role gate turning a browsing creator away from their own site.
  */
+/// Someone following a creator, so their storefront is easy to come back to.
+///
+/// The button existed on every storefront before this did and did nothing at
+/// all: no handler, no request, no record. It looked like a working feature to
+/// anybody who did not press it, which is the worst way for one to be missing.
+///
+/// This is a following on Pluggz and nothing else. It is deliberately not added
+/// to the number shown beside a creator's name, which counts the audience they
+/// bring with them from Instagram and TikTok. Adding a platform's own handful
+/// of follows to a figure like that would misrepresent both.
+model CreatorFollow {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  profileId String
+  profile   CreatorProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  // Following someone twice is following them once.
+  @@unique([userId, profileId])
+  @@index([profileId])
+}
+
 model WishlistItem {
   id     String @id @default(cuid())
   userId String

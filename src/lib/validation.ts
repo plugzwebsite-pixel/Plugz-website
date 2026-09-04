@@ -3,6 +3,22 @@ import { z } from "zod";
 export const PLATFORMS = ["instagram", "tiktok", "youtube"] as const;
 
 /**
+ * One spelling of a platform name.
+ *
+ * The same platform has been written into the database three ways: instagram,
+ * INSTAGRAM, and with stray spacing. Everything that looks a platform up does
+ * so by exact match, so the capitalised rows matched nothing: no link, no icon,
+ * and no way for anyone to tell from the screen that the data was there all
+ * along. Twenty two of the twenty eight creators were in that state.
+ *
+ * Normalise on the way in and on the way out, so a row written by any path,
+ * past or future, resolves the same way.
+ */
+export function normalisePlatform(platform: string): string {
+  return platform.trim().toLowerCase();
+}
+
+/**
  * Public profile URL for a platform handle. Stored at sign-up so the admin
  * approval queue can link straight to the profile. Follower counts are
  * self-reported and have to be spot-checked by hand before approval.
@@ -10,7 +26,7 @@ export const PLATFORMS = ["instagram", "tiktok", "youtube"] as const;
 export function profileUrl(platform: string, handle: string): string | null {
   const clean = handle.replace(/^@/, "").trim();
   if (!clean) return null;
-  switch (platform) {
+  switch (normalisePlatform(platform)) {
     case "instagram":
       return `https://instagram.com/${clean}`;
     case "tiktok":
