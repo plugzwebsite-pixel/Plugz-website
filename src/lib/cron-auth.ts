@@ -1,5 +1,6 @@
 import "server-only";
 import { timingSafeEqual } from "node:crypto";
+import { db } from "@/lib/db";
 import { getSession } from "@/lib/auth/session";
 
 /**
@@ -13,6 +14,14 @@ import { getSession } from "@/lib/auth/session";
  *
  * Shared rather than repeated, because these jobs now move money and three
  * copies of a door check is three chances to leave one unlocked.
+ *
+ * The administrator's role is read from the database, never from the session
+ * token. The token is issued for seven days and says what was true when it was
+ * signed, so somebody removed as an administrator this morning would still be
+ * carrying a cookie that calls them one until next week. Everywhere else in the
+ * platform re-reads the role for exactly that reason; this door was the one
+ * still trusting the cookie, and it is the door in front of the job that sends
+ * money.
  */
 
 /** Constant time, so a wrong secret cannot be found by timing the reply. */
@@ -28,6 +37,12 @@ export async function cronCallerIsAllowed(req: Request): Promise<boolean> {
   const given = req.headers.get("x-cron-secret");
   if (expected && given && secretMatches(given, expected)) return true;
 
-  const user = await getSession();
-  return user?.role === "ADMIN";
+  const session = await getSession();
+  if (!session) return false;
+
+  const account = await db.user.findUnique({
+    where: { id: session.id },
+    select: { role: true },
+  });
+  return account?.role === "ADMIN";
 }

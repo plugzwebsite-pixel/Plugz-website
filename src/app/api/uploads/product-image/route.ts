@@ -1,5 +1,5 @@
 import { ok, fail } from "@/lib/http";
-import { getSession } from "@/lib/auth/session";
+import { requireRole } from "@/lib/auth/guard";
 import { rateLimit, clientKey } from "@/lib/rate-limit";
 import { db } from "@/lib/db";
 import { storeProductImage, removeStoredProductImage } from "@/lib/product-image";
@@ -23,11 +23,8 @@ export async function POST(req: Request) {
   const limit = await rateLimit(clientKey(req, "upload-product-image"), 30, 60_000);
   if (!limit.ok) return fail("Too many uploads. Try again shortly.", 429);
 
-  const user = await getSession();
-  if (!user) return fail("Sign in first.", 401);
-  if (user.role !== "BRAND" && user.role !== "ADMIN") {
-    return fail("Brands and administrators only.", 403);
-  }
+  const auth = await requireRole("BRAND", "ADMIN");
+  if ("response" in auth) return auth.response;
 
   let form: FormData;
   try {
@@ -60,11 +57,8 @@ export async function DELETE(req: Request) {
   const limit = await rateLimit(clientKey(req, "delete-product-image"), 60, 60_000);
   if (!limit.ok) return fail("Too many requests. Try again shortly.", 429);
 
-  const user = await getSession();
-  if (!user) return fail("Sign in first.", 401);
-  if (user.role !== "BRAND" && user.role !== "ADMIN") {
-    return fail("Brands and administrators only.", 403);
-  }
+  const auth = await requireRole("BRAND", "ADMIN");
+  if ("response" in auth) return auth.response;
 
   const url = new URL(req.url).searchParams.get("url") ?? "";
   if (!url.startsWith("/uploads/products/")) {
