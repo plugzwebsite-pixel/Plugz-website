@@ -91,6 +91,29 @@ sudo -u pluggz bash /srv/pluggz/deploy/deploy.sh
 Pulls, installs, syncs the schema, builds, reloads under PM2, then health-checks
 `:3000` and fails loudly if the app didn't come back.
 
+### The public directory is not part of a release
+
+Whatever route a release takes, `public/` on the server is left alone. It holds
+the creator photographs, which exist only there and are not in the repository,
+and a build must never be able to touch them.
+
+The cost is that a file **added** to `public/` in the repository does not reach
+the server on its own, and nothing complains. That is how
+`public/rt-fixture-product.html` sat committed but undeployed, which quietly
+meant the release suite could not run against production at all: it needs that
+fixture and stops without it.
+
+So when a release adds a file under `public/`, copy it across by hand and
+reload, because the directory is read once at boot:
+
+```bash
+scp public/the-new-file root@SERVER:/srv/pluggz/public/
+ssh root@SERVER 'chown pluggz:pluggz /srv/pluggz/public/the-new-file &&
+  sudo -u pluggz env PM2_HOME=/var/lib/pluggz-pm2 pm2 reload pluggz'
+```
+
+Never `rsync --delete` into it.
+
 ---
 
 ## Cloudflare

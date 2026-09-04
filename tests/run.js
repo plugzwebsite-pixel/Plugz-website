@@ -48,6 +48,35 @@ function psql(args, input) {
   return spawnSync("psql", [DB, ...args], { input, encoding: "utf8" });
 }
 
+/**
+ * Forget that this machine has been signing in.
+ *
+ * Every suite drives the site from the loopback address, so they all share one
+ * rate-limit budget: ten sign-ins a minute. A suite that signs in a few times
+ * leaves the next one locked out, and the failure reads as a broken login
+ * rather than a test running too soon. Suite 07 makes this worse on purpose by
+ * exhausting the limit to prove it works.
+ *
+ * Only the loopback counters are cleared, never a real visitor's, so this
+ * cannot weaken the limit for anybody the platform is actually protecting
+ * against. If Redis is not reachable the counters are in the application's own
+ * memory and expire in a minute by themselves, so there is nothing to do and
+ * nothing worth failing over.
+ */
+function forgetLoopbackLimits() {
+  const url = envOf("REDIS_URL").replace(/"/g, "");
+  if (!url) return;
+  const res = spawnSync("redis-cli", ["-u", url, "--scan", "--pattern", "rl:*"], {
+    encoding: "utf8",
+  });
+  if (res.status !== 0 || !res.stdout) return;
+  const mine = res.stdout
+    .split("\n")
+    .map((k) => k.trim())
+    .filter((k) => k.endsWith(":127.0.0.1") || k.endsWith(":::1") || k.endsWith(":unknown"));
+  for (const k of mine) spawnSync("redis-cli", ["-u", url, "DEL", k], { encoding: "utf8" });
+}
+
 function wipe() {
   psql(["-q", "-f", path.join(HERE, "teardown.sql")]);
   // The probe administrator, which most suites sign in as.
@@ -104,6 +133,9 @@ function heading(text) {
   try {
     for (const suite of SUITES) {
       if (!KEEPS_STATE_FROM_PREVIOUS.has(suite)) wipe();
+      // Before every suite, including the one that carries state over, because
+      // that one signs in too.
+      forgetLoopbackLimits();
       heading(suite);
       const r = spawnSync("node", [path.join(HERE, suite)], {
         encoding: "utf8",
