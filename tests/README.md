@@ -41,7 +41,7 @@ nothing links to it.
 | `02-admin.js` | All seventeen admin screens, creating a brand, issuing tracking credentials, categories, and the commission floors and ceiling |
 | `03-accounts.js` | A brand arriving the way a real brand does, invite to reset to sign in; a creator's dual consent; a shopper signing up |
 | `04-features.js` | Discount codes, seasonal return windows, commission overrides, disputes, campaigns, the homepage, bulk imports, enquiries, the waitlist, the wishlist and product views |
-| `05-money.js` | Invoicing a brand, Stripe sending it, the brand paying, and the creator being paid, by Stripe and by hand |
+| `05-money.js` | Invoicing a brand, Stripe sending it, the brand paying, and the creator being paid, by Stripe and by hand. Ends by running two payouts at once to check a creator is paid only the once |
 | `06-automatic.js` | The same chain again with nobody touching anything: the nightly jobs, the webhook, and the books balancing |
 | `07-tracking.js` | The tracking engine, signed postbacks, the Shopify pixel, and the things that must not work |
 

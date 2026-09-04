@@ -16,6 +16,14 @@ async function check(name, fn) {
   try {
     const r = await fn();
     if (r === true || r === undefined) { results.push([name, "pass", ""]); console.log("  pass  " + name); }
+    // A check that cannot be asked of this deployment says so rather than
+    // passing quietly, because a check that silently does nothing is worse
+    // than one that fails: it reads as cover it is not providing.
+    else if (typeof r === "string" && r.indexOf("skip:") === 0) {
+      const why = r.slice(5).trim();
+      results.push([name, "skip", why]);
+      console.log("  skip  " + name + "\n          " + why);
+    }
     else { results.push([name, "FAIL", String(r)]); console.log("  FAIL  " + name + "\n          " + r); }
   } catch (e) {
     results.push([name, "ERROR", e.message]);
@@ -263,8 +271,85 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     return r.json && r.json.ok === false ? true : "it cancelled a paid invoice";
   });
 
+  section("8. Two runs at once");
+
+  // The admin button and the schedule on the 1st and the 15th call the same
+  // routine. Reading what is owed and sending the money are not one step, so
+  // anything that reads in the gap sees sales nobody has claimed yet and pays
+  // for them a second time. What stops it is that the sales are claimed before
+  // the money moves, in one guarded write: of two runs reaching it together,
+  // exactly one wins and the other is told so.
+  //
+  // Nothing here sends. The route that moves money by itself is only exercised
+  // when the application is on test keys, checked below, because this suite is
+  // pointed at whatever is running and that may be the live platform.
+
+  await check("two bank-transfer records at once pay the creator only once", async function () {
+    runSql(`insert into "Sale" (id,"creatorProductId","orderRef","valuePence",status,stage,source,"creatorRate","pluggzRate","creatorAmountPence","pluggzAmountPence","soldAt","verifiesAt","verifiedAt","createdAt","updatedAt")
+         values ('rt_s5','rt_cp1','RT-ORDER-5',8000,'APPROVED','PAID_TO_PLUGGZ','CSV',7.00,5.00,560,400,now()-interval '40 days',now()-interval '19 days',now()-interval '19 days',now(),now())
+         on conflict (id) do nothing;`);
+
+    const both = await Promise.all([
+      api("/api/admin/payouts/record", { profileId: "rt_c1", reference: "RT-RACE-A" }),
+      api("/api/admin/payouts/record", { profileId: "rt_c1", reference: "RT-RACE-B" }),
+    ]);
+    const won = both.filter(function (r) { return r.json && r.json.ok; }).length;
+    if (won !== 1) return won + " of the two calls succeeded, expected exactly one";
+
+    const claims = sql("select count(distinct \"payoutId\") from \"Sale\" where id='rt_s5';");
+    const paid = sql("select count(*) from \"Payout\" where \"profileId\"='rt_c1' and reference like 'RT-RACE-%';");
+    return claims === "1" && paid === "1"
+      ? true
+      : "the sale is claimed by " + claims + " payouts across " + paid + " rows";
+  });
+
+  await check("the losing call left nothing behind", function () {
+    // Its payout row is rolled back with the claim, so a refused run is not
+    // visible afterwards as a payment that never happened.
+    const stage = sql("select stage from \"Sale\" where id='rt_s5';");
+    const orphans = sql("select count(*) from \"Payout\" where \"profileId\"='rt_c1' and \"amountPence\"=0;");
+    return stage === "PAID_TO_CREATOR" && orphans === "0"
+      ? true : "stage " + stage + ", " + orphans + " empty payout rows";
+  });
+
+  await check("two Stripe runs at once pay the creator only once", async function () {
+    const probe = await api("/api/admin/payouts/run", {});
+    if (!probe.json || !probe.json.ok) return msg(probe);
+    if (probe.json.data.live) {
+      // Not a pass and not a failure: it cannot be asked of a live platform.
+      return "skip: the application is on live Stripe keys, and this check sends money. " +
+        "Point the suite at a deployment using test keys to run it.";
+    }
+
+    runSql(`update "CreatorProfile" set "stripeAccountId"='acct_rtRaceNoSuchAccount', "stripePayoutsEnabled"=true where id='rt_c1';
+            insert into "Sale" (id,"creatorProductId","orderRef","valuePence",status,stage,source,"creatorRate","pluggzRate","creatorAmountPence","pluggzAmountPence","soldAt","verifiesAt","verifiedAt","createdAt","updatedAt")
+            values ('rt_s6','rt_cp1','RT-ORDER-6',9000,'APPROVED','PAID_TO_PLUGGZ','CSV',7.00,5.00,630,450,now()-interval '40 days',now()-interval '19 days',now()-interval '19 days',now(),now())
+            on conflict (id) do nothing;`);
+
+    // The destination does not exist, so the transfer cannot succeed however
+    // this goes. What is under test is which run gets to attempt it.
+    const both = await Promise.all([
+      api("/api/admin/payouts/run", { send: true, minimumPence: 0 }),
+      api("/api/admin/payouts/run", { send: true, minimumPence: 0 }),
+    ]);
+    const outcomes = both.map(function (r) {
+      const row = ((r.json && r.json.data && r.json.data.results) || [])
+        .find(function (x) { return x.handle === "rtmoneycreator"; });
+      return row ? row.outcome : "absent";
+    });
+    const refused = outcomes.filter(function (o) { return o.indexOf("another run") !== -1; }).length;
+    const claims = sql("select count(distinct \"payoutId\") from \"Sale\" where id='rt_s6';");
+
+    return refused === 1 && claims === "1"
+      ? true
+      : "outcomes " + JSON.stringify(outcomes) + ", claimed by " + claims + " payouts";
+  });
+
   const pass = results.filter(function (r) { return r[1] === "pass"; }).length;
-  const bad = results.filter(function (r) { return r[1] !== "pass"; });
-  console.log("\n\x1b[1mSuite 7: " + pass + " of " + results.length + " passed\x1b[0m");
+  const skipped = results.filter(function (r) { return r[1] === "skip"; });
+  const bad = results.filter(function (r) { return r[1] !== "pass" && r[1] !== "skip"; });
+  console.log("\n\x1b[1mSuite 7: " + pass + " of " + results.length + " passed" +
+    (skipped.length ? ", " + skipped.length + " skipped" : "") + "\x1b[0m");
+  for (const s of skipped) console.log("  skipped: " + s[0] + "  ::  " + s[2]);
   for (const b of bad) console.log("  " + b[0] + "  ::  " + b[2]);
 })();
