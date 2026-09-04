@@ -2,7 +2,7 @@ import { z } from "zod";
 import { fail, ok, parseBody } from "@/lib/http";
 import { requireAdmin } from "@/lib/auth/access";
 import { rateLimit, clientKey } from "@/lib/rate-limit";
-import { runCreatorPayouts } from "@/lib/payouts";
+import { runCreatorPayouts, PAYOUT_MINIMUM_PENCE } from "@/lib/payouts";
 
 /**
  * An administrator paying the creators by hand.
@@ -21,7 +21,7 @@ const schema = z.object({
   /** Nothing is sent unless this is explicitly true. */
   send: z.boolean().default(false),
   /** Below this a transfer costs more in fees than it moves. */
-  minimumPence: z.number().int().min(0).max(100_00).default(500),
+  minimumPence: z.number().int().min(0).max(100_00).default(PAYOUT_MINIMUM_PENCE),
 });
 
 export async function POST(req: Request) {

@@ -2,8 +2,11 @@ import type { Metadata } from "next";
 import { Clock, ShieldCheck, Building2, HandCoins, CalendarClock } from "lucide-react";
 import { Badge } from "@/components/ui/primitives";
 import { payoutPipeline, settlementRows } from "@/lib/stats";
+import { amountsOwedBoard, recentPayouts, PAYOUT_MINIMUM_PENCE } from "@/lib/payouts";
+import { stripeConfigured } from "@/lib/stripe";
 import { nextPayoutRun } from "@/lib/commission";
 import { gbpFromPence } from "@/lib/utils";
+import { PayoutsManager } from "@/components/admin/payouts-manager";
 
 export const metadata: Metadata = { title: "Payouts" };
 
@@ -22,7 +25,12 @@ const stageLabel: Record<string, string> = {
 };
 
 export default async function PayoutsPage() {
-  const [pipeline, rows] = await Promise.all([payoutPipeline(), settlementRows()]);
+  const [pipeline, rows, owed, paid] = await Promise.all([
+    payoutPipeline(),
+    settlementRows(),
+    amountsOwedBoard(),
+    recentPayouts(),
+  ]);
   const runDate = nextPayoutRun();
 
   const cards = [
@@ -52,7 +60,7 @@ export default async function PayoutsPage() {
     },
     {
       label: "Paid to creators",
-      sub: "sent via Wise",
+      sub: "paid out",
       value: pipeline.paidToCreators.valuePence,
       count: pipeline.paidToCreators.count,
       icon: HandCoins,
@@ -97,6 +105,17 @@ export default async function PayoutsPage() {
           </div>
         ))}
       </div>
+
+      <PayoutsManager
+        owed={owed}
+        paid={paid.map((p) => ({
+          ...p,
+          sentAt: p.sentAt ? p.sentAt.toISOString() : null,
+          runDate: p.runDate.toISOString(),
+        }))}
+        stripeReady={stripeConfigured()}
+        minimumPence={PAYOUT_MINIMUM_PENCE}
+      />
 
       <div className="hidden items-center justify-between rounded-md border border-border bg-bg-elev px-8 py-5 text-sm text-text-muted sm:flex">
         {["Pending", "Verified", "Paid to Pluggz", "Paid to Creator"].map((s, i, arr) => (

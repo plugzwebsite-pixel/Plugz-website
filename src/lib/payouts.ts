@@ -110,6 +110,69 @@ async function amountsOwed(): Promise<Map<string, Group>> {
   return groups;
 }
 
+/**
+ * Below this a transfer costs more in fees than it moves, so the balance is
+ * carried to the next run. Here rather than in each caller because the screen
+ * quotes it to explain why somebody was left out, and a screen quoting a
+ * different figure to the one the run uses is worse than no figure at all.
+ */
+export const PAYOUT_MINIMUM_PENCE = 500;
+
+export type OwedCreator = {
+  profileId: string;
+  handle: string;
+  name: string;
+  pence: number;
+  sales: number;
+  stripeReady: boolean;
+  requirement: string | null;
+};
+
+/**
+ * Who is owed money, for the screen.
+ *
+ * Deliberately independent of Stripe being switched on. A platform paying its
+ * creators by bank transfer still has to see what it owes them, and asking
+ * Stripe first would leave that screen empty for the very people who need it
+ * most. The same query the payout run uses, so the screen and the run can
+ * never disagree about who is owed what.
+ */
+export async function amountsOwedBoard(): Promise<OwedCreator[]> {
+  const groups = await amountsOwed();
+  return [...groups.values()]
+    .map((g) => ({
+      profileId: g.profileId,
+      handle: g.handle,
+      name: g.name,
+      pence: g.pence,
+      sales: g.saleIds.length,
+      stripeReady: Boolean(g.accountId) && g.payoutsEnabled,
+      requirement: g.requirement,
+    }))
+    .sort((a, b) => b.pence - a.pence);
+}
+
+/** What has been paid, and anything that tried and did not finish. */
+export async function recentPayouts(take = 15) {
+  return db.payout.findMany({
+    orderBy: { createdAt: "desc" },
+    take,
+    select: {
+      id: true,
+      amountPence: true,
+      status: true,
+      paidBy: true,
+      reference: true,
+      stripeTransferId: true,
+      failureReason: true,
+      sentAt: true,
+      runDate: true,
+      _count: { select: { sales: true } },
+      profile: { select: { handle: true, user: { select: { name: true } } } },
+    },
+  });
+}
+
 /** Raised when another run claimed these sales first. Nothing was written. */
 class ClaimLost extends Error {}
 

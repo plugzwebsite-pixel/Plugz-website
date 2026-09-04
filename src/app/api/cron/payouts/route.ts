@@ -1,6 +1,6 @@
 import { ok, fail } from "@/lib/http";
 import { cronCallerIsAllowed } from "@/lib/cron-auth";
-import { runCreatorPayouts } from "@/lib/payouts";
+import { runCreatorPayouts, PAYOUT_MINIMUM_PENCE } from "@/lib/payouts";
 
 /**
  * Paying the creators on the 1st and the 15th, without anybody pressing a
@@ -21,8 +21,6 @@ export const runtime = "nodejs";
 export const maxDuration = 300;
 export const dynamic = "force-dynamic";
 
-const MINIMUM_PENCE = 500;
-
 /** The 1st and the 15th, matching nextPayoutRun and what creators are told. */
 function isPayoutDay(now: Date): boolean {
   const d = now.getUTCDate();
@@ -32,7 +30,7 @@ function isPayoutDay(now: Date): boolean {
 export async function GET(req: Request) {
   if (!(await cronCallerIsAllowed(req))) return fail("Not allowed.", 403);
 
-  const result = await runCreatorPayouts({ send: false, minimumPence: MINIMUM_PENCE });
+  const result = await runCreatorPayouts({ send: false, minimumPence: PAYOUT_MINIMUM_PENCE });
   if ("notReady" in result) return fail(result.notReady, 503);
   return ok({ ...result, todayIsAPayoutDay: isPayoutDay(new Date()) });
 }
@@ -54,7 +52,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    const result = await runCreatorPayouts({ send: true, minimumPence: MINIMUM_PENCE });
+    const result = await runCreatorPayouts({ send: true, minimumPence: PAYOUT_MINIMUM_PENCE });
     if ("notReady" in result) return fail(result.notReady, 503);
 
     console.log(
