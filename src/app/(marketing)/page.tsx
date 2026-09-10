@@ -72,6 +72,18 @@ export default async function HomePage() {
 
   return (
     <>
+      {copy.stripText && (
+        <div className="border-b border-brand-pink/20 bg-grad-brand px-5 py-2.5 text-center text-sm font-semibold text-white">
+          {copy.stripHref ? (
+            <Link href={copy.stripHref} className="underline-offset-4 hover:underline">
+              {copy.stripText}
+            </Link>
+          ) : (
+            copy.stripText
+          )}
+        </div>
+      )}
+
       <Hero
         creators={featured}
         stats={heroStats}

@@ -358,12 +358,12 @@ export function stripeWebhookConfigured(): boolean {
  * invoice paid.
  */
 export function verifyWebhook(rawBody: string, signature: string | null) {
-  const s = stripe();
-  if (!s) throw new StripeNotReady("Payouts are not switched on yet.");
   const secret = process.env.STRIPE_WEBHOOK_SECRET?.trim();
   if (!secret) throw new StripeNotReady("The webhook signing secret is not set.");
   if (!signature) throw new Error("No signature on that request.");
-  return s.webhooks.constructEvent(rawBody, signature, secret);
+  // Signature verification is local and needs only the endpoint secret.
+  // Missing outbound API credentials must not silently discard inbound events.
+  return Stripe.webhooks.constructEvent(rawBody, signature, secret);
 }
 
 /**

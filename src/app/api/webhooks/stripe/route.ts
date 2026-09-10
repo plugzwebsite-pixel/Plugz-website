@@ -28,10 +28,10 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   if (!stripeWebhookConfigured()) {
-    // Nothing signed can be trusted, so nothing is acted on. Answered 200 so
-    // Stripe does not retry an endpoint that is deliberately not listening yet.
+    // Keep delivery retryable until configuration is repaired. A 200 here
+    // permanently acknowledges an event we have never authenticated or handled.
     console.warn("[webhooks/stripe] an event arrived but no signing secret is set");
-    return Response.json({ ok: true, ignored: "not configured" });
+    return Response.json({ ok: false, error: "Webhook not configured" }, { status: 503 });
   }
 
   // The raw bytes, exactly as sent. Parsing and re-serialising would change
@@ -44,7 +44,7 @@ export async function POST(req: Request) {
     event = verifyWebhook(raw, signature);
   } catch (err) {
     if (err instanceof StripeNotReady) {
-      return Response.json({ ok: true, ignored: "not configured" });
+      return Response.json({ ok: false, error: "Webhook not configured" }, { status: 503 });
     }
     const message = err instanceof Error ? err.message : "unknown";
     console.error("[webhooks/stripe] refused an unsigned or altered event:", message);

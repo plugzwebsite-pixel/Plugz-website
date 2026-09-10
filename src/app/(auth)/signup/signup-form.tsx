@@ -276,7 +276,7 @@ export function CreatorSignupForm() {
           {...register("acceptTerms")}
           label={
             <>
-              I accept the{" "}
+              I have read, understood and agree to the{" "}
               <Link
                 href="/legal/creator-terms"
                 target="_blank"
@@ -284,7 +284,7 @@ export function CreatorSignupForm() {
               >
                 Pluggz Creator Terms &amp; Membership Agreement
               </Link>
-              . I understand my acceptance is recorded and timestamped.
+              , including the licence granted to CEO Live Ltd and Pluggz to use my creator profile and approved content as described above.
             </>
           }
         />
@@ -296,7 +296,7 @@ export function CreatorSignupForm() {
       </div>
 
       <Button type="submit" size="lg" loading={isSubmitting} className="w-full">
-        Submit application
+        Create Account
       </Button>
     </form>
   );

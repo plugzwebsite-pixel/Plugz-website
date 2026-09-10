@@ -42,6 +42,8 @@ export type ProductCardData = {
   imageUrl: string | null;
   creatorHandle: string;
   clicks: number;
+  /** ISO timestamp of this creator's listing, used by the client-side New in sort. */
+  createdAt: string;
 };
 
 const creatorSelect = {
@@ -57,6 +59,7 @@ const creatorSelect = {
 const productSelect = {
   id: true,
   slug: true,
+  createdAt: true,
   profile: { select: { handle: true } },
   product: {
     select: {
@@ -102,6 +105,7 @@ function toProductCard(row: ProductRow): ProductCardData {
     imageUrl: row.product.imageUrl,
     creatorHandle: row.profile.handle,
     clicks: row.trackingLink?.clickCount ?? 0,
+    createdAt: row.createdAt.toISOString(),
   };
 }
 

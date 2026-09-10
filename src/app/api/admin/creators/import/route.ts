@@ -31,7 +31,6 @@ function resolveAvatar(raw: string, handle: string): string | null {
   return `/images/creators/${handle}.jpg`;
 }
 
-const TERMS_VERSION = "2026-07-01";
 const MAX_ROWS = 500;
 
 const bodySchema = z.object({
@@ -227,7 +226,7 @@ export async function POST(req: Request) {
               // Left null on purpose: the creator has not consented yet, so
               // the profile stays invisible until they release it themselves.
               profileReleasedAt: null,
-              termsVersion: TERMS_VERSION,
+              termsVersion: null,
               termsAcceptedAt: null,
               socials: { create: socials },
             },

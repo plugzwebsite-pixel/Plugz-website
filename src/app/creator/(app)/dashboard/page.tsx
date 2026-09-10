@@ -8,6 +8,7 @@ import {
   TrendingUp,
   Trophy,
   Package,
+  Eye,
 } from "lucide-react";
 import { checkCreatorAccess } from "@/lib/auth/access";
 import { creatorDashboard, creatorRecentSales } from "@/lib/stats";
@@ -73,12 +74,18 @@ export default async function CreatorDashboardPage() {
         {". Here's how your storefront is performing."}
       </p>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           value={compact(stats.clicks)}
           label="Link clicks"
           sub="shoppers sent to brands"
           icon={MousePointerClick}
+        />
+        <StatCard
+          value={compact(stats.views)}
+          label="Product views"
+          sub="storefront pages opened"
+          icon={Eye}
         />
         <StatCard
           value={String(stats.liveProducts)}
@@ -162,7 +169,7 @@ export default async function CreatorDashboardPage() {
             ))}
           </div>
           <p className="mt-4 text-xs text-text-faint">
-            Payouts run on the 1st and 15th of each month via Wise.
+            Payouts run on the 1st and 15th of each month. Manage your payout details on the Payouts page.
           </p>
         </div>
       </div>

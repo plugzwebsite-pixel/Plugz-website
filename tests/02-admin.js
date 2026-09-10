@@ -93,6 +93,12 @@ function msg(r) {
     });
   }
 
+  await check("admin products shows product views", async function () {
+    const r = await api("/admin/products");
+    return r.status === 200 && r.text.includes("Views")
+      ? true : "the views column is missing";
+  });
+
   section("3. Admin: creating a brand");
 
   await check("a brand can be created, on Shopify", async function () {

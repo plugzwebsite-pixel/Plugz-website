@@ -680,6 +680,9 @@ model ProductView {
   /// The same attribution session a click carries, so a view and the click it
   /// led to can be tied together.
   sessionId String
+  /// Hour-scoped idempotency key. Existing rows remain null when this is
+  /// deployed; new writes use it to make two simultaneous beacons one view.
+  dedupKey String? @unique
   viewedAt  DateTime @default(now())
 
   @@index([creatorProductId, viewedAt])

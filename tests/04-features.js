@@ -296,10 +296,24 @@ const msg = (r) => "status " + r.status + (r.json && r.json.message ? " :: " + r
 
   await check("a piece of homepage copy can be changed", async function () {
     const r = await req("admin", "/api/admin/homepage", {
-      json: { scope: "content", values: { heroTitle: "RT release test headline" } },
+      json: {
+        scope: "content",
+        values: {
+          heroEyebrow: "RT release test eyebrow",
+          heroTitle: "RT release test headline",
+          stripText: "RT release test strip",
+          stripHref: "/search?q=rt",
+        },
+      },
     });
     if (!r.json || !r.json.ok) return msg(r);
-    return sql("select count(*) from \"SiteContent\" where key='heroTitle';") === "1" ? true : "not stored";
+    const home = await fetch(BASE + "/");
+    const html = await home.text();
+    return home.status === 200 &&
+      html.includes("RT release test eyebrow") &&
+      html.includes("RT release test headline") &&
+      html.includes("RT release test strip")
+      ? true : "stored, but not rendered on the homepage";
   });
 
   await check("a product can be featured and unfeatured", async function () {
@@ -375,6 +389,20 @@ const msg = (r) => "status " + r.status + (r.json && r.json.message ? " :: " + r
     if (!j || !j.ok) return "status " + res.status + " " + JSON.stringify(j).slice(0, 160);
     const row = (j.data.results || [])[0];
     return row && row.value === "£48.50"
+      ? true : "it read the value as " + (row ? row.value : "nothing");
+  });
+
+  await check("a grouped 1.234 is read as one thousand two hundred and thirty four pounds", async function () {
+    const csv = "orderref;value;date;handle\nRT-GROUPED-1;1.234;2026-08-01;rt11creator\n";
+    const form = new FormData();
+    form.append("file", new File([csv], "grouped.csv", { type: "text/csv" }));
+    form.append("commit", "false");
+    const res = await fetch(BASE + "/api/admin/sales/import", {
+      method: "POST", headers: { origin: BASE, cookie: jars.admin }, body: form, redirect: "manual",
+    });
+    const j = await res.json().catch(() => null);
+    const row = j && j.ok ? (j.data.results || [])[0] : null;
+    return row && row.value === "£1234.00"
       ? true : "it read the value as " + (row ? row.value : "nothing");
   });
 
@@ -471,11 +499,14 @@ const msg = (r) => "status " + r.status + (r.json && r.json.message ? " :: " + r
 
   section("12. Views and video");
 
-  await check("a product view is recorded", async function () {
+  await check("simultaneous product views are recorded once", async function () {
     const before = sql("select count(*) from \"ProductView\" where \"creatorProductId\"='rt11_cp';");
-    await req("anon", "/api/track/view", { json: { listingId: "rt11_cp" } });
+    await Promise.all(Array.from({ length: 5 }, function () {
+      return req("anon", "/api/track/view", { json: { listingId: "rt11_cp" } });
+    }));
     const after = sql("select count(*) from \"ProductView\" where \"creatorProductId\"='rt11_cp';");
-    return Number(after) > Number(before) ? true : "nothing was recorded";
+    return Number(after) === Number(before) + 1
+      ? true : "it went from " + before + " to " + after;
   });
 
   await check("the same visitor viewing again within the hour is not counted twice", async function () {

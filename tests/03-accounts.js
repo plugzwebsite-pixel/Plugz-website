@@ -130,6 +130,23 @@ async function login(role, email, password) {
     return p === "4250" ? true : "pricePence is " + p;
   });
 
+  await check("www and bare-host addresses reuse the same product", async function () {
+    sql("update \"Product\" set \"sourceUrl\"='https://www.pluggzofficial.co.uk/rt-fixture-product.html'" +
+      " where id='" + state.productId + "';");
+    const r = await api("admin", "/api/admin/products", {
+      json: {
+        brandId: state.brandId,
+        url: "https://pluggzofficial.co.uk/rt-fixture-product.html",
+        category: "Beauty & Skincare",
+      },
+    });
+    if (!r.json || !r.json.ok) return msg(r);
+    const returned = (r.json.data.product || r.json.data).id;
+    const count = sql("select count(*) from \"Product\" where \"sourceUrl\" like '%/rt-fixture-product.html';");
+    return returned === state.productId && count === "1"
+      ? true : "returned " + returned + " with " + count + " matching products";
+  });
+
   await check("a brand contact can be invited", async function () {
     const r = await api("admin", "/api/admin/brands/" + state.brandId + "/invite", {
       json: { name: "RT Brand Contact", email: "rtbrand@pluggz.test" },
@@ -253,6 +270,12 @@ async function login(role, email, password) {
       return r.status === 200 ? true : "status " + r.status;
     });
   }
+
+  await check("the creator dashboard shows product views", async function () {
+    const r = await api("creator", "/creator/dashboard");
+    return r.status === 200 && r.text.includes("Product views")
+      ? true : "the views figure is missing";
+  });
 
   await check("a creator cannot reach the admin area", async function () {
     const r = await api("creator", "/api/admin/payouts/run", { json: {} });

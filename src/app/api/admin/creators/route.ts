@@ -8,7 +8,6 @@ import { generateToken, expiryFromNow } from "@/lib/auth/tokens";
 import { randomBytes } from "crypto";
 import { sendCreatorInviteEmail } from "@/lib/email";
 
-const TERMS_VERSION = "2026-07-01";
 
 // Admin adds a creator on their behalf (dual-consent). The creator receives an
 // invite to set a password and release their profile before it goes live.
@@ -71,7 +70,7 @@ export async function POST(req: Request) {
           status: "APPROVED", // admin trusts them; not live until released
           source: "ADMIN_ADDED",
           profileReleasedAt: null,
-          termsVersion: TERMS_VERSION,
+          termsVersion: null,
           socials: { create: socials },
         },
       },

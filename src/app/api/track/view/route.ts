@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { createHash } from "node:crypto";
 import { rateLimit, clientKey } from "@/lib/rate-limit";
 import { isBot, ATTRIBUTION_COOKIE, clientIp, hashIp } from "@/lib/tracking";
 
@@ -48,7 +49,7 @@ export async function POST(req: Request) {
     return reply({ ok: false }, 400);
   }
 
-  const listingId = body.listingId?.trim();
+  const listingId = typeof body.listingId === "string" ? body.listingId.trim() : "";
   if (!listingId) return reply({ ok: false }, 400);
 
   // The attribution cookie if there is one, so a view and the click it led to
@@ -67,6 +68,11 @@ export async function POST(req: Request) {
     ?.split("=")[1];
   const ip = clientIp(req.headers);
   const session = fromCookie || (ip ? `ip:${hashIp(ip)}` : "unknown");
+  const now = new Date();
+  const hour = now.toISOString().slice(0, 13);
+  const dedupKey = createHash("sha256")
+    .update(`${listingId}\0${session}\0${hour}`)
+    .digest("hex");
 
   // A refresh, or a shopper going back and forth between two products, should
   // not each count again within the hour.
@@ -74,7 +80,7 @@ export async function POST(req: Request) {
     where: {
       creatorProductId: listingId,
       sessionId: session,
-      viewedAt: { gte: new Date(Date.now() - 60 * 60 * 1000) },
+      viewedAt: { gte: new Date(now.getTime() - 60 * 60 * 1000) },
     },
     select: { id: true },
   });
@@ -82,7 +88,7 @@ export async function POST(req: Request) {
 
   try {
     await db.productView.create({
-      data: { creatorProductId: listingId, sessionId: session },
+      data: { creatorProductId: listingId, sessionId: session, dedupKey },
     });
   } catch {
     // A listing that has since been removed. Not worth an error on a page the

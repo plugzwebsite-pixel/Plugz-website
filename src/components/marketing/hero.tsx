@@ -29,7 +29,7 @@ export function Hero({
   stats: { value: string; label: string }[];
   creatorCount: number;
   /** Editable from the admin. Falls back to what shipped when left empty. */
-  copy?: { heroTitle?: string; heroSubtitle?: string };
+  copy?: { heroEyebrow?: string; heroTitle?: string; heroSubtitle?: string };
 }) {
   const router = useRouter();
 
@@ -53,7 +53,8 @@ export function Hero({
           <motion.div variants={item} className="flex justify-center">
             <span className="inline-flex items-center gap-2 rounded-pill border border-border bg-surface-2/70 px-4 py-1.5 text-xs font-medium text-text-muted backdrop-blur">
               <span className="h-1.5 w-1.5 animate-pulse-glow rounded-full bg-accent-green" />
-              {`Live in the UK · shop ${creatorCount} creators' edits`}
+              {copy?.heroEyebrow ||
+                `Live in the UK · shop ${creatorCount} creators' edits`}
             </span>
           </motion.div>
 

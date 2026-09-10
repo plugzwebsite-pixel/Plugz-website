@@ -94,8 +94,14 @@ function toPence(raw: string, delimiter = ","): number | null {
     // A comma alone. In a semicolon or tab separated file it is the decimal
     // mark. In a comma separated one it can only be grouping, because a decimal
     // comma would have split the column.
-    if (delimiter !== ",") value = value.replace(",", ".");
+    if (/^\d{1,3}(,\d{3})+$/.test(value)) value = value.replace(/,/g, "");
+    else if (delimiter !== ",") value = value.replace(",", ".");
     else value = value.replace(/,/g, "");
+  } else if (lastDot !== -1 && /^\d{1,3}(\.\d{3})+$/.test(value)) {
+    // A currency amount cannot carry three fractional digits. A lone dot in
+    // groups of three is therefore a thousands separator: 1.234 is £1,234,
+    // not £1.23 after rounding.
+    value = value.replace(/\./g, "");
   }
 
   const n = Number(value);

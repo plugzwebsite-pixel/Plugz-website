@@ -35,7 +35,7 @@ export function AreaChart({
       className={className}
       style={{ width: "100%", height }}
       role="img"
-      aria-label="Performance over the last 30 days"
+      aria-label="Performance over the selected period"
     >
       <defs>
         <linearGradient id={id} x1="0" y1="0" x2="1" y2="0">

@@ -195,13 +195,14 @@ export default async function AdminProductsPage({
       ) : (
         <div className="overflow-hidden rounded-md border border-border bg-surface">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[82rem] text-left text-sm">
+            <table className="w-full min-w-[88rem] text-left text-sm">
               <thead>
                 <tr className="border-b border-border text-xs uppercase tracking-wide text-text-faint">
                   <th className="px-5 py-3 font-semibold">Product</th>
                   <th className="px-5 py-3 font-semibold">Brand</th>
                   <th className="px-5 py-3 font-semibold">Creator</th>
                   <th className="px-5 py-3 text-right font-semibold">Clicks</th>
+                  <th className="px-5 py-3 text-right font-semibold">Views</th>
                   <th className="px-5 py-3 text-right font-semibold">Sales</th>
                   <th className="px-5 py-3 font-semibold">Tracking link</th>
                   <th className="px-5 py-3 font-semibold">Discount code</th>
@@ -246,6 +247,9 @@ export default async function AdminProductsPage({
                     </td>
                     <td className="px-5 py-3 text-right font-semibold tabular-nums text-text-strong">
                       {r.clicks}
+                    </td>
+                    <td className="px-5 py-3 text-right tabular-nums text-text-muted">
+                      {r.views}
                     </td>
                     <td className="px-5 py-3 text-right tabular-nums text-text-muted">
                       {r.salesCount > 0 ? gbpFromPence(r.salesPence) : "None"}

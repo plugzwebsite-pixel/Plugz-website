@@ -38,7 +38,7 @@ export function ReleaseForm() {
           onChange={(e) => setAccepted(e.target.checked)}
         />
         <span className="text-sm leading-relaxed text-text-muted">
-          I accept the{" "}
+          I have read, understood and agree to the{" "}
           <Link
             href="/legal/creator-terms"
             target="_blank"
@@ -46,7 +46,7 @@ export function ReleaseForm() {
           >
             Pluggz Creator Terms &amp; Membership Agreement
           </Link>
-          , and I confirm this profile is mine and I want it to go live on
+          , including the licence granted to CEO Live Ltd and Pluggz to use my creator profile and approved content as described above. I confirm this profile is mine and I want it to go live on
           Pluggz.
         </span>
       </label>

@@ -137,13 +137,16 @@ export async function findProductBySourceUrl(rawUrl: string) {
 
   return db.product.findFirst({
     where: { sourceUrl: { in: [canonical, twin.toString().replace(/\/$/, "")] } },
-    select: { id: true, brandId: true, brand: { select: { name: true } } },
+    include: { brand: { select: { name: true } } },
   });
 }
 
 export async function findOrCreateProduct(input: ProductInput) {
   const sourceUrl = canonicalUrl(input.sourceUrl);
-  const existing = await db.product.findUnique({ where: { sourceUrl } });
+  // Use the same www/bare-host lookup as the validation path. Repeating an
+  // exact lookup here used to discard the twin it had just found and create a
+  // duplicate master product.
+  const existing = await findProductBySourceUrl(sourceUrl);
   if (existing) return existing;
 
   const slug = await uniqueProductSlug(input.brandId, slugify(input.name));

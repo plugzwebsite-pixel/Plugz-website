@@ -4,7 +4,7 @@ import { getSession } from "@/lib/auth/session";
 import { revalidateStorefront } from "@/lib/revalidate";
 import { z } from "zod";
 
-const TERMS_VERSION = "2026-07-01";
+import { CREATOR_TERMS_VERSION as TERMS_VERSION } from "@/lib/creator-terms";
 
 const schema = z.object({
   acceptTerms: z

@@ -7,7 +7,7 @@ import { sendVerificationEmail } from "@/lib/email";
 import { rateLimit, clientKey } from "@/lib/rate-limit";
 import { storeAvatar } from "@/lib/avatar";
 
-const TERMS_VERSION = "2026-07-01";
+import { CREATOR_TERMS_VERSION as TERMS_VERSION } from "@/lib/creator-terms";
 
 export async function POST(req: Request) {
   const limit = await rateLimit(clientKey(req, "signup"), 6, 60_000);

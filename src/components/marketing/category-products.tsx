@@ -58,9 +58,9 @@ export function CategoryProducts({
         .sort((a, b) => (a.pricePence ?? 0) - (b.pricePence ?? 0));
     }
     if (sort === "new") {
-      // The server hands them back most plugged first, so newest is the
-      // opposite end of the same list rather than a field we have to carry.
-      return [...products].reverse();
+      return [...products].sort(
+        (a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt)
+      );
     }
     return products;
   }, [products, sort]);
