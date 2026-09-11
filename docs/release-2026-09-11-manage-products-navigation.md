@@ -12,4 +12,5 @@
 - Focused ESLint passed.
 - TypeScript typecheck passed.
 - Production build passed. The existing local `Payout.paidBy` database warning and `node:dns` Edge warning are unrelated to this navigation change.
-- Live navigation smoke test is required after deployment.
+- Deployed to `pluggzofficial.co.uk` on 11 September 2026 with production build ID `OMrF_qSz2RDEnHF-gnmof`.
+- Live authenticated smoke test passed: admin login and Products returned HTTP 200, the Manage products sidebar label, Add product action and management feature copy were present, and all four PM2 workers were online.
