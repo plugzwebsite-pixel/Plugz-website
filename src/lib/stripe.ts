@@ -345,7 +345,16 @@ export async function sendBrandInvoice(input: {
 }
 
 export function stripeWebhookConfigured(): boolean {
-  return Boolean(process.env.STRIPE_WEBHOOK_SECRET?.trim());
+  return webhookSecrets().length > 0;
+}
+
+function webhookSecrets(): string[] {
+  return [
+    process.env.STRIPE_WEBHOOK_SECRET,
+    process.env.STRIPE_CONNECT_WEBHOOK_SECRET,
+  ]
+    .map((secret) => secret?.trim())
+    .filter((secret): secret is string => Boolean(secret));
 }
 
 /**
@@ -358,12 +367,21 @@ export function stripeWebhookConfigured(): boolean {
  * invoice paid.
  */
 export function verifyWebhook(rawBody: string, signature: string | null) {
-  const secret = process.env.STRIPE_WEBHOOK_SECRET?.trim();
-  if (!secret) throw new StripeNotReady("The webhook signing secret is not set.");
+  const secrets = webhookSecrets();
+  if (secrets.length === 0) throw new StripeNotReady("The webhook signing secret is not set.");
   if (!signature) throw new Error("No signature on that request.");
-  // Signature verification is local and needs only the endpoint secret.
-  // Missing outbound API credentials must not silently discard inbound events.
-  return Stripe.webhooks.constructEvent(rawBody, signature, secret);
+  // Account and Connect endpoints have separate signing secrets even when they
+  // share a URL. Accept either configured secret, while still verifying every
+  // byte and refusing anything that matches neither endpoint.
+  let failure: unknown;
+  for (const secret of secrets) {
+    try {
+      return Stripe.webhooks.constructEvent(rawBody, signature, secret);
+    } catch (error) {
+      failure = error;
+    }
+  }
+  throw failure instanceof Error ? failure : new Error("Signature check failed.");
 }
 
 /**

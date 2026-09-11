@@ -205,12 +205,13 @@ export default async function AdminProductsPage({
       ) : (
         <div className="overflow-hidden rounded-md border border-border bg-surface">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[94rem] text-left text-sm">
+            <table className="w-full min-w-[112rem] text-left text-sm">
               <thead>
                 <tr className="border-b border-border text-xs uppercase tracking-wide text-text-faint">
                   <th className="px-5 py-3 font-semibold">Product</th>
                   <th className="px-5 py-3 font-semibold">Brand</th>
                   <th className="px-5 py-3 font-semibold">Creator</th>
+                  <th className="px-5 py-3 font-semibold">Creator quote</th>
                   <th className="px-5 py-3 text-right font-semibold">Clicks</th>
                   <th className="px-5 py-3 text-right font-semibold">Views</th>
                   <th className="px-5 py-3 text-right font-semibold">Sales</th>
@@ -254,6 +255,20 @@ export default async function AdminProductsPage({
                       >
                         @{r.handle}
                       </Link>
+                    </td>
+                    <td className="max-w-72 px-5 py-3">
+                      {r.review ? (
+                        <div title={r.review}>
+                          <p className="line-clamp-2 text-sm text-text-muted">“{r.review}”</p>
+                          {r.rating && (
+                            <p className="mt-1 text-xs font-medium text-accent-gold">
+                              {r.rating}/5 rating
+                            </p>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-xs text-text-faint">No quote</span>
+                      )}
                     </td>
                     <td className="px-5 py-3 text-right font-semibold tabular-nums text-text-strong">
                       {r.clicks}

@@ -15,6 +15,7 @@ import {
   ImageOff,
 } from "lucide-react";
 import { VideoUpload } from "@/components/creator/video-upload";
+import { EndorsementEditor } from "@/components/creator/endorsement-editor";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/primitives";
@@ -64,6 +65,8 @@ type Listing = {
   id: string;
   slug: string;
   live: boolean;
+  review: string | null;
+  rating: number | null;
   video: {
     id: string;
     uid: string;
@@ -123,6 +126,9 @@ export function StorefrontManager({
   }, []);
 
   useEffect(() => {
+    // This deliberately starts an asynchronous server sync on mount; updates
+    // happen after the fetch settles, not synchronously inside the effect.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void load();
   }, [load]);
 
@@ -172,6 +178,14 @@ export function StorefrontManager({
     setCopied(code);
     setTimeout(() => setCopied(null), 1800);
     toast.success("Link copied", "Paste it into your bio, story or caption.");
+  }
+
+  function updateEndorsement(id: string, review: string | null, rating: number | null) {
+    setListings((current) =>
+      current.map((listing) =>
+        listing.id === id ? { ...listing, review, rating } : listing
+      )
+    );
   }
 
   return (
@@ -355,6 +369,13 @@ export function StorefrontManager({
                     </button>
                   </div>
                   </div>
+
+                  <EndorsementEditor
+                    listingId={l.id}
+                    initialReview={l.review}
+                    initialRating={l.rating}
+                    onSaved={(review, rating) => updateEndorsement(l.id, review, rating)}
+                  />
 
                   {/* A clip for this product. Below the row rather than in it,
                       because uploading is an occasional job and the row is
