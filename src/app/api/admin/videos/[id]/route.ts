@@ -26,6 +26,7 @@ export const dynamic = "force-dynamic";
 
 const schema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("approve") }),
+  z.object({ action: z.literal("cancel-upload"), uid: z.string().trim().min(1) }),
   z.object({
     action: z.literal("remove"),
     reason: z.string().trim().min(3, "Say why, so the creator can be told").max(300),
@@ -47,6 +48,7 @@ export async function GET(
     select: {
       id: true,
       uid: true,
+      pendingUid: true,
       state: true,
       review: true,
       durationSeconds: true,
@@ -58,6 +60,72 @@ export async function GET(
     },
   });
   if (!row) return fail("No such video.", 404);
+
+  if (row.pendingUid) {
+    const pendingUid = row.pendingUid;
+    const remote = await getVideo(pendingUid);
+    if (!remote) return ok({ ...row, replacementState: "UPLOADING" });
+    const replacementState = remote.readyToStream
+      ? "READY"
+      : remote.status?.state === "error"
+        ? "FAILED"
+        : "PROCESSING";
+
+    if (replacementState === "PROCESSING") {
+      return ok({ ...row, replacementState });
+    }
+
+    if (replacementState === "FAILED") {
+      const current = await db.creatorVideo.update({
+        where: { id: row.id },
+        data: { pendingUid: null },
+        select: {
+          id: true,
+          uid: true,
+          pendingUid: true,
+          state: true,
+          review: true,
+          durationSeconds: true,
+          thumbnailUrl: true,
+          removedReason: true,
+        },
+      });
+      void deleteVideo(pendingUid);
+      return ok({ ...current, replacementState: "FAILED" });
+    }
+
+    const oldUid = row.uid;
+    const updated = await db.creatorVideo.update({
+      where: { id: row.id },
+      data: {
+        uid: pendingUid,
+        pendingUid: null,
+        state: "READY",
+        review: "APPROVED",
+        removedReason: null,
+        readyAt: new Date(),
+        durationSeconds: remote.duration ? Math.round(remote.duration) : null,
+        thumbnailUrl: thumbnailUrl(pendingUid),
+      },
+      select: {
+        id: true,
+        uid: true,
+        pendingUid: true,
+        state: true,
+        review: true,
+        durationSeconds: true,
+        thumbnailUrl: true,
+        removedReason: true,
+      },
+    });
+    if (oldUid !== pendingUid) void deleteVideo(oldUid);
+    revalidateListing({
+      handle: row.creatorProduct.profile.handle,
+      slug: row.creatorProduct.slug,
+    });
+    return ok({ ...updated, replacementState: null, maxSeconds: MAX_VIDEO_SECONDS });
+  }
+
   if (row.state === "READY" || row.state === "FAILED") return ok(row);
 
   const remote = await getVideo(row.uid);
@@ -80,6 +148,7 @@ export async function GET(
     select: {
       id: true,
       uid: true,
+      pendingUid: true,
       state: true,
       review: true,
       durationSeconds: true,
@@ -113,13 +182,35 @@ export async function POST(
     select: {
       id: true,
       uid: true,
+      pendingUid: true,
       review: true,
+      state: true,
       creatorProduct: {
         select: { slug: true, profile: { select: { handle: true } } },
       },
     },
   });
   if (!row) return fail("No such video.", 404);
+
+  if (parsed.data.action === "cancel-upload") {
+    if (row.pendingUid === parsed.data.uid) {
+      await db.creatorVideo.update({
+        where: { id: row.id },
+        data: { pendingUid: null },
+      });
+      void deleteVideo(parsed.data.uid);
+      return ok({ cancelled: true, originalPreserved: true });
+    }
+    if (
+      row.uid === parsed.data.uid &&
+      (row.state === "UPLOADING" || row.state === "PROCESSING")
+    ) {
+      await db.creatorVideo.delete({ where: { id: row.id } });
+      void deleteVideo(parsed.data.uid);
+      return ok({ cancelled: true, originalPreserved: false });
+    }
+    return fail("That upload is no longer pending.", 409);
+  }
 
   if (parsed.data.action === "approve") {
     const updated = await db.creatorVideo.update({
@@ -146,12 +237,14 @@ export async function POST(
       removedReason: parsed.data.reason,
       reviewedAt: new Date(),
       reviewedById: admin.user.id,
+      pendingUid: null,
     },
     select: { id: true, review: true, removedReason: true, reviewedAt: true },
   });
 
   // The record of the takedown stays; only the file goes.
   void deleteVideo(row.uid);
+  if (row.pendingUid) void deleteVideo(row.pendingUid);
   revalidateListing({
     handle: row.creatorProduct.profile.handle,
     slug: row.creatorProduct.slug,

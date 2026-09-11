@@ -8,6 +8,7 @@ const ENV_PATH = process.env.PLUGGZ_ENV || APP + "/.env";
 const BASE = process.env.PLUGGZ_BASE || "http://127.0.0.1:3000";
 
 const fs = require("fs");
+const { createHmac } = require("crypto");
 const { execSync } = require("child_process");
 
 const results = [];
@@ -27,6 +28,7 @@ const ENV = fs.readFileSync(ENV_PATH, "utf8");
 const envOf = (k) => (ENV.match(new RegExp("^" + k + "=(.*)$", "m")) || [])[1] || "";
 const DB = envOf("DATABASE_URL").replace(/"/g, "").replace(/[?&]schema=[^&]*/, "");
 const CRON = envOf("CRON_SECRET");
+const STREAM_WEBHOOK_SECRET = envOf("CLOUDFLARE_STREAM_WEBHOOK_SECRET").replace(/"/g, "");
 
 function sql(q) {
   return execSync("psql " + JSON.stringify(DB) + " -tAc " + JSON.stringify(q), { encoding: "utf8" }).trim();
@@ -133,6 +135,122 @@ const msg = (r) => "status " + r.status + (r.json && r.json.message ? " :: " + r
     if (!r.json || !r.json.ok) return msg(r);
     const v = sql("select coalesce(\"discountCode\",'(null)') from \"TrackingLink\" where id='rt11_tl';");
     return v === "(null)" || v === "" ? true : "still reads " + v;
+  });
+
+  section("11. Product management");
+
+  await check("editing a product address updates its tracking destination and canonicalises it", async function () {
+    const r = await req("admin", "/api/admin/products/rt11_cp", {
+      method: "PATCH",
+      json: {
+        product: {
+          name: "RT Feature Product",
+          description: null,
+          imageUrl: "https://example.invalid/i.jpg",
+          pricePence: 10000,
+          category: "Beauty & Skincare",
+          sourceUrl: "http://example.invalid/rt11-updated/?utm_source=release-test#details",
+        },
+      },
+    });
+    if (!r.json || !r.json.ok) return msg(r);
+    const product = sql("select \"sourceUrl\" from \"Product\" where id='rt11_p';");
+    const destination = sql("select \"destinationUrl\" from \"TrackingLink\" where id='rt11_tl';");
+    return product === "https://example.invalid/rt11-updated" && destination === product
+      ? true : "product=" + product + " destination=" + destination;
+  });
+
+  await check("a product in an inactive category can still have its other details edited", async function () {
+    runSql(`
+      insert into "Category" (id,name,slug,active,"createdAt","updatedAt")
+      values ('rt11_retired_category','RT Retired Category','rt-retired-category',false,now(),now())
+      on conflict (id) do update set active=false;
+      update "Product" set category='RT Retired Category' where id='rt11_p';
+    `);
+    const r = await req("admin", "/api/admin/products/rt11_cp", {
+      method: "PATCH",
+      json: {
+        product: {
+          name: "RT Feature Product Edited",
+          description: "Edited while its category is inactive.",
+          imageUrl: "https://example.invalid/i.jpg",
+          pricePence: 10000,
+          category: "RT Retired Category",
+          sourceUrl: "https://example.invalid/rt11-updated",
+        },
+      },
+    });
+    return r.json && r.json.ok &&
+      sql("select name from \"Product\" where id='rt11_p';") === "RT Feature Product Edited"
+      ? true : msg(r);
+  });
+
+  await check("changing to an unavailable category returns a category field error", async function () {
+    const r = await req("admin", "/api/admin/products/rt11_cp", {
+      method: "PATCH",
+      json: {
+        product: {
+          name: "RT Feature Product Edited",
+          description: null,
+          imageUrl: null,
+          pricePence: 10000,
+          category: "RT Missing Category",
+          sourceUrl: "https://example.invalid/rt11-updated",
+        },
+      },
+    });
+    return r.status === 422 && r.json && r.json.errors && r.json.errors.category
+      ? true : "status " + r.status + " errors " + JSON.stringify(r.json && r.json.errors);
+  });
+
+  section("11. Safe video replacement");
+
+  await check("a ready replacement atomically takes over from the live video", async function () {
+    if (!STREAM_WEBHOOK_SECRET) return "CLOUDFLARE_STREAM_WEBHOOK_SECRET is not configured";
+    runSql(`
+      insert into "CreatorVideo" (id,"creatorProductId",uid,"pendingUid",state,review,"readyAt","createdAt","updatedAt")
+      values ('rt11_video','rt11_cp','rt11_video_live','rt11_video_pending','READY','APPROVED',now(),now(),now())
+      on conflict (id) do update set uid='rt11_video_live', "pendingUid"='rt11_video_pending', state='READY', review='APPROVED';
+    `);
+    const raw = JSON.stringify({
+      uid: "rt11_video_pending",
+      readyToStream: true,
+      status: { state: "ready" },
+      duration: 12,
+    });
+    const time = String(Math.floor(Date.now() / 1000));
+    const sig = createHmac("sha256", STREAM_WEBHOOK_SECRET)
+      .update(time + "." + raw)
+      .digest("hex");
+    const res = await fetch(BASE + "/api/webhooks/stream", {
+      method: "POST",
+      headers: { "content-type": "application/json", "webhook-signature": "time=" + time + ",sig1=" + sig },
+      body: raw,
+    });
+    const state = sql("select uid || '|' || coalesce(\"pendingUid\",'') || '|' || state::text from \"CreatorVideo\" where id='rt11_video';");
+    return res.status === 200 && state === "rt11_video_pending||READY"
+      ? true : "status " + res.status + " row " + state;
+  });
+
+  await check("a failed replacement keeps the original video live", async function () {
+    runSql(`update "CreatorVideo" set "pendingUid"='rt11_video_failed' where id='rt11_video';`);
+    const raw = JSON.stringify({
+      uid: "rt11_video_failed",
+      readyToStream: false,
+      status: { state: "error" },
+    });
+    const time = String(Math.floor(Date.now() / 1000));
+    const sig = createHmac("sha256", STREAM_WEBHOOK_SECRET)
+      .update(time + "." + raw)
+      .digest("hex");
+    const res = await fetch(BASE + "/api/webhooks/stream", {
+      method: "POST",
+      headers: { "content-type": "application/json", "webhook-signature": "time=" + time + ",sig1=" + sig },
+      body: raw,
+    });
+    const state = sql("select uid || '|' || coalesce(\"pendingUid\",'') || '|' || state::text from \"CreatorVideo\" where id='rt11_video';");
+    return res.status === 200 && state === "rt11_video_pending||READY"
+      ? true : "status " + res.status + " row " + state;
   });
 
   section("11. Seasonal return windows");
@@ -403,6 +521,34 @@ const msg = (r) => "status " + r.status + (r.json && r.json.message ? " :: " + r
     const j = await res.json().catch(() => null);
     const row = j && j.ok ? (j.data.results || [])[0] : null;
     return row && row.value === "£1234.00"
+      ? true : "it read the value as " + (row ? row.value : "nothing");
+  });
+
+  await check("a European three-decimal 48,500 rounds to forty eight pounds fifty", async function () {
+    const csv = "orderref;value;date;handle\nRT-EURO-3DP;48,500;2026-08-01;rt11creator\n";
+    const form = new FormData();
+    form.append("file", new File([csv], "euro-three-decimal.csv", { type: "text/csv" }));
+    form.append("commit", "false");
+    const res = await fetch(BASE + "/api/admin/sales/import", {
+      method: "POST", headers: { origin: BASE, cookie: jars.admin }, body: form, redirect: "manual",
+    });
+    const j = await res.json().catch(() => null);
+    const row = j && j.ok ? (j.data.results || [])[0] : null;
+    return row && row.value === "£48.50"
+      ? true : "it read the value as " + (row ? row.value : "nothing");
+  });
+
+  await check("a British three-decimal 12.500 rounds to twelve pounds fifty", async function () {
+    const csv = "orderref,value,date,handle\nRT-UK-3DP,12.500,2026-08-01,rt11creator\n";
+    const form = new FormData();
+    form.append("file", new File([csv], "uk-three-decimal.csv", { type: "text/csv" }));
+    form.append("commit", "false");
+    const res = await fetch(BASE + "/api/admin/sales/import", {
+      method: "POST", headers: { origin: BASE, cookie: jars.admin }, body: form, redirect: "manual",
+    });
+    const j = await res.json().catch(() => null);
+    const row = j && j.ok ? (j.data.results || [])[0] : null;
+    return row && row.value === "£12.50"
       ? true : "it read the value as " + (row ? row.value : "nothing");
   });
 

@@ -10,6 +10,7 @@ const BASE = process.env.PLUGGZ_BASE || "http://127.0.0.1:3000";
 const fs = require("fs");
 const { createHmac } = require("crypto");
 const { execSync } = require("child_process");
+const Stripe = require(APP + "/node_modules/stripe");
 
 const results = [];
 function section(n) { console.log("\n\x1b[1m" + n + "\x1b[0m"); }
@@ -27,6 +28,7 @@ async function check(name, fn) {
 const ENV = fs.readFileSync(ENV_PATH, "utf8");
 const envOf = (k) => (ENV.match(new RegExp("^" + k + "=(.*)$", "m")) || [])[1] || "";
 const DB = envOf("DATABASE_URL").replace(/"/g, "").replace(/[?&]schema=[^&]*/, "");
+const STRIPE_WEBHOOK_SECRET = envOf("STRIPE_WEBHOOK_SECRET").replace(/"/g, "");
 
 function sql(q) {
   return execSync("psql " + JSON.stringify(DB) + " -tAc " + JSON.stringify(q), { encoding: "utf8" }).trim();
@@ -337,6 +339,38 @@ function sign(secret, raw) {
       body: JSON.stringify({ type: "invoice.paid" }),
     });
     return res.status === 400 ? true : "status " + res.status;
+  });
+
+  await check("a connected creator payout is not booked as Pluggz income", async function () {
+    if (!STRIPE_WEBHOOK_SECRET) return "STRIPE_WEBHOOK_SECRET is not configured";
+    const raw = JSON.stringify({
+      id: "evt_rt_connected_payout",
+      object: "event",
+      account: "acct_rt_creator",
+      type: "payout.paid",
+      data: {
+        object: {
+          id: "po_rt_connected",
+          amount: 1234,
+          currency: "gbp",
+          status: "paid",
+          arrival_date: 1789084800,
+        },
+      },
+    });
+    const signature = Stripe.webhooks.generateTestHeaderString({
+      payload: raw,
+      secret: STRIPE_WEBHOOK_SECRET,
+    });
+    const res = await fetch(BASE + "/api/webhooks/stripe", {
+      method: "POST",
+      redirect: "manual",
+      headers: { "content-type": "application/json", "stripe-signature": signature },
+      body: raw,
+    });
+    const count = sql("select count(*) from \"PlatformPayout\" where \"stripePayoutId\"='po_rt_connected';");
+    return res.status === 200 && count === "0"
+      ? true : "status " + res.status + ", platform payout rows " + count;
   });
 
   await check("a null byte in a search does not crash the page", async function () {

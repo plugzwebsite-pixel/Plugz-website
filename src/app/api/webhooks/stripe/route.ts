@@ -94,6 +94,16 @@ export async function POST(req: Request) {
       case "payout.created":
       case "payout.updated":
       case "payout.canceled": {
+        // Connect webhook events identify the creator's Stripe account at the
+        // top level. Those payouts go from that creator's Stripe balance to
+        // their own bank and are not income paid to Pluggz.
+        if (event.account) {
+          console.log(
+            "[webhooks/stripe] ignored connected-account payout " +
+            String((event.data.object as { id?: string }).id ?? "unknown")
+          );
+          break;
+        }
         // Pluggz's own share reaching Pluggz's own bank. This is the last
         // movement in the chain and the only one that used to happen with no
         // record on this side of it.

@@ -381,7 +381,8 @@ export function verifyWebhook(rawBody: string, signature: string | null) {
       failure = error;
     }
   }
-  throw failure instanceof Error ? failure : new Error("Signature check failed.");
+  if (secrets.length === 1 && failure instanceof Error) throw failure;
+  throw new Error("Signature did not match any configured Stripe webhook endpoint.");
 }
 
 /**

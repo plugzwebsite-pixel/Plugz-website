@@ -1,6 +1,7 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { db } from "@/lib/db";
-import { thumbnailUrl } from "@/lib/stream";
+import { deleteVideo, thumbnailUrl } from "@/lib/stream";
+import { revalidateListing } from "@/lib/revalidate";
 
 /**
  * Cloudflare telling us a clip has finished encoding.
@@ -78,9 +79,17 @@ export async function POST(req: Request) {
   const uid = body.uid?.trim();
   if (!uid) return reply({ ok: false, error: "No uid." }, 400);
 
-  const row = await db.creatorVideo.findUnique({
-    where: { uid },
-    select: { id: true, review: true },
+  const row = await db.creatorVideo.findFirst({
+    where: { OR: [{ uid }, { pendingUid: uid }] },
+    select: {
+      id: true,
+      uid: true,
+      pendingUid: true,
+      review: true,
+      creatorProduct: {
+        select: { slug: true, profile: { select: { handle: true } } },
+      },
+    },
   });
   // A clip we no longer track, most likely one the creator replaced. Answered
   // with a 200 so Cloudflare stops retrying something that will never match.
@@ -88,12 +97,49 @@ export async function POST(req: Request) {
 
   // A clip taken down by moderation stays down, whatever Cloudflare says about
   // it afterwards.
-  if (row.review === "REMOVED") return reply({ ok: true, ignored: true }, 200);
+  if (row.review === "REMOVED" && row.pendingUid !== uid) {
+    return reply({ ok: true, ignored: true }, 200);
+  }
 
   const state =
     body.readyToStream ? "READY"
     : body.status?.state === "error" ? "FAILED"
     : "PROCESSING";
+
+  if (row.pendingUid === uid) {
+    if (state === "PROCESSING") {
+      return reply({ ok: true, state, replacement: true }, 200);
+    }
+    if (state === "FAILED") {
+      await db.creatorVideo.update({
+        where: { id: row.id },
+        data: { pendingUid: null },
+      });
+      void deleteVideo(uid);
+      return reply({ ok: true, state, originalPreserved: true }, 200);
+    }
+
+    const oldUid = row.uid;
+    await db.creatorVideo.update({
+      where: { id: row.id },
+      data: {
+        uid,
+        pendingUid: null,
+        state: "READY",
+        review: "APPROVED",
+        removedReason: null,
+        readyAt: new Date(),
+        durationSeconds: body.duration ? Math.round(body.duration) : null,
+        thumbnailUrl: thumbnailUrl(uid),
+      },
+    });
+    if (oldUid !== uid) void deleteVideo(oldUid);
+    revalidateListing({
+      handle: row.creatorProduct.profile.handle,
+      slug: row.creatorProduct.slug,
+    });
+    return reply({ ok: true, state, replacement: true }, 200);
+  }
 
   await db.creatorVideo.update({
     where: { id: row.id },
@@ -103,6 +149,11 @@ export async function POST(req: Request) {
       durationSeconds: body.duration ? Math.round(body.duration) : undefined,
       thumbnailUrl: state === "READY" ? thumbnailUrl(uid) : null,
     },
+  });
+
+  revalidateListing({
+    handle: row.creatorProduct.profile.handle,
+    slug: row.creatorProduct.slug,
   });
 
   return reply({ ok: true, state }, 200);

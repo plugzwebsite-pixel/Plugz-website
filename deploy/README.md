@@ -148,6 +148,12 @@ curl -I https://DOMAIN/dev/mailbox         # must be 307 to /
 curl -sI https://DOMAIN/go/TESTCODE        # 302, Cache-Control: no-store
 ```
 
+Check the Stripe Dashboard after every release. If the Stripe signing secret
+was ever absent long enough for Stripe to disable `/api/webhooks/stripe`, add
+the correct endpoint-specific secret first, then manually re-enable the
+endpoint in Stripe Workbench; Stripe stops automatic retries after roughly
+three days and application code cannot re-enable a disabled dashboard endpoint.
+
 Point UptimeRobot (free) at `https://DOMAIN/go/<a real code>` rather than the
 homepage. That route is the one carrying every creator link already published to
 social; if it breaks, those links fail silently and nobody finds out.

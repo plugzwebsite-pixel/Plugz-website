@@ -4,7 +4,6 @@ import { requireAdmin } from "@/lib/auth/access";
 import { fail, ok, parseBody } from "@/lib/http";
 import { rateLimit, clientKey } from "@/lib/rate-limit";
 import { createDirectUpload, deleteVideo, streamConfigured, StreamError } from "@/lib/stream";
-import { revalidateListing } from "@/lib/revalidate";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,7 +25,18 @@ export async function POST(req: Request) {
       id: true,
       slug: true,
       profile: { select: { handle: true } },
-      video: { select: { uid: true } },
+      video: {
+        select: {
+          id: true,
+          uid: true,
+          pendingUid: true,
+          state: true,
+          review: true,
+          durationSeconds: true,
+          thumbnailUrl: true,
+          removedReason: true,
+        },
+      },
     },
   });
   if (!listing) return fail("That listing no longer exists.", 404);
@@ -41,31 +51,66 @@ export async function POST(req: Request) {
     return fail(message, 503);
   }
 
-  const previous = listing.video;
-  const row = await db.creatorVideo.upsert({
-    where: { creatorProductId: listing.id },
-    create: {
-      creatorProductId: listing.id,
-      uid: upload.uid,
-      review: "APPROVED",
-      reviewedAt: new Date(),
-      reviewedById: admin.user.id,
-    },
-    update: {
-      uid: upload.uid,
-      state: "UPLOADING",
-      review: "APPROVED",
-      readyAt: null,
-      durationSeconds: null,
-      thumbnailUrl: null,
-      removedReason: null,
-      reviewedAt: new Date(),
-      reviewedById: admin.user.id,
-    },
-    select: { id: true, uid: true },
-  });
-  if (previous && previous.uid !== upload.uid) void deleteVideo(previous.uid);
-  revalidateListing({ handle: listing.profile.handle, slug: listing.slug });
+  try {
+    if (listing.video) {
+      const stalePending = listing.video.pendingUid;
+      const row = await db.creatorVideo.update({
+        where: { id: listing.video.id },
+        data: {
+          pendingUid: upload.uid,
+          reviewedAt: new Date(),
+          reviewedById: admin.user.id,
+        },
+        select: {
+          id: true,
+          uid: true,
+          state: true,
+          review: true,
+          durationSeconds: true,
+          thumbnailUrl: true,
+          removedReason: true,
+        },
+      });
+      if (stalePending && stalePending !== upload.uid) void deleteVideo(stalePending);
+      return ok({
+        ...row,
+        pendingUid: upload.uid,
+        replacementState: "UPLOADING",
+        replacing: true,
+        uploadUid: upload.uid,
+        uploadUrl: upload.uploadUrl,
+      }, 201);
+    }
 
-  return ok({ ...row, uploadUrl: upload.uploadUrl }, 201);
+    const row = await db.creatorVideo.create({
+      data: {
+        creatorProductId: listing.id,
+        uid: upload.uid,
+        review: "APPROVED",
+        reviewedAt: new Date(),
+        reviewedById: admin.user.id,
+      },
+      select: {
+        id: true,
+        uid: true,
+        state: true,
+        review: true,
+        durationSeconds: true,
+        thumbnailUrl: true,
+        removedReason: true,
+      },
+    });
+    return ok({
+      ...row,
+      pendingUid: null,
+      replacementState: null,
+      replacing: false,
+      uploadUid: upload.uid,
+      uploadUrl: upload.uploadUrl,
+    }, 201);
+  } catch (error) {
+    void deleteVideo(upload.uid);
+    console.error("[admin/videos] couldn't record direct upload:", error);
+    return fail("Couldn't start that upload.", 500);
+  }
 }

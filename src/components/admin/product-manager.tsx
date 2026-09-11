@@ -9,6 +9,7 @@ import { Select } from "@/components/ui/controls";
 import { Badge } from "@/components/ui/primitives";
 import { patchJson, postJson } from "@/lib/client/api";
 import { useToast } from "@/components/ui/toast";
+import { parseProductPrice } from "@/lib/product-price";
 
 type VideoRow = {
   id: string;
@@ -18,6 +19,8 @@ type VideoRow = {
   durationSeconds: number | null;
   thumbnailUrl: string | null;
   removedReason: string | null;
+  pendingUid?: string | null;
+  replacementState?: "UPLOADING" | "PROCESSING" | "FAILED" | null;
 };
 
 export type ManagedProduct = {
@@ -49,6 +52,7 @@ export function ProductManager({
   const [busy, setBusy] = useState(false);
   const [videoBusy, setVideoBusy] = useState(false);
   const [progress, setProgress] = useState<number | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [video, setVideo] = useState<VideoRow | null>(row.video);
   const [form, setForm] = useState({
     name: row.product,
@@ -68,23 +72,30 @@ export function ProductManager({
     setForm((current) => ({ ...current, [key]: value }));
 
   useEffect(() => {
-    if (!video || video.state === "READY" || video.state === "FAILED") return;
+    const currentProcessing = video && video.state !== "READY" && video.state !== "FAILED";
+    const replacementProcessing =
+      video?.replacementState === "UPLOADING" || video?.replacementState === "PROCESSING";
+    if (!open || !video || (!currentProcessing && !replacementProcessing)) return;
     let alive = true;
     const timer = setInterval(async () => {
       const response = await fetch(`/api/admin/videos/${video.id}`);
       const json = await response.json().catch(() => null);
-      if (alive && response.ok && json?.data) setVideo(json.data);
+      if (alive && response.ok && json?.data) {
+        setVideo(json.data);
+      }
     }, 4000);
     return () => {
       alive = false;
       clearInterval(timer);
     };
-  }, [video]);
+  }, [open, video]);
 
   async function save() {
-    const price = form.price.trim() === "" ? null : Number(form.price.replace(/[^0-9.]/g, ""));
-    if (price !== null && !Number.isFinite(price)) {
-      toast.error("Enter a valid price");
+    setErrors({});
+    const price = parseProductPrice(form.price);
+    if (!price.ok) {
+      setErrors({ price: price.message });
+      toast.error("Check the product price", price.message);
       return;
     }
     setBusy(true);
@@ -93,7 +104,7 @@ export function ProductManager({
         name: form.name.trim(),
         description: form.description.trim() || null,
         imageUrl: form.imageUrl.trim() || null,
-        pricePence: price === null ? null : Math.round(price * 100),
+        pricePence: price.pence,
         category: form.category,
         sourceUrl: form.sourceUrl.trim(),
       },
@@ -105,6 +116,17 @@ export function ProductManager({
     });
     setBusy(false);
     if (!response.ok) {
+      const apiErrors = response.errors ?? {};
+      setErrors({
+        name: apiErrors.name ?? apiErrors["product.name"] ?? "",
+        description: apiErrors.description ?? apiErrors["product.description"] ?? "",
+        imageUrl: apiErrors.imageUrl ?? apiErrors["product.imageUrl"] ?? "",
+        price: apiErrors.pricePence ?? apiErrors["product.pricePence"] ?? "",
+        category: apiErrors.category ?? apiErrors["product.category"] ?? "",
+        sourceUrl: apiErrors.sourceUrl ?? apiErrors["product.sourceUrl"] ?? "",
+        review: apiErrors.review ?? apiErrors["listing.review"] ?? "",
+        rating: apiErrors.rating ?? apiErrors["listing.rating"] ?? "",
+      });
       toast.error("Couldn't save that product", response.message);
       return;
     }
@@ -137,12 +159,19 @@ export function ProductManager({
     }
     setVideoBusy(true);
     setProgress(0);
+    const previousVideo = video;
+    let started: { id: string; uploadUid: string } | null = null;
     try {
-      const start = await postJson<{ id: string; uid: string; uploadUrl: string }>(
+      const start = await postJson<VideoRow & {
+        uploadUid: string;
+        uploadUrl: string;
+        replacing: boolean;
+      }>(
         "/api/admin/videos",
         { listingId: row.id }
       );
       if (!start.ok) throw new Error(start.message || "Couldn't start upload");
+      started = { id: start.data!.id, uploadUid: start.data!.uploadUid };
       await new Promise<void>((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhr.open("POST", start.data!.uploadUrl);
@@ -155,17 +184,29 @@ export function ProductManager({
         body.append("file", file);
         xhr.send(body);
       });
-      setVideo({
-        id: start.data!.id,
-        uid: start.data!.uid,
-        state: "PROCESSING",
-        review: "APPROVED",
-        durationSeconds: null,
-        thumbnailUrl: null,
-        removedReason: null,
-      });
-      toast.success("Video uploaded", "It will appear when processing finishes.");
+      setVideo(
+        start.data!.replacing && previousVideo
+          ? {
+              ...previousVideo,
+              pendingUid: start.data!.uploadUid,
+              replacementState: "PROCESSING",
+            }
+          : { ...start.data!, state: "PROCESSING" }
+      );
+      toast.success(
+        start.data!.replacing ? "Replacement uploaded" : "Video uploaded",
+        start.data!.replacing
+          ? "The original remains live until the replacement is ready."
+          : "It will appear when processing finishes."
+      );
     } catch (error) {
+      if (started) {
+        await postJson(`/api/admin/videos/${started.id}`, {
+          action: "cancel-upload",
+          uid: started.uploadUid,
+        });
+      }
+      setVideo(previousVideo);
       toast.error("Video upload failed", error instanceof Error ? error.message : undefined);
     } finally {
       setVideoBusy(false);
@@ -209,15 +250,15 @@ export function ProductManager({
             </div>
 
             <div className="mt-6 grid gap-4 sm:grid-cols-2">
-              <Field label="Product name"><Input value={form.name} maxLength={200} onChange={(e) => set("name")(e.target.value)} /></Field>
-              <Field label="Price (GBP)"><Input inputMode="decimal" value={form.price} onChange={(e) => set("price")(e.target.value)} placeholder="49.99" /></Field>
-              <Field label="Category"><Select value={form.category} onChange={(e) => set("category")(e.target.value)}>{categories.map((category) => <option key={category}>{category}</option>)}</Select></Field>
-              <Field label="Rating"><Select value={form.rating} onChange={(e) => set("rating")(e.target.value)}><option value="">No rating</option>{[1,2,3,4,5].map((rating) => <option key={rating} value={rating}>{rating} star{rating === 1 ? "" : "s"}</option>)}</Select></Field>
+              <Field label="Product name" error={errors.name}><Input invalid={Boolean(errors.name)} value={form.name} maxLength={200} onChange={(e) => set("name")(e.target.value)} /></Field>
+              <Field label="Price (GBP)" error={errors.price}><Input invalid={Boolean(errors.price)} inputMode="decimal" value={form.price} onChange={(e) => set("price")(e.target.value)} placeholder="49.99" /></Field>
+              <Field label="Category" error={errors.category} hint={!categories.includes(row.category) && form.category === row.category ? "This category is inactive. You can still edit other fields, or choose an active category." : undefined}><Select invalid={Boolean(errors.category)} value={form.category} onChange={(e) => set("category")(e.target.value)}>{!categories.includes(row.category) && <option value={row.category}>{row.category} (inactive)</option>}{categories.map((category) => <option key={category}>{category}</option>)}</Select></Field>
+              <Field label="Rating" error={errors.rating}><Select invalid={Boolean(errors.rating)} value={form.rating} onChange={(e) => set("rating")(e.target.value)}><option value="">No rating</option>{[1,2,3,4,5].map((rating) => <option key={rating} value={rating}>{rating} star{rating === 1 ? "" : "s"}</option>)}</Select></Field>
             </div>
-            <Field label="Creator quote / comment" className="mt-4" hint="Shown as the creator's endorsement on this product page."><Textarea value={form.review} maxLength={1000} onChange={(e) => set("review")(e.target.value)} /></Field>
-            <Field label="Product description" className="mt-4"><Textarea value={form.description} maxLength={4000} onChange={(e) => set("description")(e.target.value)} /></Field>
-            <Field label="Product image address" className="mt-4"><Input value={form.imageUrl} maxLength={1000} onChange={(e) => set("imageUrl")(e.target.value)} /></Field>
-            <Field label="Brand product address" className="mt-4"><Input value={form.sourceUrl} maxLength={1000} onChange={(e) => set("sourceUrl")(e.target.value)} /></Field>
+            <Field label="Creator quote / comment" className="mt-4" error={errors.review} hint="Shown as the creator's endorsement on this product page."><Textarea invalid={Boolean(errors.review)} value={form.review} maxLength={1000} onChange={(e) => set("review")(e.target.value)} /></Field>
+            <Field label="Product description" className="mt-4" error={errors.description}><Textarea invalid={Boolean(errors.description)} value={form.description} maxLength={4000} onChange={(e) => set("description")(e.target.value)} /></Field>
+            <Field label="Product image address" className="mt-4" error={errors.imageUrl}><Input invalid={Boolean(errors.imageUrl)} value={form.imageUrl} maxLength={1000} onChange={(e) => set("imageUrl")(e.target.value)} /></Field>
+            <Field label="Brand product address" className="mt-4" error={errors.sourceUrl}><Input invalid={Boolean(errors.sourceUrl)} value={form.sourceUrl} maxLength={1000} onChange={(e) => set("sourceUrl")(e.target.value)} /></Field>
 
             <div className="mt-6 rounded-sm border border-border bg-surface-2 p-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
@@ -227,6 +268,8 @@ export function ProductManager({
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   {video?.state === "READY" && video.review !== "REMOVED" && <Badge tone="green">Live</Badge>}
+                  {(video?.replacementState === "UPLOADING" || video?.replacementState === "PROCESSING") && <Badge tone="amber">Replacing — original remains live</Badge>}
+                  {video?.replacementState === "FAILED" && <Badge tone="neutral">Replacement failed — original kept</Badge>}
                   {video && video.state !== "READY" && video.review !== "REMOVED" && <Badge tone="amber">{video.state.toLowerCase()}</Badge>}
                   {video?.review === "REMOVED" && <Badge tone="neutral">Removed</Badge>}
                   {video && video.review !== "REMOVED" && <Button type="button" size="sm" variant="ghost" loading={videoBusy} onClick={removeVideo}><Trash2 size={14} /> Remove video</Button>}

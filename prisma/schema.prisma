@@ -639,6 +639,11 @@ model CreatorVideo {
   /// using this; we store no bytes.
   uid String @unique
 
+  /// A replacement uploaded while `uid` remains live. It is promoted to
+  /// `uid` only after Cloudflare confirms it is playable, so a failed upload
+  /// never removes the creator's current clip.
+  pendingUid String? @unique
+
   state  VideoState  @default(UPLOADING)
   review VideoReview @default(PENDING)
 

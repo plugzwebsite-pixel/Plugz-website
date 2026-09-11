@@ -94,13 +94,18 @@ function toPence(raw: string, delimiter = ","): number | null {
     // A comma alone. In a semicolon or tab separated file it is the decimal
     // mark. In a comma separated one it can only be grouping, because a decimal
     // comma would have split the column.
-    if (/^\d{1,3}(,\d{3})+$/.test(value)) value = value.replace(/,/g, "");
-    else if (delimiter !== ",") value = value.replace(",", ".");
+    // Delimiter wins before the three-digit grouping shape is considered:
+    // `48,500` in a semicolon-delimited European export is £48.50, not £48,500.
+    if (delimiter !== ",") value = value.replace(",", ".");
     else value = value.replace(/,/g, "");
-  } else if (lastDot !== -1 && /^\d{1,3}(\.\d{3})+$/.test(value)) {
-    // A currency amount cannot carry three fractional digits. A lone dot in
-    // groups of three is therefore a thousands separator: 1.234 is £1,234,
-    // not £1.23 after rounding.
+  } else if (
+    lastDot !== -1 &&
+    delimiter !== "," &&
+    /^\d{1,3}(\.\d{3})+$/.test(value)
+  ) {
+    // In a semicolon/tab-delimited European file the dot groups thousands.
+    // In a comma-delimited British file it is the decimal mark, even when a
+    // source exports three fractional digits: `12.500` rounds to £12.50.
     value = value.replace(/\./g, "");
   }
 

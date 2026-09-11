@@ -5,6 +5,7 @@ import { fail, ok, parseBody } from "@/lib/http";
 import { rateLimit, clientKey } from "@/lib/rate-limit";
 import { isChoosableCategory } from "@/lib/categories";
 import { revalidateListing } from "@/lib/revalidate";
+import { canonicalUrl, findProductBySourceUrl } from "@/lib/catalogue";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -46,26 +47,50 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       id: true,
       productId: true,
       slug: true,
+      product: { select: { category: true, sourceUrl: true } },
       profile: { select: { handle: true } },
     },
   });
   if (!existing) return fail("That listing no longer exists.", 404);
 
-  if (parsed.data.product && !(await isChoosableCategory(parsed.data.product.category))) {
+  const product = parsed.data.product
+    ? { ...parsed.data.product, sourceUrl: canonicalUrl(parsed.data.product.sourceUrl) }
+    : null;
+
+  if (
+    product &&
+    product.category !== existing.product.category &&
+    !(await isChoosableCategory(product.category))
+  ) {
     return fail("That category is not available.", 422, { category: "Choose an active category" });
+  }
+
+  if (product && product.sourceUrl !== existing.product.sourceUrl) {
+    const duplicate = await findProductBySourceUrl(product.sourceUrl);
+    if (duplicate && duplicate.id !== existing.productId) {
+      return fail("That product address is already used by another product.", 409, {
+        sourceUrl: "Use the existing product instead",
+      });
+    }
   }
 
   try {
     await db.$transaction(async (tx) => {
-      if (parsed.data.product) {
+      if (product) {
         await tx.product.update({
           where: { id: existing.productId },
           data: {
-            ...parsed.data.product,
-            description: parsed.data.product.description || null,
-            imageUrl: parsed.data.product.imageUrl || null,
+            ...product,
+            description: product.description || null,
+            imageUrl: product.imageUrl || null,
           },
         });
+        if (product.sourceUrl !== existing.product.sourceUrl) {
+          await tx.trackingLink.updateMany({
+            where: { creatorProduct: { productId: existing.productId } },
+            data: { destinationUrl: product.sourceUrl },
+          });
+        }
       }
       if (parsed.data.listing) {
         await tx.creatorProduct.update({
