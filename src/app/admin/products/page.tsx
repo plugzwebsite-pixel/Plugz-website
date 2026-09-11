@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { MousePointerClick, Package, PackageX, Store, Search, Download, ExternalLink } from "lucide-react";
+import { MousePointerClick, Package, PackagePlus, PackageX, Store, Search, Download, ExternalLink } from "lucide-react";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { Badge } from "@/components/ui/primitives";
 import { Button } from "@/components/ui/button";
@@ -24,7 +24,7 @@ import {
   type Sort,
 } from "@/lib/product-clicks";
 
-export const metadata: Metadata = { title: "Product clicks" };
+export const metadata: Metadata = { title: "Manage products" };
 export const dynamic = "force-dynamic";
 
 const dateFormat = new Intl.DateTimeFormat("en-GB", {
@@ -78,12 +78,18 @@ export default async function AdminProductsPage({
 
   return (
     <div className="space-y-6">
-      <p className="max-w-3xl text-text-muted">
-        Every product a shopper can click, and how many times they have. One row
-        per creator per product, because the click is recorded against that
-        creator&apos;s own link. The demonstration shop is excluded, so these are
-        real shoppers going to real brands.
-      </p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <p className="max-w-3xl text-text-muted">
+          Edit product details, creator quotes and ratings, upload product videos,
+          or remove and restore products on the website. Each row represents one
+          creator&apos;s endorsement and also shows its live clicks, views and sales.
+        </p>
+        <Link href="/admin/products/new">
+          <Button size="sm">
+            <PackagePlus size={15} /> Add product
+          </Button>
+        </Link>
+      </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
