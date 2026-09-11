@@ -1,6 +1,6 @@
 // Set this to the publication date when releasing a new agreement. Keep old
 // acceptance records unchanged: their version identifies the copy accepted.
-export const CREATOR_TERMS_VERSION = "2026-09-10";
+export const CREATOR_TERMS_VERSION = "2026-09-11";
 
 export const CREATOR_TERMS_SECTIONS = [
   ["1. Working Together", "By joining Pluggz, you authorise CEO Live Ltd to introduce you to brands, sponsorships, affiliate campaigns and other commercial opportunities that suit your profile."],
