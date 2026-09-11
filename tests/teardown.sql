@@ -46,7 +46,7 @@ delete from "Brand" where name like 'RT %';
 -- User cascades to creator profile, shopper profile, wishlist and tokens.
 delete from "User" where email like 'rt%@pluggz.test';
 
-delete from "Category" where name like 'RT Probe Category%';
+delete from "Category" where name like 'RT Probe Category%' or id like 'rt%';
 delete from "SiteContent" where key in ('heroEyebrow', 'heroTitle', 'stripText', 'stripHref');
 delete from "BrandEnquiry" where "contactEmail" like 'rt%@pluggz.test';
 
