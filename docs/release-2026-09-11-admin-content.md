@@ -21,3 +21,6 @@
 - No database migration is required for this release.
 - The production server must already have `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_STREAM_TOKEN` for video uploads. The admin UI reports when Stream is unavailable.
 - Preserve `/srv/pluggz/.env`, creator uploads under `public/`, PM2 configuration and the previous build during deployment.
+- Deployed to `pluggzofficial.co.uk` on 11 September 2026 with production build ID `W4YjwRghHggHX8XBdxXDR`.
+- Configured the Cloudflare Stream webhook at `/api/webhooks/stream`; its signing secret is stored only in the production environment.
+- Live smoke checks passed: consumer terms and shopper signup returned HTTP 200, the signup terms link was present, unsigned Stream webhooks returned 401, unauthenticated product updates returned 403, authenticated admin Products returned HTTP 200 with the Manage control, and all four PM2 workers were online.
