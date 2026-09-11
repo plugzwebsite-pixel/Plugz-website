@@ -195,11 +195,11 @@ export function ShopperSignupForm({
             <>
               I accept the{" "}
               <Link
-                href="/legal/creator-terms"
+                href="/legal/consumer-terms"
                 target="_blank"
                 className="font-medium text-brand-pink hover:underline"
               >
-                Pluggz terms
+                Consumer Terms &amp; Conditions
               </Link>
               . I understand my acceptance is recorded and timestamped.
             </>

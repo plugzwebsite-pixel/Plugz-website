@@ -29,6 +29,7 @@ const columns = [
     links: [
       { label: "Partner with us", href: "/brands" },
       { label: "Creator Terms", href: "/legal/creator-terms" },
+      { label: "Consumer Terms", href: "/legal/consumer-terms" },
       { label: "Search Pluggz", href: "/search" },
     ],
   },

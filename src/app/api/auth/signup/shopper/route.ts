@@ -7,6 +7,7 @@ import { createSessionCookie } from "@/lib/auth/session";
 import { generateToken, expiryFromNow } from "@/lib/auth/tokens";
 import { sendVerificationEmail } from "@/lib/email";
 import { rateLimit, clientKey } from "@/lib/rate-limit";
+import { CONSUMER_TERMS_VERSION } from "@/lib/consumer-terms";
 
 /**
  * Shopper registration.
@@ -17,8 +18,6 @@ import { rateLimit, clientKey } from "@/lib/rate-limit";
  * The verification email still goes out, because it is what makes the address
  * worth having on a mailing list, but it gates nothing.
  */
-
-const TERMS_VERSION = "2026-07-01";
 
 /**
  * Where the sign-up came from, e.g. a creator's storefront. Narrowed to the
@@ -72,7 +71,7 @@ export async function POST(req: Request) {
           // Only stamped when they actually said yes, so the record can always
           // answer when consent was given and for which wording.
           marketingOptInAt: input.marketing ? now : null,
-          termsVersion: TERMS_VERSION,
+          termsVersion: CONSUMER_TERMS_VERSION,
           termsAcceptedAt: now,
           signupSource: cleanSource(input.source),
         },

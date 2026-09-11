@@ -3,7 +3,8 @@ import { db } from "@/lib/db";
 import { ok, fail, parseBody } from "@/lib/http";
 import { requireAdmin } from "@/lib/auth/access";
 import { rateLimit, clientKey } from "@/lib/rate-limit";
-import { deleteVideo } from "@/lib/stream";
+import { deleteVideo, getVideo, thumbnailUrl, MAX_VIDEO_SECONDS } from "@/lib/stream";
+import { revalidateListing } from "@/lib/revalidate";
 
 /**
  * Moderating a creator's video.
@@ -31,6 +32,68 @@ const schema = z.discriminatedUnion("action", [
   }),
 ]);
 
+export async function GET(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const limit = await rateLimit(clientKey(req, "admin-video-poll"), 120, 60_000);
+  if (!limit.ok) return fail("Slow down and retry.", 429);
+  const admin = await requireAdmin();
+  if (!admin.ok) return fail("Admins only.", 403);
+
+  const { id } = await params;
+  const row = await db.creatorVideo.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      uid: true,
+      state: true,
+      review: true,
+      durationSeconds: true,
+      thumbnailUrl: true,
+      removedReason: true,
+      creatorProduct: {
+        select: { slug: true, profile: { select: { handle: true } } },
+      },
+    },
+  });
+  if (!row) return fail("No such video.", 404);
+  if (row.state === "READY" || row.state === "FAILED") return ok(row);
+
+  const remote = await getVideo(row.uid);
+  if (!remote) return ok(row);
+  const state = remote.readyToStream
+    ? "READY"
+    : remote.status?.state === "error"
+      ? "FAILED"
+      : "PROCESSING";
+  if (state === row.state) return ok(row);
+
+  const updated = await db.creatorVideo.update({
+    where: { id: row.id },
+    data: {
+      state,
+      readyAt: state === "READY" ? new Date() : null,
+      durationSeconds: remote.duration ? Math.round(remote.duration) : null,
+      thumbnailUrl: state === "READY" ? thumbnailUrl(row.uid) : null,
+    },
+    select: {
+      id: true,
+      uid: true,
+      state: true,
+      review: true,
+      durationSeconds: true,
+      thumbnailUrl: true,
+      removedReason: true,
+    },
+  });
+  revalidateListing({
+    handle: row.creatorProduct.profile.handle,
+    slug: row.creatorProduct.slug,
+  });
+  return ok({ ...updated, maxSeconds: MAX_VIDEO_SECONDS });
+}
+
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -47,7 +110,14 @@ export async function POST(
   const { id } = await params;
   const row = await db.creatorVideo.findUnique({
     where: { id },
-    select: { id: true, uid: true, review: true },
+    select: {
+      id: true,
+      uid: true,
+      review: true,
+      creatorProduct: {
+        select: { slug: true, profile: { select: { handle: true } } },
+      },
+    },
   });
   if (!row) return fail("No such video.", 404);
 
@@ -61,6 +131,10 @@ export async function POST(
         reviewedById: admin.user.id,
       },
       select: { id: true, review: true, reviewedAt: true },
+    });
+    revalidateListing({
+      handle: row.creatorProduct.profile.handle,
+      slug: row.creatorProduct.slug,
     });
     return ok(updated);
   }
@@ -78,6 +152,10 @@ export async function POST(
 
   // The record of the takedown stays; only the file goes.
   void deleteVideo(row.uid);
+  revalidateListing({
+    handle: row.creatorProduct.profile.handle,
+    slug: row.creatorProduct.slug,
+  });
 
   return ok(updated);
 }

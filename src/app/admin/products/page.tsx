@@ -7,6 +7,9 @@ import { Button } from "@/components/ui/button";
 import { ProductImage } from "@/components/ui/product-image";
 import { DiscountCodeCell } from "@/components/admin/discount-code-cell";
 import { TrackingLinkCell } from "@/components/admin/tracking-link-cell";
+import { ProductManager } from "@/components/admin/product-manager";
+import { publicCategories } from "@/lib/categories";
+import { streamConfigured } from "@/lib/stream";
 import { gbpFromPence } from "@/lib/utils";
 import {
   brandsWithListings,
@@ -43,10 +46,11 @@ export default async function AdminProductsPage({
   const sort = parseSort(params.sort);
   const page = Math.max(1, Number.parseInt(params.page ?? "1", 10) || 1);
 
-  const [stats, { rows, total }, brands] = await Promise.all([
+  const [stats, { rows, total }, brands, categories] = await Promise.all([
     productClickStats(),
     listProductClicks({ query, brand, show, sort, page }),
     brandsWithListings(),
+    publicCategories(),
   ]);
 
   const pages = Math.max(1, Math.ceil(total / PER_PAGE));
@@ -195,7 +199,7 @@ export default async function AdminProductsPage({
       ) : (
         <div className="overflow-hidden rounded-md border border-border bg-surface">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[88rem] text-left text-sm">
+            <table className="w-full min-w-[94rem] text-left text-sm">
               <thead>
                 <tr className="border-b border-border text-xs uppercase tracking-wide text-text-faint">
                   <th className="px-5 py-3 font-semibold">Product</th>
@@ -281,13 +285,20 @@ export default async function AdminProductsPage({
                       </Badge>
                     </td>
                     <td className="px-5 py-3 text-right">
-                      <Link
-                        href={`/@${r.handle}/${r.slug}`}
-                        aria-label={`Open the Pluggz page for ${r.product}`}
-                        className="inline-grid h-8 w-8 place-items-center rounded-full text-text-faint transition-colors hover:bg-surface-2 hover:text-text-strong"
-                      >
-                        <ExternalLink size={15} />
-                      </Link>
+                      <div className="flex items-center justify-end gap-1">
+                        <ProductManager
+                          row={r}
+                          categories={categories.map((category) => category.name)}
+                          videoEnabled={streamConfigured()}
+                        />
+                        <Link
+                          href={`/@${r.handle}/${r.slug}`}
+                          aria-label={`Open the Pluggz page for ${r.product}`}
+                          className="inline-grid h-8 w-8 place-items-center rounded-full text-text-faint transition-colors hover:bg-surface-2 hover:text-text-strong"
+                        >
+                          <ExternalLink size={15} />
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 ))}
