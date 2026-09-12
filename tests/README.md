@@ -38,8 +38,8 @@ nothing links to it.
 | File | What it covers |
 | --- | --- |
 | `00-parsers.js` | Strict admin product-price parsing, including decimal comma and rejection of ambiguous three-digit decimals |
-| `01-public.js` | Every public page, the sitemap and robots, and every screen and endpoint an anonymous visitor must not reach |
-| `02-admin.js` | All seventeen admin screens, creating a brand, issuing tracking credentials, categories, and the commission floors and ceiling |
+| `01-public.js` | Every public and legal page, the sitemap and robots, and every screen and endpoint an anonymous visitor must not reach |
+| `02-admin.js` | Every admin screen, the tracking implementation guide, creating a brand, issuing tracking credentials, categories, and the commission floors and ceiling |
 | `03-accounts.js` | A brand arriving the way a real brand does, invite to reset to sign in; a creator's dual consent; a shopper signing up |
 | `04-features.js` | Discount codes, seasonal return windows, commission overrides, disputes, campaigns, the homepage, bulk imports, enquiries, the waitlist, the wishlist and product views |
 | `05-money.js` | Invoicing a brand, Stripe sending it, the brand paying, and the creator being paid, by Stripe and by hand. Ends by running two payouts at once to check a creator is paid only the once |

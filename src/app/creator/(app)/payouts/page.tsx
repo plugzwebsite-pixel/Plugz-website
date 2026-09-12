@@ -3,7 +3,6 @@ import { redirect } from "next/navigation";
 import { checkCreatorAccess } from "@/lib/auth/access";
 import { db } from "@/lib/db";
 import { PayoutSetup } from "@/components/creator/payout-setup";
-import { Badge } from "@/components/ui/primitives";
 import { gbpFromPence } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Payouts" };

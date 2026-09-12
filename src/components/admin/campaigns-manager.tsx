@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { ExternalLink, Megaphone, Plus, Search, Star, Trash2, Users } from "lucide-react";
 import { postJson, deleteJson } from "@/lib/client/api";
-import { Field, Input, Textarea } from "@/components/ui/input";
+import { Field, Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/controls";
 import { Button } from "@/components/ui/button";
 import { Badge, Pill } from "@/components/ui/primitives";

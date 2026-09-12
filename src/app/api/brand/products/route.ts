@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { db } from "@/lib/db";
 import { ok, fail, parseBody } from "@/lib/http";
 import { checkBrandAccess } from "@/lib/auth/access";
 import { rateLimit, clientKey } from "@/lib/rate-limit";

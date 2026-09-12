@@ -82,9 +82,10 @@ function msg(r) {
   section("3. Admin: every screen loads");
   const screens = [
     "/admin/approvals", "/admin/creators/new", "/admin/creators/import", "/admin/shoppers",
-    "/admin/brands", "/admin/credentials", "/admin/videos", "/admin/homepage",
+    "/admin/brands", "/admin/brands/new", "/admin/credentials", "/admin/videos", "/admin/homepage",
     "/admin/campaigns", "/admin/categories", "/admin/enquiries", "/admin/analytics",
     "/admin/products", "/admin/commission", "/admin/sales", "/admin/payouts", "/admin/disputes",
+    "/admin/invoices", "/admin/money",
   ];
   for (const s of screens) {
     await check("GET " + s, async function () {
@@ -97,6 +98,12 @@ function msg(r) {
     const r = await api("/admin/products");
     return r.status === 200 && r.text.includes("Views")
       ? true : "the views column is missing";
+  });
+
+  await check("brand credentials includes the implementation guide", async function () {
+    const r = await api("/admin/credentials");
+    return r.status === 200 && r.text.includes("View implementation guide")
+      ? true : "the guide trigger is missing";
   });
 
   section("3. Admin: creating a brand");

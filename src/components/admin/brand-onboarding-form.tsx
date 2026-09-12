@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { postJson } from "@/lib/client/api";
 import { AnimatePresence, motion } from "framer-motion";
 import { Building2, CheckCircle2, Ticket, Network } from "lucide-react";
@@ -93,9 +94,9 @@ export function BrandOnboardingForm() {
           <Button variant="secondary" onClick={reset}>
             Add another brand
           </Button>
-          <a href="/admin/products/new">
+          <Link href="/admin/products/new">
             <Button>Add its products</Button>
-          </a>
+          </Link>
         </div>
       </motion.div>
 

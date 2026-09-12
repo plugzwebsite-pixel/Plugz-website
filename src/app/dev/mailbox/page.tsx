@@ -29,7 +29,8 @@ export default function DevMailboxPage() {
   }, []);
 
   useEffect(() => {
-    load();
+    const task = window.setTimeout(() => void load(), 0);
+    return () => window.clearTimeout(task);
   }, [load]);
 
   async function clear() {

@@ -28,7 +28,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const current = document.documentElement.getAttribute(
       "data-theme"
     ) as Theme | null;
-    if (current === "day" || current === "night") setThemeState(current);
+    if (current !== "day" && current !== "night") return;
+    const task = window.setTimeout(() => setThemeState(current), 0);
+    return () => window.clearTimeout(task);
   }, []);
 
   const apply = useCallback((t: Theme) => {

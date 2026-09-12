@@ -41,13 +41,16 @@ export function PayoutSetup({ justReturned }: { justReturned: boolean }) {
   }
 
   useEffect(() => {
-    void refresh();
+    const task = window.setTimeout(() => void refresh(), 0);
+    return () => window.clearTimeout(task);
   }, []);
 
   // Coming back from Stripe is the one moment our copy is certainly out of
   // date, and also the moment the creator is looking for confirmation.
   useEffect(() => {
-    if (justReturned) void refresh();
+    if (!justReturned) return;
+    const task = window.setTimeout(() => void refresh(), 0);
+    return () => window.clearTimeout(task);
   }, [justReturned]);
 
   async function start() {

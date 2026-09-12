@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Mail, Check, Users, Building2, KeyRound, Copy, Search } from "lucide-react";
+import { Mail, Check, Users, Building2, KeyRound, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/primitives";

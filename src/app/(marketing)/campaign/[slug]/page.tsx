@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowRight, CalendarClock } from "lucide-react";
-import { Container, Eyebrow, Badge } from "@/components/ui/primitives";
+import { Container, Eyebrow } from "@/components/ui/primitives";
 import { Reveal } from "@/components/ui/reveal";
 import { Aurora } from "@/components/marketing/aurora";
 import { Avatar } from "@/components/ui/avatar";

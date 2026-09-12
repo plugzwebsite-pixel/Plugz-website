@@ -21,11 +21,7 @@ export function VerifyEmail() {
     if (ran.current) return; // guard React strict-mode double-invoke
     ran.current = true;
 
-    if (!token) {
-      setState("error");
-      setMessage("This verification link is missing its token.");
-      return;
-    }
+    if (!token) return;
     (async () => {
       const res = await postJson("/api/auth/verify-email", { token });
       if (res.ok) {
@@ -39,14 +35,29 @@ export function VerifyEmail() {
 
   return (
     <div className="rounded-md border border-border bg-surface-2/50 p-8 text-center">
-      {state === "loading" && (
+      {!token || state === "error" ? (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+          <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-red-500/12">
+            <XCircle className="text-red-400" size={34} />
+          </div>
+          <h2 className="mt-5 font-display text-2xl font-semibold text-text-strong">
+            Verification failed
+          </h2>
+          <p className="mt-3 text-[0.95rem] text-text-muted">
+            {token ? message : "This verification link is missing its token."}
+          </p>
+          <Link href="/login" className="mt-6 inline-block">
+            <Button variant="secondary">Back to sign in</Button>
+          </Link>
+        </motion.div>
+      ) : state === "loading" ? (
         <>
           <Loader2 className="mx-auto animate-spin text-brand-pink" size={34} />
           <p className="mt-5 text-[0.95rem] text-text-muted">
             Verifying your email…
           </p>
         </>
-      )}
+      ) : null}
 
       {state === "success" && (
         <motion.div
@@ -70,20 +81,6 @@ export function VerifyEmail() {
         </motion.div>
       )}
 
-      {state === "error" && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-          <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-red-500/12">
-            <XCircle className="text-red-400" size={34} />
-          </div>
-          <h2 className="mt-5 font-display text-2xl font-semibold text-text-strong">
-            Verification failed
-          </h2>
-          <p className="mt-3 text-[0.95rem] text-text-muted">{message}</p>
-          <Link href="/login" className="mt-6 inline-block">
-            <Button variant="secondary">Back to sign in</Button>
-          </Link>
-        </motion.div>
-      )}
     </div>
   );
 }

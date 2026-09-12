@@ -6,6 +6,7 @@ import {
   CredentialsManager,
   type CredentialBrand,
 } from "@/components/admin/credentials-manager";
+import { TrackingGuide } from "@/components/admin/tracking-guide";
 
 export const metadata: Metadata = { title: "Brand credentials" };
 export const dynamic = "force-dynamic";
@@ -42,22 +43,25 @@ export default async function AdminCredentialsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="max-w-2xl">
-        <p className="text-text-muted">
-          What a brand needs to report its sales to us. A Shopify shop gets a
-          snippet with its key already inside, which the shop owner pastes into
-          their own admin. Any other shop gets a key and a signing secret for
-          their developer.
-        </p>
-        <p className="mt-3 text-sm text-text-muted">
-          Credentials are issued automatically when a brand is added, so most
-          brands here will already have them. Use this screen for the ones added
-          before that, and to replace a secret that has been lost or sent
-          somewhere it should not have been.
-        </p>
-        <p className="mt-3 text-sm text-text-faint">
-          {issued} of {rows.length} brands have credentials.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="max-w-2xl">
+          <p className="text-text-muted">
+            What a brand needs to report its sales to us. A Shopify shop gets a
+            snippet with its key already inside, which the shop owner pastes into
+            their own admin. Any other shop gets a key and a signing secret for
+            their developer.
+          </p>
+          <p className="mt-3 text-sm text-text-muted">
+            Credentials are issued automatically when a brand is added, so most
+            brands here will already have them. Use this screen for the ones added
+            before that, and to replace a secret that has been lost or sent
+            somewhere it should not have been.
+          </p>
+          <p className="mt-3 text-sm text-text-faint">
+            {issued} of {rows.length} brands have credentials.
+          </p>
+        </div>
+        <TrackingGuide />
       </div>
 
       <CredentialsManager brands={rows} />

@@ -47,7 +47,7 @@ function want(r, codes) {
 
   const pages = [
     "/", "/brands", "/campaigns", "/login", "/signup", "/signup/shopper",
-    "/waitlist", "/forgot-password", "/legal/creator-terms", "/verify-email",
+    "/waitlist", "/forgot-password", "/legal/creator-terms", "/legal/consumer-terms", "/verify-email",
     "/reset-password", "/search", "/search?q=dress",
   ];
   for (const p of pages) {
@@ -127,8 +127,9 @@ function want(r, codes) {
   const guarded = [
     "/creator/dashboard", "/creator/storefront", "/creator/payouts", "/creator/settings",
     "/brand/dashboard", "/brand/products", "/brand/products/new", "/brand/invoices", "/brand/settings",
-    "/admin/approvals", "/admin/creators/new", "/admin/brands", "/admin/credentials",
-    "/admin/analytics", "/admin/commission", "/admin/sales", "/admin/payouts", "/admin/disputes",
+    "/admin/approvals", "/admin/creators/new", "/admin/creators/import", "/admin/brands",
+    "/admin/brands/new", "/admin/credentials", "/admin/analytics", "/admin/commission",
+    "/admin/sales", "/admin/payouts", "/admin/disputes", "/admin/invoices", "/admin/money",
     "/admin/categories", "/admin/homepage", "/admin/campaigns", "/admin/videos",
     "/admin/products", "/admin/shoppers", "/admin/enquiries", "/account",
   ];

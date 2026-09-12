@@ -72,6 +72,9 @@ export default async function CommissionPage() {
     returnWindowDays: b.returnWindowDays,
   }));
 
+  // One request-time snapshot keeps every row consistent. This is a server
+  // component, so it is not re-rendered speculatively in the browser.
+  // eslint-disable-next-line react-hooks/purity
   const now = Date.now();
   const seasonal: SeasonalWindow[] = windowRows.map((w) => ({
     id: w.id,
