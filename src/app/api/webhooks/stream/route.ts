@@ -2,6 +2,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { db } from "@/lib/db";
 import { deleteVideo, thumbnailUrl } from "@/lib/stream";
 import { revalidateListing } from "@/lib/revalidate";
+import { clearPendingVideo, promotePendingVideo } from "@/lib/video-replacement";
 
 /**
  * Cloudflare telling us a clip has finished encoding.
@@ -85,6 +86,7 @@ export async function POST(req: Request) {
       id: true,
       uid: true,
       pendingUid: true,
+      pendingReview: true,
       review: true,
       creatorProduct: {
         select: { slug: true, profile: { select: { handle: true } } },
@@ -111,34 +113,27 @@ export async function POST(req: Request) {
       return reply({ ok: true, state, replacement: true }, 200);
     }
     if (state === "FAILED") {
-      await db.creatorVideo.update({
-        where: { id: row.id },
-        data: { pendingUid: null },
-      });
-      void deleteVideo(uid);
-      return reply({ ok: true, state, originalPreserved: true }, 200);
+      const cleared = await clearPendingVideo(row.id, uid);
+      if (cleared) void deleteVideo(uid);
+      return reply({ ok: true, state, originalPreserved: cleared, ignored: !cleared }, 200);
     }
 
     const oldUid = row.uid;
-    await db.creatorVideo.update({
-      where: { id: row.id },
-      data: {
-        uid,
-        pendingUid: null,
-        state: "READY",
-        review: "APPROVED",
-        removedReason: null,
-        readyAt: new Date(),
-        durationSeconds: body.duration ? Math.round(body.duration) : null,
-        thumbnailUrl: thumbnailUrl(uid),
-      },
+    const promoted = await promotePendingVideo({
+      id: row.id,
+      pendingUid: uid,
+      review: row.pendingReview ?? "APPROVED",
+      durationSeconds: body.duration ? Math.round(body.duration) : null,
+      thumbnailUrl: thumbnailUrl(uid),
     });
-    if (oldUid !== uid) void deleteVideo(oldUid);
-    revalidateListing({
-      handle: row.creatorProduct.profile.handle,
-      slug: row.creatorProduct.slug,
-    });
-    return reply({ ok: true, state, replacement: true }, 200);
+    if (promoted) {
+      if (oldUid !== uid) void deleteVideo(oldUid);
+      revalidateListing({
+        handle: row.creatorProduct.profile.handle,
+        slug: row.creatorProduct.slug,
+      });
+    }
+    return reply({ ok: true, state, replacement: promoted, ignored: !promoted }, 200);
   }
 
   await db.creatorVideo.update({

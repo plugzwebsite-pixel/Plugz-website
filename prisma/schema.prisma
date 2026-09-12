@@ -643,6 +643,9 @@ model CreatorVideo {
   /// `uid` only after Cloudflare confirms it is playable, so a failed upload
   /// never removes the creator's current clip.
   pendingUid String? @unique
+  /// Moderation state to apply when the pending replacement is promoted.
+  /// Creator uploads are PENDING; an admin upload is already APPROVED.
+  pendingReview VideoReview?
 
   state  VideoState  @default(UPLOADING)
   review VideoReview @default(PENDING)

@@ -37,6 +37,7 @@ nothing links to it.
 
 | File | What it covers |
 | --- | --- |
+| `00-parsers.js` | Strict admin product-price parsing, including decimal comma and rejection of ambiguous three-digit decimals |
 | `01-public.js` | Every public page, the sitemap and robots, and every screen and endpoint an anonymous visitor must not reach |
 | `02-admin.js` | All seventeen admin screens, creating a brand, issuing tracking credentials, categories, and the commission floors and ceiling |
 | `03-accounts.js` | A brand arriving the way a real brand does, invite to reset to sign in; a creator's dual consent; a shopper signing up |

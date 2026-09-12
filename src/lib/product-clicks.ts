@@ -117,6 +117,7 @@ export async function listProductClicks(opts: {
           select: {
             id: true,
             uid: true,
+            pendingUid: true,
             state: true,
             review: true,
             durationSeconds: true,
@@ -147,7 +148,12 @@ export async function listProductClicks(opts: {
       live: r.live,
       review: r.review,
       rating: r.rating,
-      video: r.video,
+      video: r.video
+        ? {
+            ...r.video,
+            replacementState: r.video.pendingUid ? "UPLOADING" as const : null,
+          }
+        : null,
       code: r.trackingLink?.code ?? null,
       discountCode: r.trackingLink?.discountCode ?? null,
       clicks: r.trackingLink?.clickCount ?? 0,

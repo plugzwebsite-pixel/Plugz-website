@@ -2,7 +2,9 @@
  * Parse a price typed by an administrator without guessing through invalid
  * text. Blank means "price not listed"; every non-blank value must be a real
  * positive GBP amount. Both 49.99 and 49,99 are accepted, as are explicit
- * grouped forms such as 1,234.56 and 1.234,56.
+ * grouped forms such as 1,234.56 and 1.234,56. A lone dot followed by three
+ * digits is rejected rather than guessed: in this UI `12.500` is much more
+ * likely to mean GBP 12.50 than GBP 12,500.
  */
 export function parseProductPrice(raw: string):
   | { ok: true; pence: number | null }
@@ -20,7 +22,7 @@ export function parseProductPrice(raw: string):
     normalised = value;
   } else if (/^\d{1,3}(,\d{3})+(\.\d{1,2})?$/.test(value)) {
     normalised = value.replace(/,/g, "");
-  } else if (/^\d{1,3}(\.\d{3})+(,\d{1,2})?$/.test(value)) {
+  } else if (/^\d{1,3}(\.\d{3})+,\d{1,2}$/.test(value)) {
     normalised = value.replace(/\./g, "").replace(",", ".");
   } else if (/^\d+\.\d{1,2}$/.test(value)) {
     normalised = value;

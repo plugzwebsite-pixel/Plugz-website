@@ -59,6 +59,7 @@ export async function GET() {
         select: {
           id: true,
           uid: true,
+          pendingUid: true,
           state: true,
           review: true,
           durationSeconds: true,
@@ -110,7 +111,18 @@ export async function GET() {
     },
   });
 
-  return ok({ items, available });
+  return ok({
+    items: items.map((item) => ({
+      ...item,
+      video: item.video
+        ? {
+            ...item.video,
+            replacementState: item.video.pendingUid ? "UPLOADING" as const : null,
+          }
+        : null,
+    })),
+    available,
+  });
 }
 
 /**

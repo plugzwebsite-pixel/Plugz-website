@@ -91,20 +91,20 @@ function toPence(raw: string, delimiter = ","): number | null {
     if (lastComma > lastDot) value = value.replace(/\./g, "").replace(",", ".");
     else value = value.replace(/,/g, "");
   } else if (lastComma !== -1) {
-    // A comma alone. In a semicolon or tab separated file it is the decimal
-    // mark. In a comma separated one it can only be grouping, because a decimal
-    // comma would have split the column.
-    // Delimiter wins before the three-digit grouping shape is considered:
-    // `48,500` in a semicolon-delimited European export is £48.50, not £48,500.
-    if (delimiter !== ",") value = value.replace(",", ".");
-    else value = value.replace(/,/g, "");
+    // A comma alone. Only a semicolon reliably identifies a decimal-comma
+    // export. Tab-delimited files may be UK Excel exports, so their grouped
+    // `1,234` stays GBP 1,234; an ambiguous tab value such as `48,50` is
+    // rejected for the preview rather than silently multiplied.
+    if (delimiter === ";") value = value.replace(",", ".");
+    else if (/^\d{1,3}(,\d{3})+$/.test(value)) value = value.replace(/,/g, "");
+    else return null;
   } else if (
     lastDot !== -1 &&
-    delimiter !== "," &&
+    delimiter === ";" &&
     /^\d{1,3}(\.\d{3})+$/.test(value)
   ) {
-    // In a semicolon/tab-delimited European file the dot groups thousands.
-    // In a comma-delimited British file it is the decimal mark, even when a
+    // In a semicolon-delimited European file the dot groups thousands. In a
+    // comma- or tab-delimited British file it is the decimal mark, even when a
     // source exports three fractional digits: `12.500` rounds to £12.50.
     value = value.replace(/\./g, "");
   }

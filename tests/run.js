@@ -31,6 +31,7 @@ const STRIPE_KEY = envOf("STRIPE_SECRET_KEY");
 // Ordered deliberately. The tracking suite deliberately exhausts the login
 // rate limit to prove it works, so it runs last and nothing follows it.
 const SUITES = [
+  "00-parsers.js",
   "01-public.js",
   "02-admin.js",
   "03-accounts.js",   // reads state left by 02

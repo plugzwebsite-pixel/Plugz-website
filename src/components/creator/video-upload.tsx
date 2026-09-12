@@ -28,6 +28,8 @@ type VideoRow = {
   durationSeconds: number | null;
   thumbnailUrl: string | null;
   removedReason: string | null;
+  pendingUid?: string | null;
+  replacementState?: "UPLOADING" | "PROCESSING" | "FAILED" | null;
 };
 
 const MAX_BYTES = 200 * 1024 * 1024;
@@ -51,7 +53,10 @@ export function VideoUpload({
   // as soon as it settles. A poll that runs for ever on a finished video is a
   // request every few seconds from every open storefront tab.
   useEffect(() => {
-    if (!video || video.state === "READY" || video.state === "FAILED") return;
+    const currentProcessing = video && video.state !== "READY" && video.state !== "FAILED";
+    const replacementProcessing =
+      video?.replacementState === "UPLOADING" || video?.replacementState === "PROCESSING";
+    if (!video || (!currentProcessing && !replacementProcessing)) return;
     let alive = true;
     const timer = setInterval(async () => {
       try {
@@ -77,8 +82,14 @@ export function VideoUpload({
 
     setBusy(true);
     setProgress(0);
+    const previousVideo = video;
+    let started: { id: string; uploadUid: string } | null = null;
     try {
-      const start = await postJson<{ id: string; uid: string; uploadUrl: string }>(
+      const start = await postJson<VideoRow & {
+        uploadUid: string;
+        uploadUrl: string;
+        replacing: boolean;
+      }>(
         "/api/creator/videos",
         { listingId }
       );
@@ -86,6 +97,7 @@ export function VideoUpload({
         toast.error("Couldn't start that upload", start.message);
         return;
       }
+      started = { id: start.data!.id, uploadUid: start.data!.uploadUid };
 
       // XHR rather than fetch, only because fetch still cannot report upload
       // progress, and a creator watching a two minute upload with no feedback
@@ -103,18 +115,30 @@ export function VideoUpload({
         xhr.send(body);
       });
 
-      setVideo({
-        id: start.data!.id,
-        uid: start.data!.uid,
-        state: "PROCESSING",
-        review: "PENDING",
-        durationSeconds: null,
-        thumbnailUrl: null,
-        removedReason: null,
-      });
+      setVideo(
+        start.data!.replacing && previousVideo
+          ? {
+              ...previousVideo,
+              pendingUid: start.data!.uploadUid,
+              replacementState: "PROCESSING",
+            }
+          : { ...start.data!, state: "PROCESSING" }
+      );
 
-      toast.success("Uploaded", "It appears on your storefront once it has processed.");
+      toast.success(
+        start.data!.replacing ? "Replacement uploaded" : "Uploaded",
+        start.data!.replacing
+          ? "Your current video remains live until the replacement is ready."
+          : "It appears on your storefront once it has processed."
+      );
     } catch {
+      if (started) {
+        await postJson(`/api/creator/videos/${started.id}`, {
+          action: "cancel-upload",
+          uid: started.uploadUid,
+        });
+      }
+      setVideo(previousVideo);
       toast.error("That upload didn't finish", "Check your connection and try again.");
     } finally {
       setBusy(false);
@@ -197,6 +221,12 @@ export function VideoUpload({
               <Badge tone="green">Live on your storefront</Badge>
             ) : (
               <Badge tone="amber">Processing</Badge>
+            )}
+            {(video.replacementState === "UPLOADING" || video.replacementState === "PROCESSING") && (
+              <p className="mt-1 text-xs text-text-faint">Replacement processing; current video stays live.</p>
+            )}
+            {video.replacementState === "FAILED" && (
+              <p className="mt-1 text-xs text-red-400">Replacement failed; current video was kept.</p>
             )}
             {video.durationSeconds ? (
               <p className="mt-1 text-xs text-text-faint">{video.durationSeconds} seconds</p>

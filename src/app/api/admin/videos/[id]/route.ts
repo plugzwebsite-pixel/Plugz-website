@@ -5,6 +5,7 @@ import { requireAdmin } from "@/lib/auth/access";
 import { rateLimit, clientKey } from "@/lib/rate-limit";
 import { deleteVideo, getVideo, thumbnailUrl, MAX_VIDEO_SECONDS } from "@/lib/stream";
 import { revalidateListing } from "@/lib/revalidate";
+import { cancelVideoUpload, clearPendingVideo, promotePendingVideo } from "@/lib/video-replacement";
 
 /**
  * Moderating a creator's video.
@@ -49,6 +50,7 @@ export async function GET(
       id: true,
       uid: true,
       pendingUid: true,
+      pendingReview: true,
       state: true,
       review: true,
       durationSeconds: true,
@@ -76,9 +78,10 @@ export async function GET(
     }
 
     if (replacementState === "FAILED") {
-      const current = await db.creatorVideo.update({
+      const cleared = await clearPendingVideo(row.id, pendingUid);
+      if (cleared) void deleteVideo(pendingUid);
+      const current = await db.creatorVideo.findUnique({
         where: { id: row.id },
-        data: { pendingUid: null },
         select: {
           id: true,
           uid: true,
@@ -90,23 +93,24 @@ export async function GET(
           removedReason: true,
         },
       });
-      void deleteVideo(pendingUid);
-      return ok({ ...current, replacementState: "FAILED" });
+      if (!current) return fail("No such video.", 404);
+      return ok({
+        ...current,
+        replacementState: cleared ? "FAILED" : current.pendingUid ? "UPLOADING" : null,
+      });
     }
 
     const oldUid = row.uid;
-    const updated = await db.creatorVideo.update({
+    const promoted = await promotePendingVideo({
+      id: row.id,
+      pendingUid,
+      review: row.pendingReview ?? "APPROVED",
+      durationSeconds: remote.duration ? Math.round(remote.duration) : null,
+      thumbnailUrl: thumbnailUrl(pendingUid),
+    });
+    if (promoted && oldUid !== pendingUid) void deleteVideo(oldUid);
+    const updated = await db.creatorVideo.findUnique({
       where: { id: row.id },
-      data: {
-        uid: pendingUid,
-        pendingUid: null,
-        state: "READY",
-        review: "APPROVED",
-        removedReason: null,
-        readyAt: new Date(),
-        durationSeconds: remote.duration ? Math.round(remote.duration) : null,
-        thumbnailUrl: thumbnailUrl(pendingUid),
-      },
       select: {
         id: true,
         uid: true,
@@ -118,12 +122,18 @@ export async function GET(
         removedReason: true,
       },
     });
-    if (oldUid !== pendingUid) void deleteVideo(oldUid);
-    revalidateListing({
-      handle: row.creatorProduct.profile.handle,
-      slug: row.creatorProduct.slug,
+    if (!updated) return fail("No such video.", 404);
+    if (promoted) {
+      revalidateListing({
+        handle: row.creatorProduct.profile.handle,
+        slug: row.creatorProduct.slug,
+      });
+    }
+    return ok({
+      ...updated,
+      replacementState: updated.pendingUid ? "UPLOADING" : null,
+      maxSeconds: MAX_VIDEO_SECONDS,
     });
-    return ok({ ...updated, replacementState: null, maxSeconds: MAX_VIDEO_SECONDS });
   }
 
   if (row.state === "READY" || row.state === "FAILED") return ok(row);
@@ -149,6 +159,7 @@ export async function GET(
       id: true,
       uid: true,
       pendingUid: true,
+      pendingReview: true,
       state: true,
       review: true,
       durationSeconds: true,
@@ -193,23 +204,10 @@ export async function POST(
   if (!row) return fail("No such video.", 404);
 
   if (parsed.data.action === "cancel-upload") {
-    if (row.pendingUid === parsed.data.uid) {
-      await db.creatorVideo.update({
-        where: { id: row.id },
-        data: { pendingUid: null },
-      });
-      void deleteVideo(parsed.data.uid);
-      return ok({ cancelled: true, originalPreserved: true });
-    }
-    if (
-      row.uid === parsed.data.uid &&
-      (row.state === "UPLOADING" || row.state === "PROCESSING")
-    ) {
-      await db.creatorVideo.delete({ where: { id: row.id } });
-      void deleteVideo(parsed.data.uid);
-      return ok({ cancelled: true, originalPreserved: false });
-    }
-    return fail("That upload is no longer pending.", 409);
+    const cancelled = await cancelVideoUpload(row.id, parsed.data.uid);
+    if (!cancelled.cancelled) return fail("That upload is no longer pending.", 409);
+    void deleteVideo(parsed.data.uid);
+    return ok(cancelled);
   }
 
   if (parsed.data.action === "approve") {
@@ -238,6 +236,7 @@ export async function POST(
       reviewedAt: new Date(),
       reviewedById: admin.user.id,
       pendingUid: null,
+      pendingReview: null,
     },
     select: { id: true, review: true, removedReason: true, reviewedAt: true },
   });

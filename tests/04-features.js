@@ -79,8 +79,8 @@ const msg = (r) => "status " + r.status + (r.json && r.json.message ? " :: " + r
       on conflict (id) do nothing;
 
       insert into "User" (id,email,"passwordHash",name,role,"emailVerified","createdAt","updatedAt")
-      values ('rt11_cu','rt11creator@pluggz.test','x','RT Feature Creator','CREATOR',now(),now(),now())
-      on conflict (id) do nothing;
+      values ('rt11_cu','rt11creator@pluggz.test','${hash}','RT Feature Creator','CREATOR',now(),now(),now())
+      on conflict (id) do update set "passwordHash"=excluded."passwordHash";
 
       insert into "CreatorProfile" (id,"userId",handle,category,status,source,"profileReleasedAt","createdAt","updatedAt")
       values ('rt11_c','rt11_cu','rt11creator','Beauty & Skincare','APPROVED','ADMIN_ADDED',now(),now(),now())
@@ -107,6 +107,11 @@ const msg = (r) => "status " + r.status + (r.json && r.json.message ? " :: " + r
 
   await check("sign in as admin", async function () {
     const r = await req("admin", "/api/auth/login", { json: { email: "rtadmin@pluggz.test", password: "RtProbe!2026" } });
+    return r.json && r.json.ok ? true : msg(r);
+  });
+
+  await check("sign in as the fixture creator", async function () {
+    const r = await req("creator", "/api/auth/login", { json: { email: "rt11creator@pluggz.test", password: "RtProbe!2026" } });
     return r.json && r.json.ok ? true : msg(r);
   });
 
@@ -208,9 +213,9 @@ const msg = (r) => "status " + r.status + (r.json && r.json.message ? " :: " + r
   await check("a ready replacement atomically takes over from the live video", async function () {
     if (!STREAM_WEBHOOK_SECRET) return "CLOUDFLARE_STREAM_WEBHOOK_SECRET is not configured";
     runSql(`
-      insert into "CreatorVideo" (id,"creatorProductId",uid,"pendingUid",state,review,"readyAt","createdAt","updatedAt")
-      values ('rt11_video','rt11_cp','rt11_video_live','rt11_video_pending','READY','APPROVED',now(),now(),now())
-      on conflict (id) do update set uid='rt11_video_live', "pendingUid"='rt11_video_pending', state='READY', review='APPROVED';
+      insert into "CreatorVideo" (id,"creatorProductId",uid,"pendingUid","pendingReview",state,review,"readyAt","createdAt","updatedAt")
+      values ('rt11_video','rt11_cp','rt11_video_live','rt11_video_pending','PENDING','READY','APPROVED',now(),now(),now())
+      on conflict (id) do update set uid='rt11_video_live', "pendingUid"='rt11_video_pending', "pendingReview"='PENDING', state='READY', review='APPROVED';
     `);
     const raw = JSON.stringify({
       uid: "rt11_video_pending",
@@ -227,13 +232,13 @@ const msg = (r) => "status " + r.status + (r.json && r.json.message ? " :: " + r
       headers: { "content-type": "application/json", "webhook-signature": "time=" + time + ",sig1=" + sig },
       body: raw,
     });
-    const state = sql("select uid || '|' || coalesce(\"pendingUid\",'') || '|' || state::text from \"CreatorVideo\" where id='rt11_video';");
-    return res.status === 200 && state === "rt11_video_pending||READY"
+    const state = sql("select uid || '|' || coalesce(\"pendingUid\",'') || '|' || state::text || '|' || review::text from \"CreatorVideo\" where id='rt11_video';");
+    return res.status === 200 && state === "rt11_video_pending||READY|PENDING"
       ? true : "status " + res.status + " row " + state;
   });
 
   await check("a failed replacement keeps the original video live", async function () {
-    runSql(`update "CreatorVideo" set "pendingUid"='rt11_video_failed' where id='rt11_video';`);
+    runSql(`update "CreatorVideo" set "pendingUid"='rt11_video_failed', "pendingReview"='PENDING' where id='rt11_video';`);
     const raw = JSON.stringify({
       uid: "rt11_video_failed",
       readyToStream: false,
@@ -251,6 +256,54 @@ const msg = (r) => "status " + r.status + (r.json && r.json.message ? " :: " + r
     const state = sql("select uid || '|' || coalesce(\"pendingUid\",'') || '|' || state::text from \"CreatorVideo\" where id='rt11_video';");
     return res.status === 200 && state === "rt11_video_pending||READY"
       ? true : "status " + res.status + " row " + state;
+  });
+
+  await check("a stale failed webhook cannot clear a newer replacement", async function () {
+    runSql(`update "CreatorVideo" set "pendingUid"='rt11_video_newer', "pendingReview"='PENDING' where id='rt11_video';`);
+    const raw = JSON.stringify({
+      uid: "rt11_video_failed",
+      readyToStream: false,
+      status: { state: "error" },
+    });
+    const time = String(Math.floor(Date.now() / 1000));
+    const sig = createHmac("sha256", STREAM_WEBHOOK_SECRET).update(time + "." + raw).digest("hex");
+    const res = await fetch(BASE + "/api/webhooks/stream", {
+      method: "POST",
+      headers: { "content-type": "application/json", "webhook-signature": "time=" + time + ",sig1=" + sig },
+      body: raw,
+    });
+    const pending = sql("select coalesce(\"pendingUid\",'') from \"CreatorVideo\" where id='rt11_video';");
+    return res.status === 200 && pending === "rt11_video_newer"
+      ? true : "status " + res.status + " pending " + pending;
+  });
+
+  await check("admin and creator reloads both expose an in-flight replacement", async function () {
+    const admin = await req("admin", "/admin/products");
+    const creator = await req("creator", "/api/creator/products");
+    const item = creator.json && creator.json.data && creator.json.data.items.find((x) => x.id === "rt11_cp");
+    return admin.status === 200 && admin.raw.includes("rt11_video_newer") &&
+      item && item.video && item.video.pendingUid === "rt11_video_newer" && item.video.replacementState === "UPLOADING"
+      ? true : "admin=" + admin.status + " creator video=" + JSON.stringify(item && item.video);
+  });
+
+  await check("creator cancel clears only the exact pending upload", async function () {
+    const cancelled = await req("creator", "/api/creator/videos/rt11_video", {
+      json: { action: "cancel-upload", uid: "rt11_video_newer" },
+    });
+    if (!cancelled.json || !cancelled.json.ok) return msg(cancelled);
+    runSql(`update "CreatorVideo" set "pendingUid"='rt11_video_latest', "pendingReview"='PENDING' where id='rt11_video';`);
+    const stale = await req("creator", "/api/creator/videos/rt11_video", {
+      json: { action: "cancel-upload", uid: "rt11_video_newer" },
+    });
+    const pending = sql("select coalesce(\"pendingUid\",'') from \"CreatorVideo\" where id='rt11_video';");
+    return stale.status === 409 && pending === "rt11_video_latest"
+      ? true : "stale status " + stale.status + " pending " + pending;
+  });
+
+  await check("creator delete removes both the live and pending video record", async function () {
+    const removed = await req("creator", "/api/creator/videos/rt11_video", { method: "DELETE" });
+    return removed.json && removed.json.ok && sql("select count(*) from \"CreatorVideo\" where id='rt11_video';") === "0"
+      ? true : msg(removed);
   });
 
   section("11. Seasonal return windows");
@@ -550,6 +603,34 @@ const msg = (r) => "status " + r.status + (r.json && r.json.message ? " :: " + r
     const row = j && j.ok ? (j.data.results || [])[0] : null;
     return row && row.value === "£12.50"
       ? true : "it read the value as " + (row ? row.value : "nothing");
+  });
+
+  await check("a UK tab-delimited grouped 1,234 remains one thousand two hundred and thirty four", async function () {
+    const csv = "orderref\tvalue\tdate\thandle\nRT-UK-TAB\t1,234\t2026-08-01\trt11creator\n";
+    const form = new FormData();
+    form.append("file", new File([csv], "uk-tab.txt", { type: "text/tab-separated-values" }));
+    form.append("commit", "false");
+    const res = await fetch(BASE + "/api/admin/sales/import", {
+      method: "POST", headers: { origin: BASE, cookie: jars.admin }, body: form, redirect: "manual",
+    });
+    const j = await res.json().catch(() => null);
+    const row = j && j.ok ? (j.data.results || [])[0] : null;
+    return row && row.value === "£1234.00"
+      ? true : "it read the value as " + (row ? row.value : "nothing");
+  });
+
+  await check("an ambiguous decimal comma in a tab file is flagged in preview", async function () {
+    const csv = "orderref\tvalue\tdate\thandle\nRT-TAB-AMBIGUOUS\t48,50\t2026-08-01\trt11creator\n";
+    const form = new FormData();
+    form.append("file", new File([csv], "ambiguous-tab.txt", { type: "text/tab-separated-values" }));
+    form.append("commit", "false");
+    const res = await fetch(BASE + "/api/admin/sales/import", {
+      method: "POST", headers: { origin: BASE, cookie: jars.admin }, body: form, redirect: "manual",
+    });
+    const j = await res.json().catch(() => null);
+    const row = j && j.ok ? (j.data.results || [])[0] : null;
+    return row && row.value === "-" && /no usable order value/i.test(row.outcome)
+      ? true : "preview row was " + JSON.stringify(row);
   });
 
   await check("a file with no value column is refused by name", async function () {

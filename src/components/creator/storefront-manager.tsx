@@ -70,6 +70,8 @@ type Listing = {
   video: {
     id: string;
     uid: string;
+    pendingUid?: string | null;
+    replacementState?: "UPLOADING" | "PROCESSING" | "FAILED" | null;
     state: "UPLOADING" | "PROCESSING" | "READY" | "FAILED";
     review: "PENDING" | "APPROVED" | "REMOVED";
     durationSeconds: number | null;

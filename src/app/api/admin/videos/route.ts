@@ -4,6 +4,7 @@ import { requireAdmin } from "@/lib/auth/access";
 import { fail, ok, parseBody } from "@/lib/http";
 import { rateLimit, clientKey } from "@/lib/rate-limit";
 import { createDirectUpload, deleteVideo, streamConfigured, StreamError } from "@/lib/stream";
+import { stagePendingVideo } from "@/lib/video-replacement";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -30,6 +31,7 @@ export async function POST(req: Request) {
           id: true,
           uid: true,
           pendingUid: true,
+          pendingReview: true,
           state: true,
           review: true,
           durationSeconds: true,
@@ -54,13 +56,21 @@ export async function POST(req: Request) {
   try {
     if (listing.video) {
       const stalePending = listing.video.pendingUid;
-      const row = await db.creatorVideo.update({
+      const staged = await stagePendingVideo({
+        id: listing.video.id,
+        expectedUid: listing.video.uid,
+        expectedPendingUid: stalePending,
+        pendingUid: upload.uid,
+        pendingReview: "APPROVED",
+        reviewedAt: new Date(),
+        reviewedById: admin.user.id,
+      });
+      if (!staged) {
+        void deleteVideo(upload.uid);
+        return fail("The video changed while this upload was starting. Please try again.", 409);
+      }
+      const row = await db.creatorVideo.findUniqueOrThrow({
         where: { id: listing.video.id },
-        data: {
-          pendingUid: upload.uid,
-          reviewedAt: new Date(),
-          reviewedById: admin.user.id,
-        },
         select: {
           id: true,
           uid: true,
@@ -103,6 +113,7 @@ export async function POST(req: Request) {
     return ok({
       ...row,
       pendingUid: null,
+      pendingReview: null,
       replacementState: null,
       replacing: false,
       uploadUid: upload.uid,

@@ -4,6 +4,7 @@ import { ok, fail, parseBody } from "@/lib/http";
 import { checkCreatorAccess } from "@/lib/auth/access";
 import { rateLimit, clientKey } from "@/lib/rate-limit";
 import { createDirectUpload, deleteVideo, streamConfigured, StreamError } from "@/lib/stream";
+import { stagePendingVideo } from "@/lib/video-replacement";
 
 /**
  * Starting a video upload for one of the creator's own listings.
@@ -12,10 +13,9 @@ import { createDirectUpload, deleteVideo, streamConfigured, StreamError } from "
  * goes from the creator's browser straight there, so a large clip never passes
  * through this server, is never held in memory, and cannot time out a request.
  *
- * A listing carries one video. Asking for a second replaces the first, which is
- * what a creator means when they upload again after watching their own clip
- * back and deciding it was no good. The old one is deleted at Cloudflare rather
- * than orphaned, because storage there is billed by the minute kept.
+ * A listing carries one live video. A replacement uses `pendingUid` while the
+ * existing asset remains untouched, then the poll/webhook promotes it only
+ * after Cloudflare confirms it is playable.
  */
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -43,7 +43,18 @@ export async function POST(req: Request) {
     select: {
       id: true,
       profile: { select: { handle: true } },
-      video: { select: { id: true, uid: true } },
+      video: {
+        select: {
+          id: true,
+          uid: true,
+          pendingUid: true,
+          state: true,
+          review: true,
+          durationSeconds: true,
+          thumbnailUrl: true,
+          removedReason: true,
+        },
+      },
     },
   });
   if (!listing) return fail("That listing isn't yours.", 404);
@@ -75,34 +86,68 @@ export async function POST(req: Request) {
     return fail("Couldn't start that upload.", 503);
   }
 
-  const previous = listing.video;
+  try {
+    if (listing.video) {
+      const stalePending = listing.video.pendingUid;
+      const staged = await stagePendingVideo({
+        id: listing.video.id,
+        expectedUid: listing.video.uid,
+        expectedPendingUid: stalePending,
+        pendingUid: upload.uid,
+        pendingReview: "PENDING",
+      });
+      if (!staged) {
+        void deleteVideo(upload.uid);
+        return fail("The video changed while this upload was starting. Please try again.", 409);
+      }
+      const row = await db.creatorVideo.findUniqueOrThrow({
+        where: { id: listing.video.id },
+        select: {
+          id: true,
+          uid: true,
+          state: true,
+          review: true,
+          durationSeconds: true,
+          thumbnailUrl: true,
+          removedReason: true,
+        },
+      });
+      // This creator has deliberately superseded any earlier in-flight admin
+      // or creator replacement. Its late webhook no longer matches this row.
+      if (stalePending && stalePending !== upload.uid) void deleteVideo(stalePending);
+      return ok({
+        ...row,
+        pendingUid: upload.uid,
+        replacementState: "UPLOADING",
+        replacing: true,
+        uploadUid: upload.uid,
+        uploadUrl: upload.uploadUrl,
+      }, 201);
+    }
 
-  const row = await db.creatorVideo.upsert({
-    where: { creatorProductId: listing.id },
-    create: { creatorProductId: listing.id, uid: upload.uid },
-    // A replacement starts the whole cycle again, moderation included: the new
-    // clip has not been looked at, whatever was decided about the old one.
-    update: {
-      uid: upload.uid,
-      state: "UPLOADING",
-      review: "PENDING",
-      readyAt: null,
-      durationSeconds: null,
-      thumbnailUrl: null,
-      removedReason: null,
-      reviewedAt: null,
-      reviewedById: null,
-    },
-    select: { id: true, uid: true, state: true, review: true },
-  });
-
-  // After the row is repointed, so a failure here leaves a stray clip at
-  // Cloudflare rather than a row pointing at one that no longer exists.
-  if (previous && previous.uid !== upload.uid) {
-    void deleteVideo(previous.uid);
+    const row = await db.creatorVideo.create({
+      data: { creatorProductId: listing.id, uid: upload.uid },
+      select: {
+        id: true,
+        uid: true,
+        state: true,
+        review: true,
+        durationSeconds: true,
+        thumbnailUrl: true,
+        removedReason: true,
+      },
+    });
+    return ok({
+      ...row,
+      pendingUid: null,
+      replacementState: null,
+      replacing: false,
+      uploadUid: upload.uid,
+      uploadUrl: upload.uploadUrl,
+    }, 201);
+  } catch (error) {
+    void deleteVideo(upload.uid);
+    console.error("[creator/videos] couldn't record direct upload:", error);
+    return fail("Couldn't start that upload.", 500);
   }
-
-  // The row id goes back with the address, so the caller does not have to look
-  // the video up again straight afterwards just to poll it.
-  return ok({ id: row.id, uid: upload.uid, uploadUrl: upload.uploadUrl }, 201);
 }
