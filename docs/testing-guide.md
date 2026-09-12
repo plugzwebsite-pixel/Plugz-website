@@ -178,6 +178,7 @@ So you do not spend time reporting these back to us.
 - Four creator names show as their handle, and every follower count is zero, so
   that line is hidden rather than showing a nil. We are still waiting on the
   real names and numbers.
-- The creator terms page is placeholder text.
+- Creator Terms and Consumer Terms are live. Privacy Policy and Cookie Policy
+  copy has not been supplied, so those two legal pages are still outstanding.
 - Creator video is built and connected, but no video can be uploaded until
   Cloudflare Stream minutes are purchased.
