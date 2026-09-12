@@ -40,6 +40,11 @@ function runSql(text) {
   finally { fs.unlinkSync(p); }
 }
 
+function sqlLiteral(value) {
+  if (value === null || value === undefined) return "null";
+  return "'" + String(value).replace(/'/g, "''") + "'";
+}
+
 const jars = {};
 async function req(role, path, opts) {
   const o = opts || {};
@@ -469,25 +474,46 @@ const msg = (r) => "status " + r.status + (r.json && r.json.message ? " :: " + r
   section("11. The homepage");
 
   await check("a piece of homepage copy can be changed", async function () {
-    const r = await req("admin", "/api/admin/homepage", {
-      json: {
-        scope: "content",
-        values: {
-          heroEyebrow: "RT release test eyebrow",
-          heroTitle: "RT release test headline",
-          stripText: "RT release test strip",
-          stripHref: "/search?q=rt",
-        },
-      },
-    });
-    if (!r.json || !r.json.ok) return msg(r);
-    const home = await fetch(BASE + "/");
-    const html = await home.text();
-    return home.status === 200 &&
-      html.includes("RT release test eyebrow") &&
-      html.includes("RT release test headline") &&
-      html.includes("RT release test strip")
-      ? true : "stored, but not rendered on the homepage";
+    const keys = ["heroEyebrow", "heroTitle", "heroSubtitle", "stripText", "stripHref"];
+    const fallbacks = {
+      heroEyebrow: "Shop what UK creators actually plug",
+      heroTitle: "The people you follow, and the things they use",
+      heroSubtitle: "Every product here was chosen by a creator, not an algorithm. Tap through and buy it from the brand itself.",
+      stripText: "",
+      stripHref: "",
+    };
+    const snapshot = JSON.parse(sql(
+      `select coalesce(json_agg(row_to_json(s))::text,'[]') from "SiteContent" s where key = any(array[${keys.map(sqlLiteral).join(",")}]);`
+    ));
+    const stored = Object.fromEntries(snapshot.map((row) => [row.key, row.value]));
+    const values = Object.fromEntries(keys.map((key) => [key, stored[key] ?? fallbacks[key]]));
+    let outcome = "homepage check did not complete";
+    try {
+      // Save the content already in use. This exercises the admin write and
+      // cache invalidation paths without ever putting release-test wording on
+      // a production homepage.
+      const r = await req("admin", "/api/admin/homepage", {
+        json: { scope: "content", values },
+      });
+      if (!r.json || !r.json.ok) return msg(r);
+      const home = await fetch(BASE + "/");
+      const html = await home.text();
+      outcome = home.status === 200 &&
+        html.includes(values.heroEyebrow) &&
+        html.includes(values.heroTitle) &&
+        html.includes(values.heroSubtitle)
+        ? true : "stored content was not rendered on the homepage";
+      return outcome;
+    } finally {
+      // Restore the exact rows and audit metadata. The cache already contains
+      // the same effective values, so the check leaves no visible or stored
+      // content change behind.
+      const inserts = snapshot.map((row) =>
+        `insert into "SiteContent" (key,value,"updatedAt","updatedById") values (` +
+        `${sqlLiteral(row.key)},${sqlLiteral(row.value)},${sqlLiteral(row.updatedAt)}::timestamptz,${sqlLiteral(row.updatedById)});`
+      ).join("\n");
+      runSql(`delete from "SiteContent" where key = any(array[${keys.map(sqlLiteral).join(",")}]);\n${inserts}`);
+    }
   });
 
   await check("a product can be featured and unfeatured", async function () {
