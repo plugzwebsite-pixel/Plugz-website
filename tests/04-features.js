@@ -278,7 +278,10 @@ const msg = (r) => "status " + r.status + (r.json && r.json.message ? " :: " + r
   });
 
   await check("admin and creator reloads both expose an in-flight replacement", async function () {
-    const admin = await req("admin", "/admin/products");
+    // Target the fixture explicitly: production can have more listings than
+    // one admin page, so the unfiltered first page is not a reliable reload
+    // check for this row.
+    const admin = await req("admin", "/admin/products?q=RT%20Feature%20Product%20Edited");
     const creator = await req("creator", "/api/creator/products");
     const item = creator.json && creator.json.data && creator.json.data.items.find((x) => x.id === "rt11_cp");
     return admin.status === 200 && admin.raw.includes("rt11_video_newer") &&
