@@ -83,9 +83,11 @@ export function Hero({
               "The place where creators share what they actually buy, wear, eat, use and love."}
           </motion.p>
 
+          {/* Says much the same as the line above, so on a phone it is
+              dropped to bring the search and the products up the screen. */}
           <motion.p
             variants={item}
-            className="mx-auto mt-4 max-w-2xl text-lg leading-relaxed text-text-muted"
+            className="mx-auto mt-4 hidden max-w-2xl text-lg leading-relaxed text-text-muted sm:block"
           >
             Discover trusted recommendations, watch authentic reviews and shop
             directly from the brands, all in one seamless experience.
@@ -99,7 +101,7 @@ export function Hero({
               />
               <input
                 name="q"
-                placeholder="Search &quot;get ready with me for a holiday&quot;…"
+                placeholder="Search creators, brands or products"
                 className="h-14 w-full rounded-pill border border-border bg-surface-2/80 pr-5 text-[0.95rem] text-text placeholder:text-text-faint backdrop-blur transition-colors focus:border-brand-pink/60 focus:bg-surface"
                 style={{ paddingLeft: "3.25rem" }}
               />

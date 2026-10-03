@@ -132,7 +132,9 @@ export async function AuthShell({
         </div>
 
         <p className="relative z-10 text-sm text-text-faint">
-          © 2026 Pluggz Ltd · Discover here, buy at the brand.
+          © 2026 Pluggz, operated by CEO Live Ltd ·{" "}
+          <Link href="/legal/privacy" className="hover:text-text-strong">Privacy</Link> ·{" "}
+          <Link href="/legal/cookies" className="hover:text-text-strong">Cookies</Link>
         </p>
       </aside>
 

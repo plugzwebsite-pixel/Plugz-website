@@ -23,7 +23,7 @@ export async function POST(req: Request) {
   const limit = await rateLimit(clientKey(req, "demo-order"), 20, 60_000);
   if (!limit.ok) return fail("Too many demo orders. Try again shortly.", 429);
 
-  let body: { pz?: string | null; valuePence?: number };
+  let body: { pz?: string | null };
   try {
     body = await req.json();
   } catch {
@@ -32,14 +32,21 @@ export async function POST(req: Request) {
 
   const brand = await db.brand.findUnique({
     where: { slug: DEMO_BRAND },
-    select: { trackingKey: true, trackingSecret: true },
+    select: {
+      trackingKey: true,
+      trackingSecret: true,
+      products: { select: { pricePence: true }, take: 1 },
+    },
   });
   if (!brand?.trackingKey || !brand.trackingSecret) {
     return fail("The demo brand has no tracking credentials.", 500);
   }
 
   const orderRef = `AA-${Date.now().toString(36).toUpperCase()}`;
-  const value = Number.isInteger(body.valuePence) ? Number(body.valuePence) : 18500;
+  // The order value comes from the catalogue, never from the request. This
+  // endpoint is public, and a value taken from the body let anyone record a
+  // demo sale of any size against the live sales figures.
+  const value = brand.products[0]?.pricePence ?? 18500;
 
   // An order with no reference still completes. The shopper bought something.
   // It simply cannot be attributed, which is the point worth showing.

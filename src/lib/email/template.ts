@@ -31,7 +31,7 @@ export function renderEmail({
       </td></tr>
       <tr><td style="padding:32px 36px 36px">
         <hr style="border:none;border-top:1px solid rgba(255,255,255,0.08);margin:0 0 16px">
-        <p style="color:#6b6660;font-size:12px;margin:0">Pluggz Ltd · The UK's curated creator directory</p>
+        <p style="color:#6b6660;font-size:12px;margin:0">Pluggz, operated by CEO Live Ltd · The UK's curated creator directory</p>
       </td></tr>
     </table>
   </td></tr></table>

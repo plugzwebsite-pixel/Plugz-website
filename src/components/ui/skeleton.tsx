@@ -63,7 +63,7 @@ export function SkeletonPanel({ rows = 5 }: { rows?: number }) {
 /** A grid of product or creator cards. */
 export function SkeletonCards({ count = 8 }: { count?: number }) {
   return (
-    <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
       {Array.from({ length: count }, (_, i) => (
         <div key={i} className="overflow-hidden rounded-lg border border-border">
           <Skeleton className="aspect-[4/5] rounded-none" />

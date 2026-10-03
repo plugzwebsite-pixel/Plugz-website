@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Logo } from "@/components/brand/logo";
 import { Container } from "@/components/ui/primitives";
+import { CookieSettingsLink } from "@/components/legal/cookie-banner";
 
 // Every link here goes somewhere real. An "About" pointing at the homepage and
 // a "Sign in" shown to someone already signed in are the small things that make
@@ -30,6 +31,8 @@ const columns = [
       { label: "Partner with us", href: "/brands" },
       { label: "Creator Terms", href: "/legal/creator-terms" },
       { label: "Consumer Terms", href: "/legal/consumer-terms" },
+      { label: "Privacy Policy", href: "/legal/privacy" },
+      { label: "Cookie Policy", href: "/legal/cookies" },
       { label: "Search Pluggz", href: "/search" },
     ],
   },
@@ -52,12 +55,13 @@ export function SiteFooter() {
               <h4 className="font-display text-sm font-semibold text-text-strong">
                 {col.title}
               </h4>
-              <ul className="mt-4 space-y-2.5">
+              <ul className="mt-3 space-y-0.5">
                 {col.links.map((l) => (
                   <li key={l.label}>
+                    {/* Padded to a comfortable tap height on a phone. */}
                     <Link
                       href={l.href}
-                      className="text-sm text-text-muted transition-colors hover:text-brand-pink"
+                      className="inline-flex min-h-10 items-center text-sm text-text-muted transition-colors hover:text-brand-pink"
                     >
                       {l.label}
                     </Link>
@@ -68,8 +72,11 @@ export function SiteFooter() {
           ))}
         </div>
         <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-border pt-6 text-sm text-text-faint sm:flex-row">
-          <p>© 2026 Pluggz Ltd · Discover here, buy at the brand.</p>
-          <p>Made in the UK</p>
+          <p>© 2026 Pluggz, operated by CEO Live Ltd · Discover here, buy at the brand.</p>
+          <div className="flex items-center gap-5">
+            <CookieSettingsLink className="min-h-10 transition-colors hover:text-brand-pink" />
+            <p>Made in the UK</p>
+          </div>
         </div>
       </Container>
     </footer>

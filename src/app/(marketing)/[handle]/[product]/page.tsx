@@ -277,7 +277,7 @@ export default async function ProductPage({
             <h2 className="font-display text-xl font-semibold text-text-strong">
               More in {product.category}
             </h2>
-            <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
               {similar.map((p, i) => (
                 <Reveal key={`${p.creatorHandle}-${p.slug}`} index={i % 4}>
                   <ProductCard product={p} />

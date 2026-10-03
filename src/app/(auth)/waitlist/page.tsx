@@ -65,7 +65,9 @@ export default function WaitlistPage() {
       </main>
 
       <footer className="relative z-10 px-6 py-6 text-center text-sm text-text-faint">
-        © 2026 Pluggz Ltd · Discover here, buy at the brand.
+        © 2026 Pluggz, operated by CEO Live Ltd ·{" "}
+          <Link href="/legal/privacy" className="hover:text-text-strong">Privacy</Link> ·{" "}
+          <Link href="/legal/cookies" className="hover:text-text-strong">Cookies</Link>
       </footer>
     </div>
   );

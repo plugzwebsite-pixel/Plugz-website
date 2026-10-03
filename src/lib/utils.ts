@@ -72,8 +72,10 @@ export function shortName(name: string) {
   const trimmed = (name ?? "").trim();
   if (!trimmed) return "";
   const first = trimmed.split(/\s+/)[0] ?? trimmed;
-  if (first.length >= 3 && !NOT_A_NAME.has(first.toLowerCase())) return first;
-  return trimmed;
+  const short = first.length >= 3 && !NOT_A_NAME.has(first.toLowerCase()) ? first : trimmed;
+  // Names are typed in by creators, and one typed in lower case read as a
+  // typo on their own storefront ("rana hasn't plugged anything yet").
+  return short.charAt(0).toUpperCase() + short.slice(1);
 }
 
 export function sleep(ms: number) {

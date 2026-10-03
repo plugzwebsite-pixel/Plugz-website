@@ -3,6 +3,7 @@ import { Bodoni_Moda, Hanken_Grotesk } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { ToastProvider } from "@/components/ui/toast";
+import { CookieBanner } from "@/components/legal/cookie-banner";
 
 const display = Bodoni_Moda({
   subsets: ["latin"],
@@ -77,7 +78,10 @@ export default function RootLayout({
       </head>
       <body className="min-h-full">
         <ThemeProvider>
-          <ToastProvider>{children}</ToastProvider>
+          <ToastProvider>
+            {children}
+            <CookieBanner />
+          </ToastProvider>
         </ThemeProvider>
       </body>
     </html>
