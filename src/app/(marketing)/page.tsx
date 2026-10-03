@@ -30,6 +30,9 @@ import { compact, gbpFromPence } from "@/lib/utils";
  */
 export const revalidate = 60;
 
+/** £1,000. Below this the commission total stays off the homepage. */
+const COMMISSION_SHOWCASE_PENCE = 100_000;
+
 export default async function HomePage() {
   const [trendProducts, copy, featured, stats, featuredBrand, categoryCounts, categories] =
     await Promise.all([
@@ -53,21 +56,20 @@ export default async function HomePage() {
     { value: String(stats.brands), label: "Brands onboard" },
   ];
 
+  // A small total reads as a sign of a quiet platform rather than a growing
+  // one, so commission only appears once it is a figure worth showing. Until
+  // then, and until there is a rating, the row shows counts that are already
+  // strong instead of "Not yet".
+  const showCommission = stats.creatorCommissionPence >= COMMISSION_SHOWCASE_PENCE;
   const impactStats = [
     { value: compact(stats.clicks), label: "shoppers sent to brands" },
     { value: String(stats.brands), label: "brand partners" },
-    {
-      value: stats.creatorCommissionPence
-        ? gbpFromPence(stats.creatorCommissionPence)
-        : "Not yet",
-      label: "creator commission earned",
-    },
-    {
-      value: stats.averageRating
-        ? `${stats.averageRating.toFixed(1)}★`
-        : "Not yet",
-      label: "average creator rating",
-    },
+    showCommission
+      ? { value: gbpFromPence(stats.creatorCommissionPence), label: "creator commission earned" }
+      : { value: String(stats.listings), label: "products plugged" },
+    stats.averageRating
+      ? { value: `${stats.averageRating.toFixed(1)}★`, label: "average creator rating" }
+      : { value: String(stats.creators), label: "UK creators live" },
   ];
 
   return (
@@ -100,7 +102,7 @@ export default async function HomePage() {
             action={{ label: "See the edit", href: "/category/travel-holiday" }}
           />
         </Reveal>
-        <div className="mt-9 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-9 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
           {trendProducts.map((p, i) => (
             <Reveal key={`${p.creatorHandle}-${p.slug}`} index={i % 4}>
               <ProductCard product={p} />

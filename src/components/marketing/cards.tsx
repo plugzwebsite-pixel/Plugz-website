@@ -56,7 +56,7 @@ export function ProductCard({ product }: { product: ProductCardData }) {
           alt={product.name}
           width={480}
           height={360}
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+          sizes="(max-width: 1024px) 50vw, 25vw"
           className="h-full w-full object-contain p-3 transition-transform duration-500 group-hover:scale-105"
           seed={`${product.brand}-${product.slug}`}
           label={product.brand}
@@ -75,12 +75,14 @@ export function ProductCard({ product }: { product: ProductCardData }) {
           </Badge>
         )}
       </div>
-      <div className="flex flex-1 flex-col p-4">
-        <div className="flex items-center justify-between text-xs text-text-faint">
-          <span className="truncate font-semibold uppercase tracking-wide">
+      <div className="flex flex-1 flex-col p-3 sm:p-4">
+        <div className="flex min-w-0 items-center justify-between gap-2 text-xs text-text-faint">
+          <span className="min-w-0 truncate font-semibold uppercase tracking-wide">
             {product.brand}
           </span>
-          <span className="shrink-0">@{product.creatorHandle}</span>
+          {/* Two cards sit side by side on a phone, so a long handle has to
+              give way rather than push the card wider than the column. */}
+          <span className="min-w-0 truncate">@{product.creatorHandle}</span>
         </div>
         <h3 className="mt-1.5 flex-1 text-sm font-medium text-text-strong">
           {product.name}
@@ -95,7 +97,7 @@ export function ProductCard({ product }: { product: ProductCardData }) {
               {gbpFromPence(product.pricePence)}
             </span>
           )}
-          <span className="rounded-pill bg-grad-brand px-3 py-1 text-xs font-semibold text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+          <span className="hidden rounded-pill bg-grad-brand px-3 py-1 text-xs font-semibold text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100 sm:inline">
             See the review
           </span>
         </div>

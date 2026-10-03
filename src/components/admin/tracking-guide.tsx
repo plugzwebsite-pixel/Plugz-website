@@ -117,7 +117,7 @@ export function TrackingGuide() {
                   ))}
                 </ol>
                 <p className="mt-3 text-sm text-accent-gold">
-                  Important: Save is not enough—the brand must click Connect. Pixel sales are marked unverified and should be reconciled before payout.
+                  Important: Save is not enough. The brand must click Connect. Pixel sales are marked unverified and should be reconciled before payout.
                 </p>
               </section>
 

@@ -63,7 +63,7 @@ export default async function AdminAnalyticsPage() {
       </div>
 
       <div className="rounded-md border border-border bg-surface p-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="font-display text-lg font-semibold text-text-strong">
             Daily click-throughs · last 14 days
           </h2>
@@ -99,7 +99,7 @@ export default async function AdminAnalyticsPage() {
         />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div className="rounded-md border border-border bg-surface p-6">
           <h2 className="font-display text-lg font-semibold text-text-strong">
             Top creators

@@ -215,6 +215,13 @@ export function ShopperSignupForm({
       <Button type="submit" size="lg" loading={isSubmitting} className="w-full">
         Create my account
       </Button>
+      <p className="text-center text-xs leading-relaxed text-text-faint">
+        We handle your details as set out in our{" "}
+        <Link href="/legal/privacy" target="_blank" className="font-medium text-text-muted underline underline-offset-2 hover:text-brand-pink">
+          Privacy Policy
+        </Link>
+        .
+      </p>
     </form>
   );
 }

@@ -268,8 +268,8 @@ export function ProductManager({
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   {video?.state === "READY" && video.review !== "REMOVED" && <Badge tone="green">Live</Badge>}
-                  {(video?.replacementState === "UPLOADING" || video?.replacementState === "PROCESSING") && <Badge tone="amber">Replacing — original remains live</Badge>}
-                  {video?.replacementState === "FAILED" && <Badge tone="neutral">Replacement failed — original kept</Badge>}
+                  {(video?.replacementState === "UPLOADING" || video?.replacementState === "PROCESSING") && <Badge tone="amber">Replacing, original remains live</Badge>}
+                  {video?.replacementState === "FAILED" && <Badge tone="neutral">Replacement failed, original kept</Badge>}
                   {video && video.state !== "READY" && video.review !== "REMOVED" && <Badge tone="amber">{video.state.toLowerCase()}</Badge>}
                   {video?.review === "REMOVED" && <Badge tone="neutral">Removed</Badge>}
                   {video && video.review !== "REMOVED" && <Button type="button" size="sm" variant="ghost" loading={videoBusy} onClick={removeVideo}><Trash2 size={14} /> Remove video</Button>}

@@ -11,7 +11,12 @@ import {
   TikTokIcon,
   YouTubeIcon,
 } from "@/components/brand/social-icons";
-import { getCreatorByHandle, getProductsForCreator, publiclyVisibleCreator } from "@/lib/queries";
+import {
+  getCreatorByHandle,
+  getProductsForCreator,
+  publicBrand,
+  publiclyVisibleCreator,
+} from "@/lib/queries";
 import { db } from "@/lib/db";
 import { compact, shortName } from "@/lib/utils";
 import { normalisePlatform, profileUrl } from "@/lib/validation";
@@ -72,9 +77,20 @@ export async function generateMetadata({
     return { title: "Page not found", robots: { index: false, follow: false } };
   }
 
+  // An empty storefront stays reachable but out of search results until the
+  // creator has plugged something, the same rule the sitemap follows.
+  const liveProducts = await db.creatorProduct.count({
+    where: {
+      live: true,
+      profile: { handle: creator.handle },
+      product: { brand: publicBrand },
+    },
+  });
+
   return {
     title: `${creator.name} (@${creator.handle})`,
     description: creator.tag,
+    ...(liveProducts === 0 && { robots: { index: false, follow: true } }),
   };
 }
 
@@ -179,7 +195,7 @@ export default async function StorefrontPage({
                 <h2 className="font-display text-2xl font-semibold text-text-strong">
                   {category}
                 </h2>
-                <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
                   {items.map((p, i) => (
                     <Reveal key={p.slug} index={i % 4}>
                       <ProductCard product={p} />

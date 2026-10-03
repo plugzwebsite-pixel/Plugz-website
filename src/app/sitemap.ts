@@ -26,6 +26,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${siteUrl}/waitlist`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },
     { url: `${siteUrl}/legal/creator-terms`, lastModified: now, changeFrequency: "yearly", priority: 0.2 },
     { url: `${siteUrl}/legal/consumer-terms`, lastModified: now, changeFrequency: "yearly", priority: 0.2 },
+    { url: `${siteUrl}/legal/privacy`, lastModified: now, changeFrequency: "yearly", priority: 0.2 },
+    { url: `${siteUrl}/legal/cookies`, lastModified: now, changeFrequency: "yearly", priority: 0.2 },
     ...(await publicCategories()).map((c) => ({
       url: `${siteUrl}/category/${c.slug}`,
       lastModified: now,
@@ -36,8 +38,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   try {
     const [creators, products] = await Promise.all([
+      // A storefront with nothing on it is a dead end from search, and the
+      // accounts most likely to be empty are ones still being set up.
       db.creatorProfile.findMany({
-        where: publiclyVisibleCreator,
+        where: {
+          ...publiclyVisibleCreator,
+          creatorProducts: { some: { live: true, product: { brand: publicBrand } } },
+        },
         select: { handle: true, updatedAt: true },
       }),
       db.creatorProduct.findMany({
