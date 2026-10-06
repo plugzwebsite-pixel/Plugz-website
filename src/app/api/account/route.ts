@@ -4,7 +4,9 @@ import { ok, fail, parseBody } from "@/lib/http";
 import { shopperProfileSchema } from "@/lib/validation";
 import { requireRole } from "@/lib/auth/guard";
 import { createSessionCookie, getSession } from "@/lib/auth/session";
+import { verifyPassword } from "@/lib/auth/password";
 import { rateLimit, clientKey } from "@/lib/rate-limit";
+import { z } from "zod";
 
 /** A shopper editing their own details and their mailing preference. */
 export async function PATCH(req: Request) {
@@ -60,4 +62,40 @@ export async function PATCH(req: Request) {
   if (session) await createSessionCookie({ ...session, name: input.name });
 
   return ok({ name: input.name, marketing: input.marketing });
+}
+
+/**
+ * Deleting your own account.
+ *
+ * The password is asked again because deleting is the one action a stolen
+ * session must not be able to take on its own. The user row goes and the
+ * profile, saved items and follows cascade with it; the session is left for
+ * the client to clear by calling the logout endpoint on success.
+ */
+const deleteSchema = z.object({
+  password: z.string().min(1, "Enter your password"),
+});
+
+export async function DELETE(req: Request) {
+  const limit = await rateLimit(clientKey(req, "account-delete"), 10, 60_000);
+  if (!limit.ok) return fail("Too many requests. Try again shortly.", 429);
+
+  const session = await getSession();
+  if (!session) return fail("Sign in first.", 401);
+
+  const parsed = await parseBody(req, deleteSchema);
+  if (!parsed.success) return parsed.response;
+
+  const account = await db.user.findUnique({
+    where: { id: session.id },
+    select: { id: true, passwordHash: true },
+  });
+  if (!account) return fail("Sign in first.", 401);
+
+  const matches = await verifyPassword(parsed.data.password, account.passwordHash);
+  if (!matches) return fail("That password isn't right.", 403);
+
+  await db.user.delete({ where: { id: account.id } });
+
+  return ok({ deleted: true });
 }

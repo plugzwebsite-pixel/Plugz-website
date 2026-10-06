@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, X, Flag, Star, MapPin, ExternalLink } from "lucide-react";
+import { Check, X, Flag, Star, MapPin, ExternalLink, MailCheck, MailPlus, Trash2 } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
 import { compact } from "@/lib/utils";
-import { patchJson } from "@/lib/client/api";
+import { patchJson, postJson, deleteJson } from "@/lib/client/api";
 
 export type Applicant = {
   id: string;
@@ -17,6 +17,7 @@ export type Applicant = {
   category: string;
   status: "PENDING" | "APPROVED" | "DECLINED" | "SUSPENDED";
   featured: boolean;
+  emailVerified: boolean;
   socials: {
     platform: string;
     handle: string;
@@ -40,6 +41,71 @@ const tabs = [
   { key: "APPROVED", label: "Approved" },
   { key: "DECLINED", label: "Declined" },
 ] as const;
+
+/**
+ * The quiet second row of per-creator actions.
+ *
+ * Email verification is the thing that strands people: the dashboard gate
+ * needs it set, and until now the admin screens had no override and no way
+ * to reissue a link for someone else. Delete sits here too, as the final
+ * option for test sign-ups and duplicates.
+ */
+function EmailActions({
+  a,
+  busy,
+  onVerify,
+  onResend,
+  onDelete,
+}: {
+  a: Applicant;
+  busy: string | null;
+  onVerify: () => void;
+  onResend: () => void;
+  onDelete: () => void;
+}) {
+  return (
+    <div className="flex flex-wrap items-center justify-end gap-2">
+      {!a.emailVerified ? (
+        <>
+          <span className="rounded-pill bg-amber-500/12 px-2.5 py-1 text-xs font-medium text-amber-300">
+            Email unverified
+          </span>
+          <Button
+            size="sm"
+            variant="ghost"
+            disabled={busy === a.id}
+            onClick={onVerify}
+            title="Mark their email as verified, for when you know the address is theirs"
+          >
+            <MailCheck size={14} /> Verify
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            disabled={busy === a.id}
+            onClick={onResend}
+            title="Send them a fresh verification link"
+          >
+            <MailPlus size={14} /> Resend link
+          </Button>
+        </>
+      ) : (
+        <span className="rounded-pill bg-accent-green/12 px-2.5 py-1 text-xs font-medium text-accent-green">
+          Email verified
+        </span>
+      )}
+      <button
+        onClick={onDelete}
+        disabled={busy === a.id}
+        title="Delete this creator's account"
+        aria-label={`Delete ${a.name}'s account`}
+        className="grid h-9 w-9 place-items-center rounded-pill text-text-faint transition-colors hover:bg-red-500/10 hover:text-red-400"
+      >
+        <Trash2 size={15} />
+      </button>
+    </div>
+  );
+}
 
 export function ApprovalQueue({ initial }: { initial: Applicant[] }) {
   const [items, setItems] = useState(initial);

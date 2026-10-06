@@ -8,6 +8,7 @@ import { generateToken, expiryFromNow } from "@/lib/auth/tokens";
 import { sendVerificationEmail } from "@/lib/email";
 import { rateLimit, clientKey } from "@/lib/rate-limit";
 import { CONSUMER_TERMS_VERSION } from "@/lib/consumer-terms";
+import { checkTurnstile } from "@/lib/turnstile";
 
 /**
  * Shopper registration.
@@ -33,6 +34,9 @@ function cleanSource(raw: string | undefined): string | null {
 export async function POST(req: Request) {
   const limit = await rateLimit(clientKey(req, "signup-shopper"), 6, 60_000);
   if (!limit.ok) return fail("Too many attempts. Try again shortly.", 429);
+
+  const captcha = await checkTurnstile(req);
+  if (!captcha.ok) return captcha.response;
 
   const parsed = await parseBody(req, shopperSignupSchema);
   if (!parsed.success) return parsed.response;
