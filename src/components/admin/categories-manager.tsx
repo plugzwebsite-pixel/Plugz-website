@@ -227,6 +227,15 @@ function CategoryItem({ category: c }: { category: CategoryRow }) {
   }
 
   async function remove() {
+    if (
+      !window.confirm(
+        `Delete the ${c.name} category?
+
+Its page disappears from the site. ` + "This cannot be undone."
+      )
+    ) {
+      return;
+    }
     setBusy(true);
     const res = await fetch(`/api/admin/categories?id=${c.id}`, { method: "DELETE" });
     const payload = await res.json().catch(() => null);

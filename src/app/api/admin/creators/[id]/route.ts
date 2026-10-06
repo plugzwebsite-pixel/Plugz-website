@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { ok, fail } from "@/lib/http";
 import { requireRole } from "@/lib/auth/guard";
+import { rateLimit, clientKey } from "@/lib/rate-limit";
 import { z } from "zod";
 import type { CreatorStatus } from "@prisma/client";
 
@@ -47,4 +48,45 @@ export async function PATCH(
   });
 
   return ok(updated);
+}
+
+/**
+ * Deleting a creator removes the whole account.
+ *
+ * The profile id arrives, the user row goes: the profile, their listings,
+ * videos, saved items and follows all cascade from it. Refused while any
+ * financial record exists, because sales and payouts are the platform's
+ * books, not just the creator's. Suspending keeps someone off the site while
+ * the history stays intact.
+ */
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const limit = await rateLimit(clientKey(req, "admin-creator-delete"), 20, 60_000);
+  if (!limit.ok) return fail("Too many requests. Try again shortly.", 429);
+
+  const auth = await requireRole("ADMIN");
+  if ("response" in auth) return auth.response;
+
+  const { id } = await params;
+
+  const profile = await db.creatorProfile.findUnique({
+    where: { id },
+    select: { id: true, userId: true },
+  });
+  if (!profile) return fail("That creator no longer exists.", 404);
+
+  const [sales, payouts] = await Promise.all([
+    db.sale.count({ where: { creatorProduct: { profileId: id } } }),
+    db.payout.count({ where: { profileId: id } }),
+  ]);
+
+  if (sales > 0 || payouts > 0) {
+    return fail(
+      "This creator has recorded sales or payouts and cannot be deleted. Suspend them instead.",
+      409
+    );
+  }
+
+  await db.user.delete({ where: { id: profile.userId } });
+
+  return ok({ removed: true });
 }

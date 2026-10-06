@@ -129,6 +129,47 @@ export async function rateLimit(
 }
 
 /**
+ * Read a fixed-window counter without incrementing it.
+ *
+ * Reads the same keys `rateLimit` writes: `rl:${key}` in Redis, the bare key
+ * in the in-memory fallback (which stores buckets unprefixed). Used where
+ * checking the tally must not itself count, e.g. gating sign-in on the
+ * per-account failure count before the password is even checked.
+ */
+export async function checkRateLimit(
+  key: string,
+  limit: number,
+  windowMs: number
+): Promise<Result> {
+  const r = client();
+  if (r && r.status === "ready") {
+    try {
+      const redisKey = `rl:${key}`;
+      const count = await r.get(redisKey);
+      const n = count === null ? 0 : Number(count);
+      if (n > limit) {
+        const ttl = await r.pttl(redisKey);
+        return { ok: false, retryAfter: Math.max(1, Math.ceil(ttl / 1000)) };
+      }
+      return { ok: true, retryAfter: 0 };
+    } catch (err) {
+      console.error(
+        "[rate-limit] redis read failed during check, using memory:",
+        err instanceof Error ? err.message : err
+      );
+    }
+  }
+
+  const now = Date.now();
+  const bucket = buckets.get(key);
+  if (!bucket || bucket.resetAt < now) return { ok: true, retryAfter: 0 };
+  if (bucket.count > limit) {
+    return { ok: false, retryAfter: Math.ceil((bucket.resetAt - now) / 1000) };
+  }
+  return { ok: true, retryAfter: 0 };
+}
+
+/**
  * The caller's real IP.
  *
  * `X-Forwarded-For` cannot be trusted from the left: our own Nginx *appends*

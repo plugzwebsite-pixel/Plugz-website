@@ -14,26 +14,34 @@ const columns = [
       { label: "Beauty & Skincare", href: "/category/beauty-skincare" },
       { label: "Shoes & Accessories", href: "/category/shoes-accessories" },
       { label: "Travel / Holiday", href: "/category/travel-holiday" },
-      { label: "Create an account", href: "/signup/shopper" },
+      { label: "Search Pluggz", href: "/search" },
     ],
   },
   {
     title: "Creators",
     links: [
       { label: "Apply to join", href: "/signup" },
-      { label: "Creator dashboard", href: "/creator/dashboard" },
       { label: "Join the waitlist", href: "/waitlist" },
+    ],
+  },
+  {
+    title: "Account",
+    links: [
+      { label: "Sign in", href: "/login" },
+      { label: "Create a shopper account", href: "/signup/shopper" },
+      { label: "Creator dashboard", href: "/creator/dashboard" },
     ],
   },
   {
     title: "Company",
     links: [
+      { label: "About", href: "/about" },
+      { label: "Contact", href: "/contact" },
       { label: "Partner with us", href: "/brands" },
       { label: "Creator Terms", href: "/legal/creator-terms" },
       { label: "Consumer Terms", href: "/legal/consumer-terms" },
       { label: "Privacy Policy", href: "/legal/privacy" },
       { label: "Cookie Policy", href: "/legal/cookies" },
-      { label: "Search Pluggz", href: "/search" },
     ],
   },
 ];
@@ -42,7 +50,7 @@ export function SiteFooter() {
   return (
     <footer className="mt-24 border-t border-border bg-bg-elev">
       <Container size="wide" className="py-14">
-        <div className="grid gap-10 md:grid-cols-[1.5fr_1fr_1fr_1fr]">
+        <div className="grid gap-10 md:grid-cols-[1.5fr_1fr_1fr_1fr_1fr]">
           <div className="max-w-xs">
             <Logo size="md" />
             <p className="mt-4 text-sm leading-relaxed text-text-muted">

@@ -19,7 +19,7 @@ import {
   getPlatformStats,
 } from "@/lib/queries";
 import { siteContent } from "@/lib/site-content";
-import { compact, gbpFromPence } from "@/lib/utils";
+import { compact, gbpFromPence, plural } from "@/lib/utils";
 
 /**
  * The homepage was fully dynamic, so every visitor waited on the trending
@@ -99,7 +99,7 @@ export default async function HomePage() {
           <SectionHeading
             eyebrow="Trending now"
             title="What everyone's shopping this week"
-            action={{ label: "See the edit", href: "/category/travel-holiday" }}
+            action={{ label: "See the edit", href: "/search" }}
           />
         </Reveal>
         <div className="mt-9 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
@@ -198,11 +198,13 @@ export default async function HomePage() {
                 className="group flex w-24 flex-col items-center text-center"
               >
                 <Avatar name={c.name} src={c.avatarUrl ?? undefined} size="xl" ring />
-                <p className="mt-3 text-sm font-medium text-text-strong">
-                  {c.name.split(" ")[0]}
+                <p className="mt-3 line-clamp-2 text-sm font-medium leading-snug text-text-strong">
+                  {c.name}
                 </p>
                 <p className="text-xs text-text-faint">
-                  {c.followers > 0 ? `${compact(c.followers)} followers` : ""}
+                  {c.followers > 0
+                    ? `${compact(c.followers)} ${plural(c.followers, "follower")}`
+                    : ""}
                 </p>
               </Link>
             </Reveal>
@@ -239,7 +241,7 @@ export default async function HomePage() {
                 they plug, straight from the brand.
               </p>
               <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-                <Link href="/category/womens-fashion">
+                <Link href="/creators">
                   <Button
                     size="lg"
                     variant="secondary"

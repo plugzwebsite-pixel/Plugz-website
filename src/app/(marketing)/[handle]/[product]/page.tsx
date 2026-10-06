@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { publicBrand, publiclyVisibleCreator } from "@/lib/queries";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowUpRight, Star, Ticket, BadgeCheck } from "lucide-react";
+import { ArrowUpRight, ChevronRight, Star, Ticket, BadgeCheck } from "lucide-react";
 import { Container, Badge, Eyebrow } from "@/components/ui/primitives";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,7 @@ import { SaveButton } from "@/components/marketing/save-button";
 import { Reveal } from "@/components/ui/reveal";
 import { ProductImage } from "@/components/ui/product-image";
 import { getCreatorProduct, getSimilarProducts } from "@/lib/queries";
-import { compact, gbpFromPence } from "@/lib/utils";
+import { compact, gbpFromPence, plural } from "@/lib/utils";
 
 /**
  * The Pluggz product page.
@@ -44,7 +44,10 @@ export async function generateStaticParams() {
     where: { live: true, profile: publiclyVisibleCreator, product: { brand: publicBrand } },
     select: { slug: true, profile: { select: { handle: true } } },
   });
-  return listings.map((l) => ({ handle: `@${l.profile.handle}`, product: l.slug }));
+  return listings.map((l: { slug: string; profile: { handle: string } }) => ({
+    handle: `@${l.profile.handle}`,
+    product: l.slug,
+  }));
 }
 
 export async function generateMetadata({
@@ -85,6 +88,37 @@ export default async function ProductPage({
     <>
       <ViewBeacon listingId={row.id} />
       <Container className="py-10">
+        {/* Breadcrumbs: a shopper arriving from a creator's link knows who
+            sent them, but not where they are. One glance fixes that. */}
+        <nav aria-label="Breadcrumb" className="mb-7">
+          <ol className="flex min-w-0 items-center gap-1.5 text-sm text-text-faint">
+            <li>
+              <Link href="/" className="transition-colors hover:text-brand-pink">
+                Home
+              </Link>
+            </li>
+            <li aria-hidden>
+              <ChevronRight size={14} />
+            </li>
+            <li>
+              <Link
+                href={`/@${creator.handle}`}
+                className="transition-colors hover:text-brand-pink"
+              >
+                @{creator.handle}
+              </Link>
+            </li>
+            <li aria-hidden>
+              <ChevronRight size={14} />
+            </li>
+            <li
+              aria-current="page"
+              className="min-w-0 truncate font-medium text-text-strong"
+            >
+              {product.name}
+            </li>
+          </ol>
+        </nav>
         <div className="grid gap-10 lg:grid-cols-[1.1fr_1fr]">
           {/* Image */}
           <Reveal>
@@ -180,7 +214,8 @@ export default async function ProductPage({
                       <BadgeCheck size={15} className="text-brand-pink" />
                     </div>
                     <p className="text-xs text-text-faint">
-                      @{creator.handle} · {compact(creator.followers)} followers
+                      @{creator.handle} · {compact(creator.followers)}{" "}
+                      {plural(creator.followers, "follower")}
                     </p>
                   </div>
                 </Link>
@@ -247,8 +282,16 @@ export default async function ProductPage({
               Also plugged by
             </h2>
             <div className="mt-5 flex flex-wrap gap-3">
-              {alsoPluggedBy.map((other) => (
-                <Link
+              {alsoPluggedBy.map(
+                (other: {
+                  slug: string;
+                  profile: {
+                    handle: string;
+                    avatarUrl: string | null;
+                    user: { name: string };
+                  };
+                }) => (
+                  <Link
                   key={other.profile.handle}
                   href={`/@${other.profile.handle}/${other.slug}`}
                   className="flex items-center gap-3 rounded-pill border border-border bg-surface py-2 pl-2 pr-5 transition-colors hover:border-border-strong"

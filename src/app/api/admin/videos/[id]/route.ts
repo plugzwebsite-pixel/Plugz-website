@@ -251,3 +251,46 @@ export async function POST(
 
   return ok(updated);
 }
+
+/**
+ * Deleting a video outright.
+ *
+ * This is the permanent counterpart to taking one down: the record goes as
+ * well as the file at Cloudflare, which is what you reach for with a failed
+ * or orphaned upload rather than a moderation decision. Nothing financial
+ * hangs off a video, so there is nothing to guard.
+ */
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const limit = await rateLimit(clientKey(req, "admin-video-delete"), 20, 60_000);
+  if (!limit.ok) return fail("Slow down and retry.", 429);
+
+  const admin = await requireAdmin();
+  if (!admin.ok) return fail("Admins only.", 403);
+
+  const { id } = await params;
+
+  const row = await db.creatorVideo.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      uid: true,
+      pendingUid: true,
+      creatorProduct: {
+        select: { slug: true, profile: { select: { handle: true } } },
+      },
+    },
+  });
+  if (!row) return fail("No such video.", 404);
+
+  void deleteVideo(row.uid);
+  if (row.pendingUid) void deleteVideo(row.pendingUid);
+
+  await db.creatorVideo.delete({ where: { id } });
+
+  revalidateListing({
+    handle: row.creatorProduct.profile.handle,
+    slug: row.creatorProduct.slug,
+  });
+
+  return ok({ removed: true });
+}

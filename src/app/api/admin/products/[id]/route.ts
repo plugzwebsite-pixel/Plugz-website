@@ -120,3 +120,58 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
   return ok({ updated: true });
 }
+
+/**
+ * Deleting a listing outright.
+ *
+ * The id is the listing, not the shared product: one creator's page for an
+ * item goes, and the item itself only follows when no other creator still
+ * plugs it. Refused while any sale exists on it, because a sale is the
+ * platform's record, not the listing's. Taking it off the website is the
+ * reversible option and stays available in the manage screen.
+ */
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const limit = await rateLimit(clientKey(req, "admin-product-delete"), 20, 60_000);
+  if (!limit.ok) return fail("Slow down and try again.", 429);
+
+  const admin = await requireAdmin();
+  if (!admin.ok) return fail("Admins only.", 403);
+
+  const { id } = await params;
+
+  const existing = await db.creatorProduct.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      slug: true,
+      productId: true,
+      profile: { select: { handle: true } },
+    },
+  });
+  if (!existing) return fail("That listing no longer exists.", 404);
+
+  const sales = await db.sale.count({ where: { creatorProductId: id } });
+  if (sales > 0) {
+    return fail(
+      "This listing has recorded sales and cannot be deleted. Take it off the website instead.",
+      409
+    );
+  }
+
+  const { slug, productId, profile } = existing;
+
+  await db.$transaction(async (tx) => {
+    // The tracking link, clicks and video all cascade from the listing.
+    await tx.creatorProduct.delete({ where: { id } });
+
+    // The shared product only goes when nobody else plugs it.
+    const remaining = await tx.creatorProduct.count({ where: { productId } });
+    if (remaining === 0) {
+      await tx.product.delete({ where: { id: productId } });
+    }
+  });
+
+  revalidateListing({ handle: profile.handle, slug });
+
+  return ok({ removed: true });
+}

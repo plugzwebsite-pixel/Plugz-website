@@ -2,14 +2,14 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Mail, Check, Users, Building2, KeyRound, Search } from "lucide-react";
+import { Mail, Check, Users, Building2, KeyRound, Search, Pause, Play, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/primitives";
 import { useToast } from "@/components/ui/toast";
 import { TrackingHandover } from "@/components/admin/tracking-handover";
 import { compact, gbpFromPence } from "@/lib/utils";
-import { postJson } from "@/lib/client/api";
+import { postJson, patchJson, deleteJson } from "@/lib/client/api";
 
 export type BrandRow = {
   id: string;
@@ -43,6 +43,7 @@ export function BrandList({ initial }: { initial: BrandRow[] }) {
   const [issuing, setIssuing] = useState<string | null>(null);
   const [form, setForm] = useState({ name: "", email: "" });
   const [busy, setBusy] = useState(false);
+  const [acting, setActing] = useState<string | null>(null);
   const toast = useToast();
 
   /**
@@ -105,6 +106,58 @@ export function BrandList({ initial }: { initial: BrandRow[] }) {
     setInviting(null);
     setForm({ name: "", email: "" });
     toast.success("Invite sent", `${form.email} can now set a password.`);
+  }
+
+  /**
+   * Pause or resume a brand.
+   *
+   * Pausing is the reversible middle ground between live and deleted: their
+   * products stop being shown and new sales postbacks are refused, but the
+   * history stays on the books. A brand that has recorded sales can never be
+   * deleted, so pausing is also the only way to take one of those down.
+   */
+  async function toggleStatus(brandId: string, brandName: string, current: string) {
+    const next = current === "ACTIVE" ? "PAUSED" : "ACTIVE";
+    setActing(brandId);
+    const res = await patchJson<{ status: string }>(`/api/admin/brands/${brandId}`, {
+      status: next,
+    });
+    setActing(null);
+
+    if (!res.ok) {
+      toast.error("Couldn't change that", res.message);
+      return;
+    }
+    setBrands((bs) => bs.map((b) => (b.id === brandId ? { ...b, status: next } : b)));
+    toast.success(
+      next === "PAUSED" ? `${brandName} paused` : `${brandName} resumed`,
+      next === "PAUSED"
+        ? "Their products are hidden and new sales are refused."
+        : "Their products are visible again."
+    );
+  }
+
+  async function remove(brandId: string, brandName: string) {
+    if (
+      !window.confirm(
+        `Delete ${brandName}?
+
+This removes the brand, its products and its contacts. ` +
+          "This cannot be undone."
+      )
+    ) {
+      return;
+    }
+    setActing(brandId);
+    const res = await deleteJson(`/api/admin/brands/${brandId}`);
+    setActing(null);
+
+    if (!res.ok) {
+      toast.error("Couldn't delete that", res.message);
+      return;
+    }
+    setBrands((bs) => bs.filter((b) => b.id !== brandId));
+    toast.success("Brand deleted");
   }
 
   if (brands.length === 0) {
@@ -203,6 +256,26 @@ export function BrandList({ initial }: { initial: BrandRow[] }) {
               >
                 <KeyRound size={14} />{" "}
                 {b.platform === "SHOPIFY" ? "Tracking script" : "Tracking keys"}
+              </Button>
+              {(b.status === "ACTIVE" || b.status === "PAUSED") && (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  loading={acting === b.id}
+                  onClick={() => toggleStatus(b.id, b.name, b.status)}
+                >
+                  {b.status === "ACTIVE" ? <Pause size={14} /> : <Play size={14} />}{" "}
+                  {b.status === "ACTIVE" ? "Pause" : "Resume"}
+                </Button>
+              )}
+              <Button
+                size="sm"
+                variant="ghost"
+                loading={acting === b.id}
+                onClick={() => remove(b.id, b.name)}
+                aria-label={`Delete ${b.name}`}
+              >
+                <Trash2 size={14} />
               </Button>
             </div>
           </div>

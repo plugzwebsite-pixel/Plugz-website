@@ -222,6 +222,9 @@ export async function POST(req: Request) {
 }
 
 export async function DELETE(req: Request) {
+  const limit = await rateLimit(clientKey(req, "admin-campaign-delete"), 20, 60_000);
+  if (!limit.ok) return fail("Too many requests. Try again shortly.", 429);
+
   const admin = await requireAdmin();
   if (!admin.ok) return fail("Admins only.", 403);
 

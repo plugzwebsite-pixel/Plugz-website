@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { ok, fail, parseBody } from "@/lib/http";
 import { requireRole } from "@/lib/auth/guard";
+import { rateLimit, clientKey } from "@/lib/rate-limit";
 import { categoriesChanged, slugify } from "@/lib/categories";
 import { z } from "zod";
 
@@ -145,6 +146,9 @@ export async function PATCH(req: Request) {
 }
 
 export async function DELETE(req: Request) {
+  const limit = await rateLimit(clientKey(req, "admin-category-delete"), 20, 60_000);
+  if (!limit.ok) return fail("Too many requests. Try again shortly.", 429);
+
   const auth = await requireRole("ADMIN");
   if ("response" in auth) return auth.response;
 

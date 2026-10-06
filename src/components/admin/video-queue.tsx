@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Check, ExternalLink, Play, Trash2 } from "lucide-react";
-import { postJson } from "@/lib/client/api";
+import { postJson, deleteJson } from "@/lib/client/api";
 import { Button } from "@/components/ui/button";
 import { Badge, Pill } from "@/components/ui/primitives";
 import { useToast } from "@/components/ui/toast";
@@ -76,6 +76,36 @@ export function VideoQueue({
     // review state, so a row that changed state no longer belongs in it.
     setRows((list) => list.filter((r) => r.id !== v.id));
     toast.success(action === "approve" ? "Kept" : "Taken down");
+  }
+
+  /**
+   * Erasing a video for good.
+   *
+   * Taking one down is moderation: the record stays. This is the step after,
+   * for the failed uploads and leftovers that should not be kept at all. The
+   * file at Cloudflare is already gone for anything taken down; this also
+   * removes the record itself.
+   */
+  async function destroy(v: QueueVideo) {
+    if (
+      !window.confirm(
+        `Permanently delete this video?
+
+The record goes as well as the file. ` + "This cannot be undone."
+      )
+    ) {
+      return;
+    }
+    setBusy(v.id);
+    const res = await deleteJson(`/api/admin/videos/${v.id}`);
+    setBusy(null);
+
+    if (!res.ok) {
+      toast.error("Couldn't delete that", res.message);
+      return;
+    }
+    setRows((list) => list.filter((r) => r.id !== v.id));
+    toast.success("Video deleted");
   }
 
   const tabs = [
@@ -166,6 +196,17 @@ export function VideoQueue({
                     </Button>
                   )}
                   {v.review === "REMOVED" && <Badge tone="amber">Taken down</Badge>}
+                  {v.review === "REMOVED" && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      loading={busy === v.id}
+                      onClick={() => destroy(v)}
+                      title="Remove the record as well as the file"
+                    >
+                      <Trash2 size={14} /> Delete permanently
+                    </Button>
+                  )}
                 </div>
               </div>
 

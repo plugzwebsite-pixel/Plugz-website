@@ -77,6 +77,12 @@ export function SiteHeader({ categories }: { categories: CategoryRecord[] }) {
               {c.name}
             </Link>
           ))}
+          <Link
+            href="/creators"
+            className="rounded-pill px-3 py-2 text-sm text-text-muted transition-colors hover:bg-surface-2 hover:text-text-strong"
+          >
+            Creators
+          </Link>
         </nav>
 
         <form onSubmit={onSearch} className="ml-auto hidden max-w-xs flex-1 md:block">
@@ -140,6 +146,13 @@ export function SiteHeader({ categories }: { categories: CategoryRecord[] }) {
             className="overflow-hidden border-t border-border glass lg:hidden"
           >
             <div className="space-y-1 px-5 py-4">
+              <Link
+                href="/creators"
+                onClick={() => setMenuOpen(false)}
+                className="flex items-center gap-3 rounded-sm px-3 py-2.5 text-sm text-text-muted hover:bg-surface-2 hover:text-text-strong"
+              >
+                <span>✦</span> Creators
+              </Link>
               {categories.map((c) => (
                 <Link
                   key={c.slug}

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useController, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
@@ -36,6 +37,7 @@ export function ShopperSignupForm({
   categories?: string[];
 }) {
   const choices = categories?.length ? categories : [...CATEGORIES];
+
   const {
     register,
     handleSubmit,

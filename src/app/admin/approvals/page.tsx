@@ -9,7 +9,7 @@ async function loadApplicants(): Promise<{ items: Applicant[]; dbError: boolean 
     const profiles = await db.creatorProfile.findMany({
       orderBy: { createdAt: "asc" },
       include: {
-        user: { select: { name: true } },
+        user: { select: { name: true, emailVerified: true } },
         // Handle and url come through too: approval requires spot-checking the
         // self-reported follower counts against the actual profiles, which is
         // impossible without a link to open.
@@ -28,6 +28,7 @@ async function loadApplicants(): Promise<{ items: Applicant[]; dbError: boolean 
         category: p.category,
         status: p.status,
         featured: p.featured,
+        emailVerified: p.user.emailVerified !== null,
         socials: p.socials,
       })),
     };

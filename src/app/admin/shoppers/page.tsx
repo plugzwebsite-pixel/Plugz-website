@@ -11,6 +11,7 @@ import {
 import { StatCard } from "@/components/dashboard/stat-card";
 import { Badge } from "@/components/ui/primitives";
 import { Button } from "@/components/ui/button";
+import { ShopperDeleteButton } from "@/components/admin/shopper-delete-button";
 import {
   listShoppers,
   parseFilter,
@@ -177,6 +178,9 @@ export default async function AdminShoppersPage({
                   <th className="px-5 py-3 font-semibold">Joined</th>
                   <th className="px-5 py-3 font-semibold">Email</th>
                   <th className="px-5 py-3 font-semibold">Marketing</th>
+                  <th className="px-5 py-3 font-semibold">
+                    <span className="sr-only">Actions</span>
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -240,6 +244,9 @@ export default async function AdminShoppersPage({
                             )}
                           </>
                         )}
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <ShopperDeleteButton id={row.id} name={row.name} />
                       </td>
                     </tr>
                   );

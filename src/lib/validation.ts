@@ -243,6 +243,64 @@ export const adminAddCreatorSchema = z.object({
 });
 export type AdminAddCreatorInput = z.infer<typeof adminAddCreatorSchema>;
 
+/**
+ * Recording a single sale by hand.
+ *
+ * The CSV import is for brand reports; this is for the one-off: an order
+ * confirmed over the phone, a code reconciled from a screenshot, a click
+ * reference a brand reads out. Attribution is one of the three things a brand
+ * report can hold, the same three the importer understands, and the listing it
+ * resolves to has to belong to the brand chosen above it, so a sale can never
+ * be filed against the wrong brand.
+ */
+export const manualSaleAttributionSchema = z.discriminatedUnion("type", [
+  z.object({
+    type: z.literal("click"),
+    clickRef: z.string().trim().min(4, "Enter the click reference"),
+  }),
+  z.object({
+    type: z.literal("code"),
+    discountCode: z
+      .string()
+      .trim()
+      .min(1, "Enter the discount code")
+      .max(40, "That code is longer than any checkout will accept"),
+  }),
+  z.object({
+    type: z.literal("listing"),
+    listingId: z.string().min(1, "Choose a listing"),
+  }),
+]);
+
+export const manualSaleSchema = z
+  .object({
+    brandId: z.string().min(1, "Choose a brand"),
+    attribution: manualSaleAttributionSchema,
+    valuePence: z
+      .number()
+      .int("Enter a whole number of pence")
+      .min(1, "The order value must be above zero")
+      .max(10_000_000, "That value looks too large. Check it and try again"),
+    orderRef: z
+      .string()
+      .trim()
+      .max(80, "Keep the reference under 80 characters")
+      .optional()
+      .or(z.literal("")),
+    soldAt: z
+      .string()
+      .trim()
+      .min(1, "Choose a date")
+      .refine((v) => !Number.isNaN(Date.parse(v)), "That date is not valid")
+      .transform((v) => new Date(v)),
+  })
+  .refine((d) => d.soldAt.getTime() <= Date.now() + 60_000, {
+    message: "The sale date cannot be in the future",
+    path: ["soldAt"],
+  });
+
+export type ManualSaleInput = z.infer<typeof manualSaleSchema>;
+
 /** Flatten a ZodError into a { field: message } map for form display. */
 export function fieldErrors(err: z.ZodError): Record<string, string> {
   const out: Record<string, string> = {};

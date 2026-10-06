@@ -3,7 +3,12 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { requireAdmin } from "@/lib/auth/access";
+import { db } from "@/lib/db";
 import { ImportSales } from "@/components/admin/import-sales";
+import {
+  ManualSaleForm,
+  type ManualSaleBrand,
+} from "@/components/admin/manual-sale-form";
 import { SaleSourceLabel } from "@/components/admin/sale-source";
 import { recentSales } from "@/lib/stats";
 import { gbpFromPence } from "@/lib/utils";
@@ -17,6 +22,34 @@ export default async function AdminSalesPage() {
 
   const recent = await recentSales(5);
 
+  const brands = await db.brand.findMany({
+    where: { status: "ACTIVE", demo: false },
+    orderBy: { name: "asc" },
+    select: {
+      id: true,
+      name: true,
+      products: {
+        select: {
+          name: true,
+          creatorProducts: {
+            select: { id: true, profile: { select: { handle: true } } },
+          },
+        },
+      },
+    },
+  });
+
+  const brandOptions: ManualSaleBrand[] = brands.map((b) => ({
+    id: b.id,
+    name: b.name,
+    listings: b.products.flatMap((p) =>
+      p.creatorProducts.map((cp) => ({
+        id: cp.id,
+        label: `@${cp.profile.handle} / ${p.name}`,
+      }))
+    ),
+  }));
+
   return (
     <div className="space-y-6">
       <p className="max-w-2xl text-text-muted">
@@ -27,6 +60,7 @@ export default async function AdminSalesPage() {
         already earned.
       </p>
       <ImportSales />
+      <ManualSaleForm brands={brandOptions} />
 
       {/* Whatever is loaded above lands in the ledger, which lives on another
           page. Without this, a successful import looks like nothing happened. */}
