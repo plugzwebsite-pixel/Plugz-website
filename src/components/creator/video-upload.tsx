@@ -5,6 +5,7 @@ import { Clapperboard, Trash2, TriangleAlert } from "lucide-react";
 import { postJson } from "@/lib/client/api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/primitives";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useToast } from "@/components/ui/toast";
 
 /**
@@ -46,6 +47,7 @@ export function VideoUpload({
   const [video, setVideo] = useState<VideoRow | null>(initial);
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState<number | null>(null);
+  const [confirmingRemove, setConfirmingRemove] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
   const toast = useToast();
 
@@ -149,10 +151,10 @@ export function VideoUpload({
 
   async function remove() {
     if (!video?.id) return;
-    if (!window.confirm("Remove this video from your storefront?")) return;
     setBusy(true);
     const res = await fetch(`/api/creator/videos/${video.id}`, { method: "DELETE" });
     setBusy(false);
+    setConfirmingRemove(false);
     if (!res.ok) {
       toast.error("Couldn't remove that video");
       return;
@@ -232,7 +234,7 @@ export function VideoUpload({
               <p className="mt-1 text-xs text-text-faint">{video.durationSeconds} seconds</p>
             ) : null}
           </div>
-          <Button size="sm" variant="ghost" disabled={busy} onClick={remove}>
+          <Button size="sm" variant="ghost" disabled={busy} onClick={() => setConfirmingRemove(true)}>
             <Trash2 size={14} /> Remove
           </Button>
           <Button
@@ -271,6 +273,14 @@ export function VideoUpload({
           const f = e.target.files?.[0];
           if (f) void choose(f);
         }}
+      />
+      <ConfirmDialog
+        open={confirmingRemove}
+        title="Remove this video?"
+        description="It disappears from your storefront. This cannot be undone."
+        onConfirm={remove}
+        onClose={() => setConfirmingRemove(false)}
+        busy={busy}
       />
     </div>
   );

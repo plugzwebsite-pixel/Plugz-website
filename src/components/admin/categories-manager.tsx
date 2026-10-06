@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/primitives";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/controls";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useToast } from "@/components/ui/toast";
 import { postJson } from "@/lib/client/api";
 
@@ -172,6 +173,7 @@ function CategoryItem({ category: c }: { category: CategoryRow }) {
   const [bannerLabel, setBannerLabel] = useState(c.bannerLabel ?? "");
   const [bannerActive, setBannerActive] = useState(c.bannerActive);
   const [busy, setBusy] = useState(false);
+  const [confirming, setConfirming] = useState(false);
   const router = useRouter();
   const toast = useToast();
 
@@ -227,19 +229,11 @@ function CategoryItem({ category: c }: { category: CategoryRow }) {
   }
 
   async function remove() {
-    if (
-      !window.confirm(
-        `Delete the ${c.name} category?
-
-Its page disappears from the site. ` + "This cannot be undone."
-      )
-    ) {
-      return;
-    }
     setBusy(true);
     const res = await fetch(`/api/admin/categories?id=${c.id}`, { method: "DELETE" });
     const payload = await res.json().catch(() => null);
     setBusy(false);
+    setConfirming(false);
 
     if (!res.ok) {
       toast.error("Couldn't remove that", payload?.message);
@@ -290,7 +284,7 @@ Its page disappears from the site. ` + "This cannot be undone."
             {c.active ? <Eye size={15} /> : <EyeOff size={15} />}
           </button>
           <button
-            onClick={remove}
+            onClick={() => setConfirming(true)}
             disabled={busy || c.products > 0}
             title={c.products > 0 ? "Has products in it. Hide it instead." : undefined}
             aria-label={`Remove ${c.name}`}
@@ -432,6 +426,14 @@ Its page disappears from the site. ` + "This cannot be undone."
           </div>
         </div>
       )}
+      <ConfirmDialog
+        open={confirming}
+        title={`Delete the ${c.name} category?`}
+        description="Its page disappears from the site. This cannot be undone."
+        onConfirm={remove}
+        onClose={() => setConfirming(false)}
+        busy={busy}
+      />
     </li>
   );
 }

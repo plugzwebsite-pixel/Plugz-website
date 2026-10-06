@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Field, Input, Textarea } from "@/components/ui/input";
 import { Select } from "@/components/ui/controls";
 import { Badge } from "@/components/ui/primitives";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { patchJson, postJson, deleteJson } from "@/lib/client/api";
 import { useToast } from "@/components/ui/toast";
 import { parseProductPrice } from "@/lib/product-price";
@@ -53,6 +54,7 @@ export function ProductManager({
   const [videoBusy, setVideoBusy] = useState(false);
   const [progress, setProgress] = useState<number | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [video, setVideo] = useState<VideoRow | null>(row.video);
   const [form, setForm] = useState({
     name: row.product,
@@ -153,19 +155,10 @@ export function ProductManager({
   }
 
   async function removeListing() {
-    if (
-      !window.confirm(
-        `Delete this listing?
-
-${row.product} is removed from this creator's page for good. ` +
-          "This cannot be undone."
-      )
-    ) {
-      return;
-    }
     setBusy(true);
     const response = await deleteJson(`/api/admin/products/${row.id}`);
     setBusy(false);
+    setConfirmingDelete(false);
     if (!response.ok) {
       toast.error("Couldn't delete that", response.message);
       return;
@@ -310,7 +303,7 @@ ${row.product} is removed from this creator's page for good. ` +
                 <Button type="button" variant={form.live ? "danger" : "secondary"} loading={busy} onClick={togglePublished}>
                   {form.live ? <><Trash2 size={15} /> Remove from website</> : "Restore to website"}
                 </Button>
-                <Button type="button" variant="ghost" loading={busy} onClick={removeListing}>
+                <Button type="button" variant="ghost" loading={busy} onClick={() => setConfirmingDelete(true)}>
                   <Trash2 size={15} /> Delete permanently
                 </Button>
               </div>
@@ -322,6 +315,14 @@ ${row.product} is removed from this creator's page for good. ` +
           </div>
         </div>
       )}
+      <ConfirmDialog
+        open={confirmingDelete}
+        title="Delete this listing?"
+        description={`${row.product} is removed from this creator's page for good. This cannot be undone.`}
+        onConfirm={removeListing}
+        onClose={() => setConfirmingDelete(false)}
+        busy={busy}
+      />
     </>
   );
 }

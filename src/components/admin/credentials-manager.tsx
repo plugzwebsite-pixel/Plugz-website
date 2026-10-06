@@ -5,6 +5,7 @@ import { KeyRound, Search, ShieldCheck, ShieldAlert } from "lucide-react";
 import { postJson } from "@/lib/client/api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/primitives";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useToast } from "@/components/ui/toast";
 import { TrackingHandover } from "@/components/admin/tracking-handover";
 
@@ -37,15 +38,10 @@ export function CredentialsManager({ brands }: { brands: CredentialBrand[] }) {
     { brandId: string; key: string; secret: string; rolled: boolean } | null
   >(null);
   const [known, setKnown] = useState<Record<string, boolean>>({});
+  const [confirming, setConfirming] = useState<CredentialBrand | null>(null);
   const toast = useToast();
 
   async function issue(brand: CredentialBrand) {
-    const rolling = known[brand.id] ?? brand.hasCredentials;
-    const warning = rolling
-      ? `${brand.name} already has credentials.\n\nIssuing new ones stops the old pair working immediately, so anything already sending us sales will start being refused until they are updated. Continue?`
-      : `Issue tracking credentials for ${brand.name}?\n\nThe secret is shown once and cannot be retrieved afterwards.`;
-    if (!window.confirm(warning)) return;
-
     setBusy(brand.id);
     const res = await postJson<{ key: string; secret: string; rolled: boolean }>(
       `/api/admin/brands/${brand.id}/credentials`,
@@ -124,7 +120,7 @@ export function CredentialsManager({ brands }: { brands: CredentialBrand[] }) {
                 size="sm"
                 variant={has ? "secondary" : "primary"}
                 loading={busy === b.id}
-                onClick={() => issue(b)}
+                onClick={() => setConfirming(b)}
               >
                 <KeyRound size={14} />
                 {has ? "Replace" : b.platform === "SHOPIFY" ? "Issue script" : "Issue keys"}
@@ -158,6 +154,28 @@ export function CredentialsManager({ brands }: { brands: CredentialBrand[] }) {
           </div>
         );
       })}
+      <ConfirmDialog
+        open={confirming !== null}
+        title={
+          (confirming && (known[confirming.id] ?? confirming.hasCredentials))
+            ? `Replace credentials for ${confirming.name}?`
+            : `Issue tracking credentials for ${confirming?.name}?`
+        }
+        description={
+          (confirming && (known[confirming.id] ?? confirming.hasCredentials))
+            ? "Issuing new ones stops the old pair working immediately, so anything already sending sales will start being refused until they are updated."
+            : "The secret is shown once and cannot be retrieved afterwards."
+        }
+        confirmLabel="Issue credentials"
+        danger={false}
+        onConfirm={() => {
+          const b = confirming;
+          setConfirming(null);
+          if (b) issue(b);
+        }}
+        onClose={() => setConfirming(null)}
+        busy={busy !== null}
+      />
     </div>
   );
 }

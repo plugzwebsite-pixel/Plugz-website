@@ -6,6 +6,7 @@ import { Banknote, Landmark, Send, TriangleAlert, Users } from "lucide-react";
 import { postJson } from "@/lib/client/api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/primitives";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useToast } from "@/components/ui/toast";
 import { gbpFromPence } from "@/lib/utils";
 
@@ -81,6 +82,7 @@ export function PayoutsManager({
   minimumPence: number;
 }) {
   const [busy, setBusy] = useState<string | null>(null);
+  const [confirmingStripe, setConfirmingStripe] = useState(false);
   const toast = useToast();
   const router = useRouter();
 
@@ -124,16 +126,6 @@ export function PayoutsManager({
   }
 
   async function sendByStripe() {
-    if (
-      !window.confirm(
-        `Send ${gbpFromPence(payableByStripe.reduce((t, r) => t + r.pence, 0))} to ` +
-          `${payableByStripe.length} creator${payableByStripe.length === 1 ? "" : "s"} through Stripe?\n\n` +
-          `This moves real money from the Pluggz Stripe balance. Anybody owed less ` +
-          `than ${gbpFromPence(minimumPence)}, or whose Stripe setup is unfinished, ` +
-          `is left for next time.`
-      )
-    ) return;
-
     setBusy("stripe");
     const res = await postJson<{
       sentCount: number;
@@ -202,7 +194,7 @@ export function PayoutsManager({
                   .
                 </p>
                 <Button
-                  onClick={sendByStripe}
+                  onClick={() => setConfirmingStripe(true)}
                   disabled={busy !== null}
                   loading={busy === "stripe"}
                 >
@@ -337,6 +329,19 @@ export function PayoutsManager({
           </div>
         )}
       </div>
+      <ConfirmDialog
+        open={confirmingStripe}
+        title={`Send ${gbpFromPence(payableByStripe.reduce((t, r) => t + r.pence, 0))} to ${payableByStripe.length} creator${payableByStripe.length === 1 ? "" : "s"} through Stripe?`}
+        description={`This moves real money from the Pluggz Stripe balance. Anybody owed less than ${gbpFromPence(minimumPence)}, or whose Stripe setup is unfinished, is left for next time.`}
+        confirmLabel="Send payouts"
+        danger={false}
+        onConfirm={() => {
+          setConfirmingStripe(false);
+          sendByStripe();
+        }}
+        onClose={() => setConfirmingStripe(false)}
+        busy={busy !== null}
+      />
     </div>
   );
 }
