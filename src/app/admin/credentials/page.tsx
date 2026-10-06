@@ -7,6 +7,7 @@ import {
   type CredentialBrand,
 } from "@/components/admin/credentials-manager";
 import { TrackingGuide } from "@/components/admin/tracking-guide";
+import { TestTrackingLink } from "@/components/admin/test-tracking-link";
 
 export const metadata: Metadata = { title: "Brand credentials" };
 export const dynamic = "force-dynamic";
@@ -65,6 +66,7 @@ export default async function AdminCredentialsPage() {
       </div>
 
       <CredentialsManager brands={rows} />
+      <TestTrackingLink />
     </div>
   );
 }

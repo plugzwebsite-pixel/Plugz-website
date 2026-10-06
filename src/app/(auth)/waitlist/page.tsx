@@ -41,7 +41,7 @@ export default function WaitlistPage() {
           <Reveal>
             <span className="inline-flex items-center gap-2 rounded-pill border border-border bg-surface-2/70 px-4 py-1.5 text-xs font-medium text-text-muted backdrop-blur">
               <span className="h-1.5 w-1.5 animate-pulse-glow rounded-full bg-accent-green" />
-              Launching in the UK · 62 creators and counting
+              Launching in the UK · be first through the door
             </span>
           </Reveal>
           <Reveal index={1}>

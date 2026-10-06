@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useController, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
@@ -16,6 +17,7 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { Checkbox } from "@/components/ui/controls";
 import { Pill } from "@/components/ui/primitives";
 import { Button } from "@/components/ui/button";
+import { TurnstileWidget } from "@/components/turnstile";
 import { postJson } from "@/lib/client/api";
 import { hardNavigate } from "@/lib/auth/navigate";
 
@@ -36,6 +38,11 @@ export function ShopperSignupForm({
   categories?: string[];
 }) {
   const choices = categories?.length ? categories : [...CATEGORIES];
+
+  // Tokens are single use: the server consumes one on every attempt, so the
+  // widget is remounted after each submit to issue a fresh one.
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [widgetKey, setWidgetKey] = useState(0);
   const {
     register,
     handleSubmit,
@@ -76,8 +83,10 @@ export function ShopperSignupForm({
   async function onSubmit(values: ShopperSignupInput) {
     const res = await postJson<{ redirect: string }>(
       "/api/auth/signup/shopper",
-      { ...values, source }
+      { ...values, source, turnstileToken }
     );
+    setWidgetKey((k) => k + 1);
+    setTurnstileToken(null);
 
     if (!res.ok) {
       if (res.errors) {
@@ -212,6 +221,11 @@ export function ShopperSignupForm({
         )}
       </div>
 
+      <TurnstileWidget
+        key={widgetKey}
+        onVerify={setTurnstileToken}
+        onExpire={() => setTurnstileToken(null)}
+      />
       <Button type="submit" size="lg" loading={isSubmitting} className="w-full">
         Create my account
       </Button>

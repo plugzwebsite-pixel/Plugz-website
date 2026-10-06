@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { hardNavigate } from "@/lib/auth/navigate";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -12,12 +13,18 @@ import { Field, Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
+import { TurnstileWidget } from "@/components/turnstile";
 import { postJson } from "@/lib/client/api";
 
 export function LoginForm() {
   const params = useSearchParams();
   const next = params.get("next");
   const toast = useToast();
+
+  // Tokens are single use: the server consumes one on every attempt, so the
+  // widget is remounted after each submit to issue a fresh one.
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [widgetKey, setWidgetKey] = useState(0);
 
   const {
     register,
@@ -32,8 +39,10 @@ export function LoginForm() {
   async function onSubmit(values: LoginInput) {
     const res = await postJson<{ redirect: string; role: string }>(
       "/api/auth/login",
-      values
+      { ...values, turnstileToken }
     );
+    setWidgetKey((k) => k + 1);
+    setTurnstileToken(null);
 
     if (!res.ok) {
       if (res.errors) {
@@ -101,6 +110,11 @@ export function LoginForm() {
         </Link>
       </div>
 
+      <TurnstileWidget
+        key={widgetKey}
+        onVerify={setTurnstileToken}
+        onExpire={() => setTurnstileToken(null)}
+      />
       <Button type="submit" size="lg" loading={isSubmitting} className="w-full">
         Sign in
       </Button>

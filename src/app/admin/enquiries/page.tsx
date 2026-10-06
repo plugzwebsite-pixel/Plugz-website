@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Globe, Mail, Network, Ticket } from "lucide-react";
 import { db } from "@/lib/db";
 import { Badge } from "@/components/ui/primitives";
+import { EnquiryDeleteButton } from "@/components/admin/enquiry-delete-button";
 
 export const metadata: Metadata = { title: "Brand enquiries" };
 
@@ -93,9 +94,12 @@ export default async function BrandEnquiriesPage() {
                   )}
                 </div>
 
-                <span className="shrink-0 text-xs text-text-faint">
-                  {e.createdAt.toLocaleDateString("en-GB")}
-                </span>
+                <div className="flex shrink-0 items-center gap-1">
+                  <span className="text-xs text-text-faint">
+                    {e.createdAt.toLocaleDateString("en-GB")}
+                  </span>
+                  <EnquiryDeleteButton id={e.id} brand={e.brand} />
+                </div>
               </div>
             </div>
           ))}

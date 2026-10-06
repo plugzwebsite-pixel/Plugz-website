@@ -10,6 +10,7 @@ import { SignOutButton } from "@/components/auth/sign-out-button";
 import { Container, Badge, Eyebrow } from "@/components/ui/primitives";
 import { Button } from "@/components/ui/button";
 import { AccountForm } from "./account-form";
+import { DeleteAccount } from "@/components/account/delete-account";
 import { SavedItems, type SavedItem } from "@/components/account/saved-items";
 import { publicCategories } from "@/lib/categories";
 
@@ -191,6 +192,8 @@ export default async function AccountPage() {
           Apply as a creator
         </Link>
       </p>
+
+      <DeleteAccount />
     </Container>
   );
 }
