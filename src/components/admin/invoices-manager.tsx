@@ -8,6 +8,7 @@ import {
 import { postJson } from "@/lib/client/api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/primitives";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useToast } from "@/components/ui/toast";
 import { gbpFromPence } from "@/lib/utils";
 
@@ -74,18 +75,16 @@ export function InvoicesManager({
   stripeReady: boolean;
 }) {
   const [busy, setBusy] = useState<string | null>(null);
+  const [confirming, setConfirming] = useState<
+    | { kind: "raise"; brand: Awaiting }
+    | { kind: "send"; row: InvoiceRow }
+    | { kind: "cancel"; row: InvoiceRow }
+    | null
+  >(null);
   const toast = useToast();
   const router = useRouter();
 
   async function raise(brand: Awaiting) {
-    if (
-      !window.confirm(
-        `Raise an invoice to ${brand.name} for ${gbpFromPence(brand.pence)}?\n\n` +
-        `It covers ${brand.sales} sale${brand.sales === 1 ? "" : "s"}. The amount is fixed now, ` +
-        `so a later change to their commission rate will not alter it.`
-      )
-    ) return;
-
     setBusy(brand.id);
     const res = await postJson<{ number: string; amountPence: number; count: number }>(
       "/api/admin/invoices", { action: "raise", brandId: brand.id }
@@ -100,14 +99,6 @@ export function InvoicesManager({
   }
 
   async function send(row: InvoiceRow) {
-    if (
-      !window.confirm(
-        `Send invoice ${row.number} to ${row.brand.name} through Stripe?\n\n` +
-        `Stripe emails them a page to pay on. When they pay, the sales behind this ` +
-        `invoice are released so their creators can be paid.`
-      )
-    ) return;
-
     setBusy(row.id);
     const res = await postJson<{ hostedInvoiceUrl: string | null }>(
       "/api/admin/invoices", { action: "send", invoiceId: row.id }
@@ -140,12 +131,6 @@ export function InvoicesManager({
   }
 
   async function cancel(row: InvoiceRow) {
-    if (
-      !window.confirm(
-        `Cancel invoice ${row.number}?\n\nIts ${row._count.sales} sales go back to being unbilled ` +
-        `and can be invoiced again.`
-      )
-    ) return;
     setBusy(row.id);
     const res = await postJson("/api/admin/invoices", { action: "void", invoiceId: row.id });
     setBusy(null);
@@ -188,7 +173,7 @@ export function InvoicesManager({
                     <td className="px-4 py-3 text-text-muted">{b.sales}</td>
                     <td className="px-4 py-3 text-text-strong">{gbpFromPence(b.pence)}</td>
                     <td className="px-4 py-3 text-right">
-                      <Button size="sm" loading={busy === b.id} onClick={() => raise(b)}>
+                      <Button size="sm" loading={busy === b.id} onClick={() => setConfirming({ kind: "raise", brand: b })}>
                         <FileText size={14} /> Raise invoice
                       </Button>
                     </td>
@@ -250,7 +235,7 @@ export function InvoicesManager({
                 {row.status !== "PAID" && row.status !== "VOID" && (
                   <div className="mt-4 flex flex-wrap gap-2">
                     {!row.stripeInvoiceId && stripeReady && (
-                      <Button size="sm" loading={busy === row.id} onClick={() => send(row)}>
+                      <Button size="sm" loading={busy === row.id} onClick={() => setConfirming({ kind: "send", row })}>
                         <Send size={14} /> Send through Stripe
                       </Button>
                     )}
@@ -266,7 +251,7 @@ export function InvoicesManager({
                       size="sm"
                       variant="ghost"
                       loading={busy === row.id}
-                      onClick={() => cancel(row)}
+                      onClick={() => setConfirming({ kind: "cancel", row })}
                     >
                       <Ban size={14} /> Cancel
                     </Button>
@@ -288,6 +273,41 @@ export function InvoicesManager({
           </div>
         )}
       </section>
+      <ConfirmDialog
+        open={confirming !== null}
+        title={
+          confirming?.kind === "raise"
+            ? `Raise an invoice to ${confirming.brand.name} for ${gbpFromPence(confirming.brand.pence)}?`
+            : confirming?.kind === "send"
+              ? `Send invoice ${confirming.row.number} through Stripe?`
+              : `Cancel invoice ${confirming?.row.number}?`
+        }
+        description={
+          confirming?.kind === "raise"
+            ? `It covers ${confirming.brand.sales} sale${confirming.brand.sales === 1 ? "" : "s"}. The amount is fixed now, so a later change to their commission rate will not alter it.`
+            : confirming?.kind === "send"
+              ? "Stripe emails them a page to pay on. When they pay, the sales behind this invoice are released so their creators can be paid."
+              : `Its ${confirming?.row._count.sales} sales go back to being unbilled and can be invoiced again.`
+        }
+        confirmLabel={
+          confirming?.kind === "raise"
+            ? "Raise invoice"
+            : confirming?.kind === "send"
+              ? "Send"
+              : "Cancel invoice"
+        }
+        danger={confirming?.kind === "cancel"}
+        onConfirm={() => {
+          const c = confirming;
+          setConfirming(null);
+          if (!c) return;
+          if (c.kind === "raise") raise(c.brand);
+          else if (c.kind === "send") send(c.row);
+          else cancel(c.row);
+        }}
+        onClose={() => setConfirming(null)}
+        busy={busy !== null}
+      />
     </div>
   );
 }
