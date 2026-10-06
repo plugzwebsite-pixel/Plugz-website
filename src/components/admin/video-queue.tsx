@@ -6,6 +6,7 @@ import { Check, ExternalLink, Play, Trash2 } from "lucide-react";
 import { postJson, deleteJson } from "@/lib/client/api";
 import { Button } from "@/components/ui/button";
 import { Badge, Pill } from "@/components/ui/primitives";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useToast } from "@/components/ui/toast";
 
 /**
@@ -48,6 +49,7 @@ export function VideoQueue({
   const [rows, setRows] = useState(videos);
   const [busy, setBusy] = useState<string | null>(null);
   const [playing, setPlaying] = useState<string | null>(null);
+  const [confirming, setConfirming] = useState<QueueVideo | null>(null);
   const toast = useToast();
 
   async function review(v: QueueVideo, action: "approve" | "remove") {
@@ -87,18 +89,10 @@ export function VideoQueue({
    * removes the record itself.
    */
   async function destroy(v: QueueVideo) {
-    if (
-      !window.confirm(
-        `Permanently delete this video?
-
-The record goes as well as the file. ` + "This cannot be undone."
-      )
-    ) {
-      return;
-    }
     setBusy(v.id);
     const res = await deleteJson(`/api/admin/videos/${v.id}`);
     setBusy(null);
+    setConfirming(null);
 
     if (!res.ok) {
       toast.error("Couldn't delete that", res.message);
@@ -201,7 +195,7 @@ The record goes as well as the file. ` + "This cannot be undone."
                       size="sm"
                       variant="ghost"
                       loading={busy === v.id}
-                      onClick={() => destroy(v)}
+                      onClick={() => setConfirming(v)}
                       title="Remove the record as well as the file"
                     >
                       <Trash2 size={14} /> Delete permanently
@@ -227,6 +221,18 @@ The record goes as well as the file. ` + "This cannot be undone."
           ))}
         </div>
       )}
+      <ConfirmDialog
+        open={confirming !== null}
+        title="Permanently delete this video?"
+        description="The record goes as well as the file. This cannot be undone."
+        onConfirm={() => {
+          const v = confirming;
+          setConfirming(null);
+          if (v) destroy(v);
+        }}
+        onClose={() => setConfirming(null)}
+        busy={busy !== null}
+      />
     </div>
   );
 }
