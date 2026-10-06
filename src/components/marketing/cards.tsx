@@ -4,7 +4,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/primitives";
 import { ProductImage } from "@/components/ui/product-image";
 import { SaveButton } from "./save-button";
-import { compact, gbpFromPence } from "@/lib/utils";
+import { compact, gbpFromPence, plural } from "@/lib/utils";
 import type { CreatorCardData, ProductCardData } from "@/lib/queries";
 
 export function CreatorCard({ creator }: { creator: CreatorCardData }) {
@@ -32,7 +32,9 @@ export function CreatorCard({ creator }: { creator: CreatorCardData }) {
       <div className="mt-4 flex items-center justify-between">
         <Badge tone={creator.trending ? "brand" : "neutral"}>{creator.category}</Badge>
         <span className="text-xs text-text-faint">
-          {creator.followers > 0 ? `${compact(creator.followers)} followers` : ""}
+          {creator.followers > 0
+            ? `${compact(creator.followers)} ${plural(creator.followers, "follower")}`
+            : ""}
         </span>
       </div>
     </Link>

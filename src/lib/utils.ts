@@ -36,6 +36,15 @@ export function compact(value: number) {
   }).format(value);
 }
 
+/**
+ * Singular/plural word choice: plural(1, "follower") -> "follower",
+ * plural(12, "follower") -> "followers". Pass an explicit plural form for
+ * irregular words.
+ */
+export function plural(value: number, singular: string, pluralForm?: string) {
+  return value === 1 ? singular : (pluralForm ?? `${singular}s`);
+}
+
 /** Initials from a name: "Freya Sinclair" -> "FS". */
 export function initials(name: string) {
   return name
