@@ -20,7 +20,6 @@ import { Field, Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { Checkbox } from "@/components/ui/controls";
 import { Button } from "@/components/ui/button";
-import { TurnstileWidget } from "@/components/turnstile";
 import { postJson } from "@/lib/client/api";
 import { SignupPhotoPicker } from "./signup-photo-picker";
 
@@ -36,13 +35,9 @@ const platforms = [
  * The fields still travel as JSON in a `payload` part, so the server validates
  * exactly the same shape whether or not a photo came with it.
  */
-async function postSignupWithPhoto(
-  values: CreatorSignupInput,
-  photo: File,
-  turnstileToken: string | null
-) {
+async function postSignupWithPhoto(values: CreatorSignupInput, photo: File) {
   const body = new FormData();
-  body.append("payload", JSON.stringify({ ...values, turnstileToken }));
+  body.append("payload", JSON.stringify(values));
   body.append("photo", photo);
 
   const res = await fetch("/api/auth/signup", { method: "POST", body });
@@ -63,11 +58,6 @@ async function postSignupWithPhoto(
 export function CreatorSignupForm() {
   const [submitted, setSubmitted] = useState<string | null>(null);
   const [photo, setPhoto] = useState<File | null>(null);
-
-  // Tokens are single use: the server consumes one on every attempt, so the
-  // widget is remounted after each submit to issue a fresh one.
-  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
-  const [widgetKey, setWidgetKey] = useState(0);
 
   const {
     register,
@@ -98,13 +88,8 @@ export function CreatorSignupForm() {
     // Multipart only when there is a file to carry, so the ordinary path stays
     // a plain JSON post.
     const res = photo
-      ? await postSignupWithPhoto(values, photo, turnstileToken)
-      : await postJson<{ email: string }>("/api/auth/signup", {
-          ...values,
-          turnstileToken,
-        });
-    setWidgetKey((k) => k + 1);
-    setTurnstileToken(null);
+      ? await postSignupWithPhoto(values, photo)
+      : await postJson<{ email: string }>("/api/auth/signup", values);
     if (!res.ok) {
       if (res.errors) {
         for (const [field, message] of Object.entries(res.errors)) {
@@ -310,11 +295,6 @@ export function CreatorSignupForm() {
         )}
       </div>
 
-      <TurnstileWidget
-        key={widgetKey}
-        onVerify={setTurnstileToken}
-        onExpire={() => setTurnstileToken(null)}
-      />
       <Button type="submit" size="lg" loading={isSubmitting} className="w-full">
         Create Account
       </Button>

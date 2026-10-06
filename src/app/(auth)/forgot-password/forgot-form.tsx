@@ -9,15 +9,10 @@ import { Mail, MailCheck } from "lucide-react";
 import { forgotPasswordSchema, type ForgotPasswordInput } from "@/lib/validation";
 import { Field, Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { TurnstileWidget } from "@/components/turnstile";
 import { postJson } from "@/lib/client/api";
 
 export function ForgotPasswordForm() {
   const [sentTo, setSentTo] = useState<string | null>(null);
-  // Tokens are single use: the server consumes one on every attempt, so the
-  // widget is remounted after each submit to issue a fresh one.
-  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
-  const [widgetKey, setWidgetKey] = useState(0);
   const {
     register,
     handleSubmit,
@@ -28,9 +23,7 @@ export function ForgotPasswordForm() {
   });
 
   async function onSubmit(values: ForgotPasswordInput) {
-    await postJson("/api/auth/forgot-password", { ...values, turnstileToken });
-    setWidgetKey((k) => k + 1);
-    setTurnstileToken(null);
+    await postJson("/api/auth/forgot-password", values);
     setSentTo(values.email); // always show success, never reveal account existence
   }
 
@@ -82,11 +75,6 @@ export function ForgotPasswordForm() {
           {...register("email")}
         />
       </Field>
-      <TurnstileWidget
-        key={widgetKey}
-        onVerify={setTurnstileToken}
-        onExpire={() => setTurnstileToken(null)}
-      />
       <Button type="submit" size="lg" loading={isSubmitting} className="w-full">
         Send reset link
       </Button>

@@ -4,14 +4,10 @@ import { forgotPasswordSchema } from "@/lib/validation";
 import { generateToken, expiryFromNow } from "@/lib/auth/tokens";
 import { sendPasswordResetEmail } from "@/lib/email";
 import { rateLimit, clientKey } from "@/lib/rate-limit";
-import { checkTurnstile } from "@/lib/turnstile";
 
 export async function POST(req: Request) {
   const limit = await rateLimit(clientKey(req, "forgot"), 5, 60_000);
   if (!limit.ok) return fail("Too many attempts. Try again shortly.", 429);
-
-  const captcha = await checkTurnstile(req);
-  if (!captcha.ok) return captcha.response;
 
   const parsed = await parseBody(req, forgotPasswordSchema);
   if (!parsed.success) return parsed.response;

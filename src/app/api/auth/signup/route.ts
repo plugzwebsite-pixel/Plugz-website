@@ -6,16 +6,12 @@ import { generateToken, expiryFromNow } from "@/lib/auth/tokens";
 import { sendVerificationEmail } from "@/lib/email";
 import { rateLimit, clientKey } from "@/lib/rate-limit";
 import { storeAvatar } from "@/lib/avatar";
-import { checkTurnstile } from "@/lib/turnstile";
 
 import { CREATOR_TERMS_VERSION as TERMS_VERSION } from "@/lib/creator-terms";
 
 export async function POST(req: Request) {
   const limit = await rateLimit(clientKey(req, "signup"), 6, 60_000);
   if (!limit.ok) return fail("Too many attempts. Try again shortly.", 429);
-
-  const captcha = await checkTurnstile(req);
-  if (!captcha.ok) return captcha.response;
 
   // The form posts multipart when a photo is attached and JSON when it isn't,
   // so that applying with a portrait is one request rather than a sign-up
